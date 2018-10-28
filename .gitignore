@@ -29,3 +29,5 @@ figure/
 cache/
 *SugarSyncTemp
 *.icloud
+*.html
+/stan_jm_cache

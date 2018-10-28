@@ -1,0 +1,119 @@
+---
+title: "Bayesian Propensity Score Analysis"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+
+## R configuration
+options(width = 116, scipen = 5)
+```
+
+## References
+- [Kaplan. Bayesian Propensity Score Analysis: Simulation and Case Study](https://www.sree.org/conferences/2011/program/downloads/slides/20.pdf)
+- **Joint modeling**
+  - [McCandless et al. (2009) Bayesian propensity score analysis for observational data.](https://www.ncbi.nlm.nih.gov/pubmed/19012268)
+  - [An. (2010) 4. Bayesian Propensity Score Estimators: Incorporating Uncertainties in Propensity Scores into Causal Inference](http://journals.sagepub.com/doi/10.1111/j.1467-9531.2010.01226.x)
+  - [Zigler et al. (2013) Model feedback in Bayesian propensity score estimation.](https://www.ncbi.nlm.nih.gov/pubmed/23379793)
+- **Two-stage modeling**
+  - [McCandless et al. (2010) Cutting feedback in Bayesian regression adjustment for the propensity score.](https://www.ncbi.nlm.nih.gov/pubmed/21972431)
+  - [Kaplan et al. (2012) A Two-Step Bayesian Approach for Propensity Score Analysis: Simulations and Case Study.](https://www.ncbi.nlm.nih.gov/pubmed/27519782)
+  - [Liao et al. (2018) Uncertainty in the Design Stage of Two-Stage Bayesian Propensity Score Analysis](https://arxiv.org/abs/1809.05038)
+  - [Spertus et al. (2018) Bayesian propensity scores for high-dimensional causal inference: A comparison of drug-eluting to bare-metal coronary stents.](https://www.ncbi.nlm.nih.gov/pubmed/29682785)
+- **Lalonde dataset**
+  - https://rdrr.io/cran/arm/man/lalonde.html
+
+## Background
+There are two schools of thoughts in Bayesian approaches to propensity score (PS) analysis.
+
+One is the joint modeling approach [McCandless 2009, An 2010]. In the joint approach, the PS model and the outcome model are fitted jointly. The PS acts as a latent variable that connects the two models. The potential problem here is that by fitting the two models, the outcome model informs the PS model. They are originally meant to be two sequential stages in PS analysis. That is, the PS model is fit without the knowledge of the outcome variable. The outcome model is fit given the estimated PS.
+
+The other approach is to maintain the two-stage sequential nature of the PS method. 
+
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(arm)
+library(tableone)
+```
+
+## Load dataset
+
+```{r}
+data(lalonde, package = "arm")
+lalonde <- as_data_frame(lalonde)
+lalonde
+```
+
+```
+lalonde                  package:arm                   R Documentation
+Lalonde Dataset
+Description:
+     Dataset used by Dehejia and Wahba (1999) to evaluate propensity
+     score matching.
+Usage:
+     data(lalonde)
+Format:
+     A data frame with 445 observations on the following 12 variables.
+     age age in years.
+     educ years of schooling.
+     black indicator variable for blacks.
+     hisp indicator variable for Hispanics.
+     married indicator variable for martial status.
+     nodegr indicator variable for high school diploma.
+     re74 real earnings in 1974.
+     re75 real earnings in 1975.
+     re78 real earnings in 1978. (Outcome)
+     u74 indicator variable for earnings in 1974 being zero.
+     u75 indicator variable for earnings in 1975 being zero.
+     treat an indicator variable for treatment status.
+```
+
+## Show baseline
+
+```{r}
+## Do not include treatment and outcome
+lalonde_vars <- setdiff(names(lalonde), c("treat", "re78"))
+tab1_unweighted <- CreateTableOne(vars = lalonde_vars, strata = "treat", data = lalonde)
+print(tab1_unweighted, nonnormal = c("re74","re75"), smd = TRUE, test = FALSE)
+```
+
+We can see that many people had zero pre-treatment income.
+
+
+## Models
+
+We will assume the following simple PS model.
+
+```{r}
+ps_formula <- treat ~ age + educ + black + hisp + married + nodegr + re74 + re75 + u74 + u75
+```
+
+
+## Joint approach
+
+Here we start with the joint modeling approach.
+
+```{r}
+
+```
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos

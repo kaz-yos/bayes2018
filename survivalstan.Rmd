@@ -24,17 +24,20 @@ options(width = 116, scipen = 5)
 ```
 
 ## References
+- [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
 - Books
 -
 - R packages
-  - [bayesSurv](https://cran.r-project.org/web/packages/bayesSurv/index.html)
+  - [bayesSurv: Bayesian Survival Regression with Flexible Error and Random Effects Distributions](https://cran.r-project.org/web/packages/bayesSurv/index.html)
+  - [survHE: Survival Analysis in Health Economic Evaluation](https://cran.r-project.org/web/packages/survHE/index.html)
+  - [biostan: Introduction to Bayesian Inference using Stan with Applications to Cancer Genomics](https://github.com/jburos/biostan)
 - SurvivalStan (Python)
   - [Introducing SurvivalStan](http://www.hammerlab.org/2017/06/26/introducing-survivalstan/)
   - [Github SurvivalStan](https://github.com/hammerlab/survivalstan)
 
 
 ## Background
-Survival analysis is at the core of epidemiological data analysis. There are multiple well-known Bayesian data analysis textbooks, but they typically do not cover survival analysis. Here I will show case some R examples of Bayesian survival analysis.
+Survival analysis is at the core of epidemiological data analysis. There are multiple well-known Bayesian data analysis textbooks, but they typically do not cover survival analysis. Here we will show case some R examples of Bayesian survival analysis.
 
 
 ## Load packages
@@ -43,6 +46,8 @@ Survival analysis is at the core of epidemiological data analysis. There are mul
 library(tidyverse)
 library(survminer)
 library(bayesSurv)
+## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
+library(biostan)
 ```
 
 
@@ -87,6 +92,24 @@ ggsurvplot(km_fit,
            break.time.by = 20,
            risk.table = TRUE)
 ```
+
+### Stan Weibull fit
+
+Here we will use the Weibull model code available in [biostan](https://github.com/jburos/biostan).
+
+```{r}
+stan_weibull_survival_model_file <- system.file('stan', 'weibull_survival_model.stan', package =  'biostan')
+biostan::print_stan_file(stan_weibull_survival_model_file)
+```
+
+From the data block, observations where events were observed and censored are handled separately. No hyperparameters for the priors are specified here. They are hard-coded.
+
+```{r}
+stan_weibull_survival_model_code <- biostan::read_stan_file(stan_weibull_survival_model_file)
+biostan::print_stan_code(stan_weibull_survival_model_code, section = "data")
+```
+
+
 
 
 ## Recurrent event example

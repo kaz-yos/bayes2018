@@ -66,6 +66,7 @@ library(survminer)
 library(bayesSurv)
 ## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
 library(biostan)
+library(rstan)
 ```
 
 
@@ -120,6 +121,16 @@ stan_weibull_survival_model_file <- system.file('stan', 'weibull_survival_model.
 biostan::print_stan_file(stan_weibull_survival_model_file)
 ```
 
+Stan parameterizes this probability density function as follows.
+
+$$f(x|\alpha,\sigma) =
+\frac{\alpha}{\sigma}\left(\frac{x}{\sigma}\right)^{\alpha-1}e^{-(x/\sigma)^{\alpha}}$$
+
+where $\alpha$ is the shape parameter and $\sigma$ is the scale parameter. To incorporate covariates, the scale parameter is defined as follows
+
+$$\sigma = \exp{\left( - \frac{\mu + X_{i}^{T}\beta}{\alpha} \right)}$$
+
+
 From the data block, observations where events were observed and censored are handled separately. No hyperparameters for the priors are specified here. They are hard-coded.
 
 ```{r}
@@ -127,11 +138,46 @@ stan_weibull_survival_model_code <- biostan::read_stan_file(stan_weibull_surviva
 biostan::print_stan_code(stan_weibull_survival_model_code, section = "data")
 ```
 
+Here we structure the data accordingly.
 
+```{r}
+stan_weibull_survival_model_data <-
+    list(
+        ## Number of event individuals
+        Nobs = sum(leukemia$status == 1),
+        ## Number of censored individuals
+        Ncen = sum(leukemia$status == 0),
+        ## Number of covariates
+        M_bg = 1,
+        ## Times for event individuals
+        yobs = leukemia$time[leukemia$status == 1],
+        ## Times for censored individuals
+        ycen = leukemia$time[leukemia$status == 0],
+        ## Covariates for event individuals as a matrix
+        Xobs_bg = matrix(as.numeric(leukemia$x == "Maintained")[leukemia$status == 1]),
+        ## Covariates for censored individuals as a matrix
+        Xcen_bg = matrix(as.numeric(leukemia$x == "Maintained")[leukemia$status == 0])
+        )
+stan_weibull_survival_model_data
+```
+
+Here we fit the model.
+
+```{r, cache = TRUE}
+stan_weibull_survival_model_fit <-
+    rstan::stan(file = stan_weibull_survival_model_file,
+                data = stan_weibull_survival_model_data)
+```
+
+Here we check the results.
+
+```{r}
+stan_weibull_survival_model_fit
+```
 
 
 ## Recurrent event example
-
+### Load a dataset with recurrent events
 ```{r}
 data(cgd, package = "bayesSurv")
 cgd <- as_data_frame(cgd)

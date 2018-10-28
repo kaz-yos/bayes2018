@@ -1,5 +1,5 @@
 ---
-title: "SurvivalStan"
+title: "Bayesian Survival Analysis"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -24,21 +24,77 @@ options(width = 116, scipen = 5)
 ```
 
 ## References
-- http://www.hammerlab.org/2017/06/26/introducing-survivalstan/
-- https://github.com/hammerlab/survivalstan
+- Books
+-
+- R packages
+  - [bayesSurv](https://cran.r-project.org/web/packages/bayesSurv/index.html)
+- SurvivalStan (Python)
+  - [Introducing SurvivalStan](http://www.hammerlab.org/2017/06/26/introducing-survivalstan/)
+  - [Github SurvivalStan](https://github.com/hammerlab/survivalstan)
+
+
+## Background
+Survival analysis is at the core of epidemiological data analysis. There are multiple well-known Bayesian data analysis textbooks, but they typically do not cover survival analysis. Here I will show case some R examples of Bayesian survival analysis.
 
 
 ## Load packages
 
 ```{r}
 library(tidyverse)
-library(survivalstan)
+library(survminer)
+library(bayesSurv)
 ```
 
-##
+
+## Descriptive analysis example
+### Load a simple dataset
 
 ```{r}
+data(leukemia, package = "survival")
+leukemia <- as_data_frame(leukemia)
+leukemia
+```
 
+```
+aml                  package:survival                  R Documentation
+Acute Myelogenous Leukemia survival data
+Description:
+     Survival in patients with Acute Myelogenous Leukemia.  The
+     question at the time was whether the standard course of
+     chemotherapy should be extended ('maintainance') for additional
+     cycles.
+Usage:
+     aml
+     leukemia
+Format:
+       time:    survival or censoring time
+       status:  censoring status
+       x:       maintenance chemotherapy given? (factor)
+Source:
+     Rupert G. Miller (1997), _Survival Analysis_.  John Wiley & Sons.
+     ISBN: 0-471-25218-2.
+```
+
+
+### Regular Kaplan-Meier plot
+
+```{r}
+km_fit <- survfit(Surv(time, status) ~ x, data = leukemia)
+km_fit
+## http://www.sthda.com/english/wiki/survminer-0-2-4
+ggsurvplot(km_fit,
+           conf.int = TRUE,
+           break.time.by = 20,
+           risk.table = TRUE)
+```
+
+
+## Recurrent event example
+
+```{r}
+data(cgd, package = "bayesSurv")
+cgd <- as_data_frame(cgd)
+cgd
 ```
 
 

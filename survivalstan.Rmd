@@ -121,15 +121,16 @@ stan_weibull_survival_model_file <- system.file('stan', 'weibull_survival_model.
 biostan::print_stan_file(stan_weibull_survival_model_file)
 ```
 
-Stan parameterizes this probability density function as follows.
+Stan parameterizes this probability density function for the survival time $y$ as follows.
 
-$$f(x|\alpha,\sigma) =
-\frac{\alpha}{\sigma}\left(\frac{x}{\sigma}\right)^{\alpha-1}e^{-(x/\sigma)^{\alpha}}$$
+$$f(y|\alpha,\sigma) =
+\frac{\alpha}{\sigma}\left(\frac{y}{\sigma}\right)^{\alpha-1}e^{-(y/\sigma)^{\alpha}}$$
 
-where $\alpha$ is the shape parameter and $\sigma$ is the scale parameter. To incorporate covariates, the scale parameter is defined as follows
+where $\alpha$ is the shape parameter and $\sigma$ is the scale parameter. The average survival time increases with an increasing $\sigma$. To incorporate covariates, the scale parameter is defined as follows in the Stan program used here.
 
 $$\sigma = \exp{\left( - \frac{\mu + X_{i}^{T}\beta}{\alpha} \right)}$$
 
+As $\sigma$ is a decreasing function of $\beta$, a positive $\beta$ means a shorter average survival time with a unit increase in $X_i$ and a negative $\beta$ means a longer average survival time with a unit increase in $X_i$.
 
 From the data block, observations where events were observed and censored are handled separately. No hyperparameters for the priors are specified here. They are hard-coded.
 

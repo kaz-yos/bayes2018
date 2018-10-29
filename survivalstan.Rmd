@@ -37,8 +37,8 @@ options(cores = n_cores)
 ## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
 doParallel::registerDoParallel(cores = n_cores)
 ## Report multicore use
-cat("### Using", foreach::getDoParWorkers(), "cores\n")
-cat("### Using", foreach::getDoParName(), "as backend\n")
+## cat("### Using", foreach::getDoParWorkers(), "cores\n")
+## cat("### Using", foreach::getDoParName(), "as backend\n")
 ```
 
 ## References
@@ -67,6 +67,7 @@ library(bayesSurv)
 ## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
 library(biostan)
 library(rstan)
+library(bayesplot)
 ```
 
 
@@ -128,7 +129,7 @@ $$f(y|\alpha,\sigma) =
 
 where $\alpha$ is the shape parameter and $\sigma$ is the scale parameter. The average survival time increases with an increasing $\sigma$. To incorporate covariates, the scale parameter is defined as follows in the Stan program used here.
 
-$$\sigma = \exp{\left( - \frac{\mu + X_{i}^{T}\beta}{\alpha} \right)}$$
+$$\sigma_{i} = \exp{\left( - \frac{\mu + X_{i}^{T}\beta}{\alpha} \right)}$$
 
 As $\sigma$ is a decreasing function of $\beta$, a positive $\beta$ means a shorter average survival time with a unit increase in $X_i$ and a negative $\beta$ means a longer average survival time with a unit increase in $X_i$.
 
@@ -170,11 +171,31 @@ stan_weibull_survival_model_fit <-
                 data = stan_weibull_survival_model_data)
 ```
 
-Here we check the results.
+Here we check the results. The ```Rhat``` values are all around 1, indicating reasonable results for all parameters. Each element of ```yhat_uncens``` (a vector of 23 elements) is MCMC samples of event times for each individual based on $(\alpha, \sigma_{i})$ MCMC samples.
 
 ```{r}
 stan_weibull_survival_model_fit
 ```
+
+The traceplots for the parameters of interest appear to indicate reasonable mixing.
+
+```{r}
+rstan::traceplot(stan_weibull_survival_model_fit, par = c("alpha","mu","beta_bg"))
+```
+
+Some auto-correlation is seen for the parameters of interest.
+
+```{r}
+bayesplot::mcmc_acf(as.matrix(stan_weibull_survival_model_fit), pars = c("alpha","mu","beta_bg[1]"))
+```
+
+95% credible intervals for the parameters. The effect of interest ```beta_bg[1]``` seems to have most of its posterior probability in the negative range (survival benefit with Maintained treatment).
+
+```{r}
+bayesplot::mcmc_areas(as.matrix(stan_weibull_survival_model_fit), pars = c("alpha","mu","beta_bg[1]"), prob = 0.95)
+```
+
+Posterior predictive distribution.
 
 
 ## Recurrent event example

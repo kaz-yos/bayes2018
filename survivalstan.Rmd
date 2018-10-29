@@ -68,6 +68,7 @@ library(bayesSurv)
 library(biostan)
 library(rstan)
 library(bayesplot)
+library(tidybayes)
 ```
 
 
@@ -195,16 +196,37 @@ bayesplot::mcmc_acf(as.matrix(stan_weibull_survival_model_fit), pars = c("alpha"
 bayesplot::mcmc_areas(as.matrix(stan_weibull_survival_model_fit), pars = c("alpha","mu","beta_bg[1]"), prob = 0.95)
 ```
 
-Posterior predictive distribution.
+The parameter values do not give intuitive understanding of the survival time distributions for each group. As the Stan code sampled the event times for each individual, we can examine these directly.
 
-
-## Recurrent event example
-### Load a dataset with recurrent events
 ```{r}
-data(cgd, package = "bayesSurv")
-cgd <- as_data_frame(cgd)
-cgd
+stan_weibull_survival_model_draws <- tidybayes::tidy_draws(stan_weibull_survival_model_fit)
+stan_weibull_survival_model_draws
 ```
+
+The ordering of ```yhat_uncens``` does not respect the original data ordering, but is in the observed-then-censored ordering of data fed to Stan. We need to create the corresponding treatment vector.
+
+```{r}
+treatment_assignment <- c(as.numeric(leukemia$x == "Maintained")[leukemia$status == 1],
+                          as.numeric(leukemia$x == "Maintained")[leukemia$status == 0])
+```
+
+The draws have to be reorganized in the long format.
+
+```{r}
+stan_weibull_survival_model_draws %>%
+    select(.chain, .iteration, .draw, starts_with("yhat_uncens")) %>%
+    gather(key = key, value = yhat_uncens, starts_with("yhat_uncens")) %>%
+    separate(col = key, sep = "\\[", into = c("key","obs"))
+```
+
+
+<!-- ## Recurrent event example -->
+<!-- ### Load a dataset with recurrent events -->
+<!-- ```{r} -->
+<!-- data(cgd, package = "bayesSurv") -->
+<!-- cgd <- as_data_frame(cgd) -->
+<!-- cgd -->
+<!-- ``` -->
 
 
 --------------------

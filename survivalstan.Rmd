@@ -208,17 +208,41 @@ The ordering of ```yhat_uncens``` does not respect the original data ordering, b
 ```{r}
 treatment_assignment <- c(as.numeric(leukemia$x == "Maintained")[leukemia$status == 1],
                           as.numeric(leukemia$x == "Maintained")[leukemia$status == 0])
+treatment_assignment_df <-
+    data_frame(obs = 1:23,
+               treatment = treatment_assignment)
+treatment_assignment_df
 ```
 
-The draws have to be reorganized in the long format.
+The draws have to be reorganized into the long format and combined with the treatment assignment.
 
 ```{r}
-stan_weibull_survival_model_draws %>%
+stan_weibull_survival_model_draws_yhat_uncens <-
+    stan_weibull_survival_model_draws %>%
     select(.chain, .iteration, .draw, starts_with("yhat_uncens")) %>%
     gather(key = key, value = yhat_uncens, starts_with("yhat_uncens")) %>%
-    separate(col = key, sep = "\\[", into = c("key","obs"))
+    separate(col = key, sep = "uncens", into = c("key","obs")) %>%
+    select(-key) %>%
+    mutate(obs = as.integer(gsub("\\[|\\]","", obs))) %>%
+    left_join(y = treatment_assignment_df)
+stan_weibull_survival_model_draws_yhat_uncens
 ```
 
+Now we can plot the posterior predictive distributions of survival times for each group.
+
+```{r}
+ggplot(data = stan_weibull_survival_model_draws_yhat_uncens,
+       mapping = aes(x = yhat_uncens, color = factor(treatment))) +
+    geom_density() +
+    coord_cartesian(xlim = c(0,160)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+We can see the event times are shifted to the right (longer survival times) for the treated group (Maintained group).
 
 <!-- ## Recurrent event example -->
 <!-- ### Load a dataset with recurrent events -->

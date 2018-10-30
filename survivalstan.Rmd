@@ -43,6 +43,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
+- [Wikipedia Weibull distribution](https://en.wikipedia.org/wiki/Weibull_distribution)
 - Books
 -
 - R packages
@@ -230,7 +231,7 @@ stan_weibull_survival_model_draws_yhat_uncens <-
 stan_weibull_survival_model_draws_yhat_uncens
 ```
 
-Now we can plot the posterior predictive distributions of survival times for each group. This plot is comparing two conditional density functions $f_{T|X}(t|1)$ and $f_{T|X}(t|0)$.
+Now we can plot the posterior predictive distributions of survival times for each group. This plot is comparing two conditional empirical density functions $\hat{f}_{Y|X}(t|1)$ and $\hat{f}_{Y|X}(t|0)$.
 
 ```{r}
 ggplot(data = stan_weibull_survival_model_draws_yhat_uncens,
@@ -245,6 +246,65 @@ ggplot(data = stan_weibull_survival_model_draws_yhat_uncens,
 ```
 
 We can see the event times are shifted to the right (longer survival times) for the treated group (Maintained group).
+
+To compare more familiar conditional survival functions we can use the Weibull survival function.
+
+$$S(t | x) = e^{- \left( \frac{y}{\sigma_{i}} \right)^{\alpha}}$$
+
+where $\sigma_{i}$ is a function of $x$.
+
+$$\sigma_{i} = \exp{\left( - \frac{\mu + x_{i}^{T}\beta}{\alpha} \right)}$$
+
+Therefore, for each MCMC sample of the $(\alpha, \mu, \beta)$ triplet, we will have two random survival functions. To plot these functions, we then need to evaluate these functions at various time points in [0,160].
+
+```{r}
+## Constructor for treatment-specific survival function
+construct_survival_function <- function(alpha, mu, beta, x) {
+    function(t) {
+        shape <- exp(- (mu + beta * x) / alpha)
+        exp(- (t / alpha)^shape)
+    }
+}
+
+## Random functions
+stan_weibull_survival_model_survival_functins <-
+    stan_weibull_survival_model_draws %>%
+    select(.chain, .iteration, .draw, alpha, mu, `beta_bg[1]`) %>%
+    ## Simplify name
+    rename(beta = `beta_bg[1]`) %>%
+    mutate(`S(t|1)` = list(construct_survival_function(alpha, mu, beta, 1)),
+           `S(t|0)` = list(construct_survival_function(alpha, mu, beta, 0)))
+stan_weibull_survival_model_survival_functins
+```
+
+The space on which the average is taken can be the parameter space $(\alpha, \mu, \beta)$ or the survival space. Here we will calculate average parameter vector, and construct corresponding survival functions.
+
+```{r}
+## Average on parameter space
+stan_weibull_survival_model_average_parameters <-
+    stan_weibull_survival_model_draws %>%
+    summarize(alpha = mean(alpha),
+              mu = mean(mu),
+              beta = mean(`beta_bg[1]`))
+stan_weibull_survival_model_average_parameters
+average_params_survival1 <- with(stan_weibull_survival_model_average_parameters,
+                                 construct_survival_function(alpha, mu, beta, 1))
+average_params_survival0 <- with(stan_weibull_survival_model_average_parameters,
+                                 construct_survival_function(alpha, mu, beta, 0))
+
+data_frame(t = seq(from = 0, to = 160, by = 0.1),
+           `S(t|1)` = average_params_survival1(t),
+           `S(t|0)` = average_params_survival0(t)) %>%
+    gather(key = key, value = value, -t) %>%
+    ggplot(mapping = aes(x = t, y = value, color = key, group = key)) +
+    geom_line() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
 
 <!-- ## Recurrent event example -->
 <!-- ### Load a dataset with recurrent events -->

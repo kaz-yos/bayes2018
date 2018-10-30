@@ -1,5 +1,5 @@
 ---
-title: "Bayesian Survival Analysis"
+title: "Bayesian Survival Analysis 1"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -223,17 +223,19 @@ stan_weibull_survival_model_draws_yhat_uncens <-
     gather(key = key, value = yhat_uncens, starts_with("yhat_uncens")) %>%
     separate(col = key, sep = "uncens", into = c("key","obs")) %>%
     select(-key) %>%
-    mutate(obs = as.integer(gsub("\\[|\\]","", obs))) %>%
+    ## Avoid using regular expressions with square brackets (syntax highlighter broke).
+    ## https://stringr.tidyverse.org/articles/stringr.html
+    mutate(obs = as.integer(str_sub(obs, 2, -2))) %>%
     left_join(y = treatment_assignment_df)
 stan_weibull_survival_model_draws_yhat_uncens
 ```
 
-Now we can plot the posterior predictive distributions of survival times for each group.
+Now we can plot the posterior predictive distributions of survival times for each group. This plot is comparing two conditional density functions $f_{T|X}(t|1)$ and $f_{T|X}(t|0)$.
 
 ```{r}
 ggplot(data = stan_weibull_survival_model_draws_yhat_uncens,
        mapping = aes(x = yhat_uncens, color = factor(treatment))) +
-    geom_density() +
+    geom_density(n = 512*10) +
     coord_cartesian(xlim = c(0,160)) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),

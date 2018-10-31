@@ -257,7 +257,7 @@ $$\sigma_{i} = \exp{\left( - \frac{\mu + x_{i}^{T}\beta}{\alpha} \right)}$$
 
 Therefore, for each MCMC sample of the $(\alpha, \mu, \beta)$ triplet, we will have two random survival functions. To plot these functions, we then need to evaluate these functions at various time points in [0,160].
 
-```{r, w = 10}
+```{r, w = 10, h = 7}
 ## Constructor for treatment-specific survival function
 construct_survival_function <- function(alpha, mu, beta, x) {
     function(t) {
@@ -308,7 +308,7 @@ stan_weibull_survival_model_survival_mean <-
 
 ggplot(data = stan_weibull_survival_model_survival,
        mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
-    geom_line(size = 0.1, alpha = 0.01) +
+    geom_line(size = 0.1, alpha = 0.02) +
     geom_line(data = stan_weibull_survival_model_survival_mean,
               mapping = aes(y = survival_mean, group = treatment)) +
     geom_line(data = stan_weibull_survival_model_survival_mean,
@@ -361,10 +361,10 @@ stan_weibull_average_params_survival %>%
 
 Plot both of them to compare.
 
-```{r, w = 10}
+```{r, w = 10, h = 7}
 ggplot(data = stan_weibull_survival_model_survival,
        mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
-    geom_line(size = 0.1, alpha = 0.01) +
+    geom_line(size = 0.1, alpha = 0.02) +
     geom_line(data = stan_weibull_survival_model_survival_mean,
               mapping = aes(group = treatment)) +
     geom_line(data = stan_weibull_average_params_survival,

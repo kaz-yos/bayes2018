@@ -298,15 +298,25 @@ stan_weibull_survival_model_survival <-
                               levels = c("s1","s0"),
                               labels = c("Maintained","Nonmaintained")))
 
+## Average on survival scale
+stan_weibull_survival_model_survival_mean <-
+    stan_weibull_survival_model_survival %>%
+    group_by(treatment, t) %>%
+    summarize(survival = mean(survival),
+              survival_95upper = quantile(survival, probs = 0.975),
+              survival_95lower = quantile(survival, probs = 0.025))
+
 ggplot(data = stan_weibull_survival_model_survival,
-       mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw))) +
-    geom_line(size = 0.1, alpha = 0.1) +
+       mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
+    geom_line(size = 0.1, alpha = 0.01) +
+    geom_line(data = stan_weibull_survival_model_survival_mean,
+              mapping = aes(group = treatment)) +
+    facet_grid(. ~ treatment) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
-
 ```
 
 The space on which the average is taken can be the parameter space $(\alpha, \mu, \beta)$ or the survival space. Here we will calculate average parameter vector, and construct corresponding survival functions.
@@ -320,23 +330,46 @@ stan_weibull_survival_model_average_parameters <-
               beta = mean(`beta_bg[1]`))
 stan_weibull_survival_model_average_parameters
 
-average_params_survival1 <- with(stan_weibull_survival_model_average_parameters,
-                                 construct_survival_function(alpha, mu, beta, 1))
-average_params_survival0 <- with(stan_weibull_survival_model_average_parameters,
-                                 construct_survival_function(alpha, mu, beta, 0))
+stan_weibull_average_params_survival1 <- with(stan_weibull_survival_model_average_parameters,
+                                              construct_survival_function(alpha, mu, beta, 1))
+stan_weibull_average_params_survival0 <- with(stan_weibull_survival_model_average_parameters,
+                                              construct_survival_function(alpha, mu, beta, 0))
+stan_weibull_average_params_survival <-
+    data_frame(t = seq(from = 0, to = 160, by = 0.1),
+               s1 = stan_weibull_average_params_survival1(t),
+               s0 = stan_weibull_average_params_survival0(t)) %>%
+    gather(key = treatment, value = survival, -t) %>%
+    mutate(treatment = factor(treatment,
+                              levels = c("s1","s0"),
+                              labels = c("Maintained","Nonmaintained")))
 
-data_frame(t = seq(from = 0, to = 160, by = 0.1),
-           `S(t|1)` = average_params_survival1(t),
-           `S(t|0)` = average_params_survival0(t)) %>%
-    gather(key = key, value = value, -t) %>%
-    ggplot(mapping = aes(x = t, y = value, color = key, group = key)) +
+stan_weibull_average_params_survival %>%
+    ggplot(mapping = aes(x = t, y = survival, color = treatment, group = treatment)) +
     geom_line() +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+```
 
+Plot both of them to compare.
+
+```{r}
+ggplot(data = stan_weibull_survival_model_survival,
+       mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
+    geom_line(size = 0.1, alpha = 0.01) +
+    geom_line(data = stan_weibull_survival_model_survival_mean,
+              mapping = aes(group = treatment)) +
+    geom_line(data = stan_weibull_average_params_survival,
+              mapping = aes(group = treatment),
+              linetype = "dotted") +
+    facet_grid(. ~ treatment) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 <!-- ## Recurrent event example -->

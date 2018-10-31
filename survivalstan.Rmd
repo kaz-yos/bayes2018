@@ -1,5 +1,5 @@
 ---
-title: "Bayesian Survival Analysis 1"
+title: "Bayesian Survival Analysis 1: Weibull Model with Stan"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -53,7 +53,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 
 ## Background
-Survival analysis is at the core of epidemiological data analysis. There are multiple well-known Bayesian data analysis textbooks, but they typically do not cover survival analysis. Here we will show case some R examples of Bayesian survival analysis.
+Survival analysis is at the core of epidemiological data analysis. There are multiple well-known Bayesian data analysis textbooks, but they typically do not cover survival analysis. Here we will showcase some R examples of Bayesian survival analysis.
 
 
 ## Load packages
@@ -61,7 +61,7 @@ Survival analysis is at the core of epidemiological data analysis. There are mul
 ```{r}
 library(tidyverse)
 library(survminer)
-library(bayesSurv)
+## library(bayesSurv)
 ## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
 library(biostan)
 library(rstan)
@@ -356,14 +356,14 @@ stan_weibull_average_params_survival %>%
           strip.background = element_blank())
 ```
 
-Plot both of them to compare.
+Plot both of them to compare. The dotted lines are averaged in the parameter space. The solid lines are averaged on the survival scale.
 
 ```{r, w = 10, h = 7}
 ggplot(data = stan_weibull_survival_model_survival,
        mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
     geom_line(size = 0.1, alpha = 0.02) +
     geom_line(data = stan_weibull_survival_model_survival_mean,
-              mapping = aes(group = treatment)) +
+              mapping = aes(y = survival_mean, group = treatment)) +
     geom_line(data = stan_weibull_average_params_survival,
               mapping = aes(group = treatment),
               linetype = "dotted") +

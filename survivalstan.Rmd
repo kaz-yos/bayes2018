@@ -257,7 +257,7 @@ $$\sigma_{i} = \exp{\left( - \frac{\mu + x_{i}^{T}\beta}{\alpha} \right)}$$
 
 Therefore, for each MCMC sample of the $(\alpha, \mu, \beta)$ triplet, we will have two random survival functions. To plot these functions, we then need to evaluate these functions at various time points in [0,160].
 
-```{r}
+```{r, w = 10}
 ## Constructor for treatment-specific survival function
 construct_survival_function <- function(alpha, mu, beta, x) {
     function(t) {
@@ -302,7 +302,7 @@ stan_weibull_survival_model_survival <-
 stan_weibull_survival_model_survival_mean <-
     stan_weibull_survival_model_survival %>%
     group_by(treatment, t) %>%
-    summarize(survival = mean(survival),
+    summarize(survival_mean = mean(survival),
               survival_95upper = quantile(survival, probs = 0.975),
               survival_95lower = quantile(survival, probs = 0.025))
 
@@ -310,7 +310,13 @@ ggplot(data = stan_weibull_survival_model_survival,
        mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
     geom_line(size = 0.1, alpha = 0.01) +
     geom_line(data = stan_weibull_survival_model_survival_mean,
-              mapping = aes(group = treatment)) +
+              mapping = aes(y = survival_mean, group = treatment)) +
+    geom_line(data = stan_weibull_survival_model_survival_mean,
+              mapping = aes(y = survival_95upper, group = treatment),
+              linetype = "dotted") +
+    geom_line(data = stan_weibull_survival_model_survival_mean,
+              mapping = aes(y = survival_95lower, group = treatment),
+              linetype = "dotted") +
     facet_grid(. ~ treatment) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -355,7 +361,7 @@ stan_weibull_average_params_survival %>%
 
 Plot both of them to compare.
 
-```{r}
+```{r, w = 10}
 ggplot(data = stan_weibull_survival_model_survival,
        mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw,treatment))) +
     geom_line(size = 0.1, alpha = 0.01) +

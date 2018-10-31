@@ -331,7 +331,6 @@ data_frame(t = seq(from = 0, to = 160, by = 0.1),
     gather(key = key, value = value, -t) %>%
     ggplot(mapping = aes(x = t, y = value, color = key, group = key)) +
     geom_line() +
-    coord_cartesian(xlim = c(0,3)) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

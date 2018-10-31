@@ -261,8 +261,8 @@ Therefore, for each MCMC sample of the $(\alpha, \mu, \beta)$ triplet, we will h
 ## Constructor for treatment-specific survival function
 construct_survival_function <- function(alpha, mu, beta, x) {
     function(t) {
-        shape <- exp(- (mu + beta * x) / alpha)
-        exp(- (t / alpha)^shape)
+        sigma_i <- exp(-1 * (mu + beta * x) / alpha)
+        exp(- (t / sigma_i)^alpha)
     }
 }
 

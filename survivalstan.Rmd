@@ -272,9 +272,41 @@ stan_weibull_survival_model_survival_functins <-
     select(.chain, .iteration, .draw, alpha, mu, `beta_bg[1]`) %>%
     ## Simplify name
     rename(beta = `beta_bg[1]`) %>%
-    mutate(`S(t|1)` = list(construct_survival_function(alpha, mu, beta, 1)),
-           `S(t|0)` = list(construct_survival_function(alpha, mu, beta, 0)))
+    ## Construct realization of random functions
+    mutate(`S(t|1)` = pmap(list(alpha, mu, beta), function(a,m,b) {construct_survival_function(a,m,b,1)}),
+           `S(t|0)` = pmap(list(alpha, mu, beta), function(a,m,b) {construct_survival_function(a,m,b,0)}))
 stan_weibull_survival_model_survival_functins
+
+times <- seq(from = 0, to = 160, by = 0.1)
+times_df <- data_frame(t = times)
+
+## Try first realizations
+stan_weibull_survival_model_survival_functins$`S(t|1)`[[1]](times[1:10])
+stan_weibull_survival_model_survival_functins$`S(t|0)`[[1]](times[1:10])
+
+## Apply all realizations
+stan_weibull_survival_model_survival <-
+    stan_weibull_survival_model_survival_functins %>%
+    mutate(times_df = list(times_df)) %>%
+    mutate(times_df = pmap(list(times_df, `S(t|1)`, `S(t|0)`),
+                           function(df, s1, s0) {df %>% mutate(s1 = s1(t),
+                                                               s0 = s0(t))})) %>%
+    select(-`S(t|1)`, -`S(t|0)`) %>%
+    unnest() %>%
+    gather(key = treatment, value = survival, s1, s0) %>%
+    mutate(treatment = factor(treatment,
+                              levels = c("s1","s0"),
+                              labels = c("Maintained","Nonmaintained")))
+
+ggplot(data = stan_weibull_survival_model_survival,
+       mapping = aes(x = t, y = survival, color = treatment, group = interaction(.chain,.draw))) +
+    geom_line(size = 0.1, alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
 ```
 
 The space on which the average is taken can be the parameter space $(\alpha, \mu, \beta)$ or the survival space. Here we will calculate average parameter vector, and construct corresponding survival functions.
@@ -287,6 +319,7 @@ stan_weibull_survival_model_average_parameters <-
               mu = mean(mu),
               beta = mean(`beta_bg[1]`))
 stan_weibull_survival_model_average_parameters
+
 average_params_survival1 <- with(stan_weibull_survival_model_average_parameters,
                                  construct_survival_function(alpha, mu, beta, 1))
 average_params_survival0 <- with(stan_weibull_survival_model_average_parameters,
@@ -298,6 +331,7 @@ data_frame(t = seq(from = 0, to = 160, by = 0.1),
     gather(key = key, value = value, -t) %>%
     ggplot(mapping = aes(x = t, y = value, color = key, group = key)) +
     geom_line() +
+    coord_cartesian(xlim = c(0,3)) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

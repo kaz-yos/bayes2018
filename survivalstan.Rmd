@@ -44,15 +44,12 @@ doParallel::registerDoParallel(cores = n_cores)
 ## References
 - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
 - [Wikipedia Weibull distribution](https://en.wikipedia.org/wiki/Weibull_distribution)
-- Books
--
 - R packages
+  - [biostan: Introduction to Bayesian Inference using Stan with Applications to Cancer Genomics](https://github.com/jburos/biostan)
   - [bayesSurv: Bayesian Survival Regression with Flexible Error and Random Effects Distributions](https://cran.r-project.org/web/packages/bayesSurv/index.html)
   - [survHE: Survival Analysis in Health Economic Evaluation](https://cran.r-project.org/web/packages/survHE/index.html)
-  - [biostan: Introduction to Bayesian Inference using Stan with Applications to Cancer Genomics](https://github.com/jburos/biostan)
-- SurvivalStan (Python)
+- Python
   - [Introducing SurvivalStan](http://www.hammerlab.org/2017/06/26/introducing-survivalstan/)
-  - [Github SurvivalStan](https://github.com/hammerlab/survivalstan)
 
 
 ## Background

@@ -1,0 +1,82 @@
+---
+title: "Bayesian Ideas and Data Analysis in Stan: Log-normal AFT"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+
+## R configuration
+options(width = 116, scipen = 5)
+```
+
+
+## References
+- [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
+- Books
+  - [Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(KMsurv)
+## https://github.com/jburos/biostan
+## devtools::install_github('jburos/biostan', build_vignettes=TRUE, dependencies=TRUE)
+library(biostan)
+```
+
+
+## Load data
+
+```{r}
+data(larynx, package = "KMsurv")
+larynx <- larynx %>% as_data_frame
+larynx
+```
+
+```
+larynx                 package:KMsurv                  R Documentation
+data from Section 1.8
+Description:
+     The ‘larynx’ data frame has 90 rows and 5 columns.
+Format:
+     This data frame contains the following columns:
+     stage Stage of disease (1=stage 1, 2=stage2, 3=stage 3, 4=stage 4)
+     time Time to death or on-study time, months
+     age Age at diagnosis of larynx cancer
+     diagyr Year of diagnosis of larynx cancer
+     delta Death indicator (0=alive, 1=dead)
+Source:
+     Klein and Moeschberger (1997) _Survival Analysis Techniques for
+     Censored and truncated data_, Springer.  Kardaun Stat.
+     Nederlandica 37 (1983), 103-126.
+```
+
+
+## Load Stan model
+
+```{r}
+stan_lognormal_survival_model_file <- "./bayesianideas_lognormal.stan"
+biostan::print_stan_file(stan_lognormal_survival_model_file)
+```
+
+
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos

@@ -44,6 +44,8 @@ doParallel::registerDoParallel(cores = n_cores)
 ## References
 - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
 - [Wikipedia Weibull distribution](https://en.wikipedia.org/wiki/Weibull_distribution)
+- Books
+  - [Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
 - R packages
   - [biostan: Introduction to Bayesian Inference using Stan with Applications to Cancer Genomics](https://github.com/jburos/biostan)
   - [bayesSurv: Bayesian Survival Regression with Flexible Error and Random Effects Distributions](https://cran.r-project.org/web/packages/bayesSurv/index.html)
@@ -375,14 +377,9 @@ ggplot(data = stan_weibull_survival_model_survival,
           strip.background = element_blank())
 ```
 
-<!-- ## Recurrent event example -->
-<!-- ### Load a dataset with recurrent events -->
-<!-- ```{r} -->
-<!-- data(cgd, package = "bayesSurv") -->
-<!-- cgd <- as_data_frame(cgd) -->
-<!-- cgd -->
-<!-- ``` -->
+The book, [Bayesian Ideas and Data Analysis](https://books.google.com/books?id=qPERhCbePNcC&pg=PA323&lpg=PA323&dq=Although+it+might+be+convenient+to+simply+plug+the+posterior+mean&source=bl&ots=LasUZtinMC&sig=1FS9nKzcbuuKIxpdfleVTy9Qb7k&hl=en&sa=X&ved=2ahUKEwiN3PP_6LLeAhXlhOAKHb-XArwQ6AEwAHoECAEQAQ#v=onepage&q=Although%20it%20might%20be%20convenient%20to%20simply%20plug%20the%20posterior%20mean&f=false), states the following: Although it might be convenient to simply plug the posterior mean of $\theta$ into $S(t|x,\theta)$ or $h(t|x,\theta)$, typically the result is not the posterior mean of $S(t|x,\theta)$ or $h(t|x,\theta)$. ... This "plug-in" approach is easier to compute and may in some cases provide a decent approximation but it does not yield easily interpretable Bayesian estimates of the survival or hazard functions.
 
+That is, if the survival and hazard functions are non-linear in $\theta$, these two averages do not generally agree. The book then goes onto explain that if there is only one parameter and the survival function is strictly increasing or decreasing in that parameter, quantiles are preserved across these two methods. Here we have multiple parameters.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

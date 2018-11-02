@@ -67,6 +67,31 @@ Source:
      Nederlandica 37 (1983), 103-126.
 ```
 
+Here we will prepare data by creating dummy variables, standardizing continuous variables, and sorting by events then censorings.
+
+```{r}
+
+larynx2 <- larynx %>%
+    mutate(stage2 = as.numeric(stage == 2),
+           stage3 = as.numeric(stage == 3),
+           stage4 = as.numeric(stage == 4),
+           sage = scale(age),
+           sdiagyr = scale(diagyr)) %>%
+    arrange(desc(delta), time)
+
+larynx2_covs_only <- larynx2 %>%
+    select(starts_with("stage"), sage, sdiagyr) %>%
+    select(-stage)
+
+larynx2_list <- list(Nobs = sum(larynx2$delta == 1),
+                     Ncen = sum(larynx2$delta == 0),
+                     M_bg = 5,
+                     yobs = larynx2$time[larynx2$delta == 1],
+                     ycen = larynx2$time[larynx2$delta == 0],
+                     Xobs_bg = as.matrix(larynx2_covs_only[larynx2$delta == 1,]),
+                     Xcen_bg = as.matrix(larynx2_covs_only[larynx2$delta == 1,]))
+```
+
 
 ## Load Stan model
 
@@ -76,7 +101,13 @@ biostan::print_stan_file(stan_lognormal_survival_model_file)
 ```
 
 
+## Fit Stan model
 
+```{r}
+stan_lognormal_survival_model_fit <-
+    rstan::stan(file = stan_lognormal_survival_model_file,
+                data = larynx2_list)
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

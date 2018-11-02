@@ -88,7 +88,6 @@ Source:
 Here we will prepare data by creating dummy variables, standardizing continuous variables, and sorting by events then censorings.
 
 ```{r}
-
 larynx2 <- larynx %>%
     mutate(stage2 = as.numeric(stage == 2),
            stage3 = as.numeric(stage == 3),
@@ -103,11 +102,11 @@ larynx2_covs_only <- larynx2 %>%
 
 larynx2_list <- list(Nobs = sum(larynx2$delta == 1),
                      Ncen = sum(larynx2$delta == 0),
-                     M_bg = 5,
                      yobs = larynx2$time[larynx2$delta == 1],
                      ycen = larynx2$time[larynx2$delta == 0],
+                     M_bg = 5,
                      Xobs_bg = as.matrix(larynx2_covs_only[larynx2$delta == 1,]),
-                     Xcen_bg = as.matrix(larynx2_covs_only[larynx2$delta == 1,]))
+                     Xcen_bg = as.matrix(larynx2_covs_only[larynx2$delta == 0,]))
 ```
 
 
@@ -121,10 +120,14 @@ biostan::print_stan_file(stan_lognormal_survival_model_file)
 
 ## Fit Stan model
 
-```{r}
+```{r, cache = TRUE}
 stan_lognormal_survival_model_fit <-
     rstan::stan(file = stan_lognormal_survival_model_file,
-                data = larynx2_list)
+                data = larynx2_list,
+                chains = 1,
+                cores = 1,
+                init_r = 5,
+                verbose = TRUE)
 ```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

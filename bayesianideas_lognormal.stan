@@ -59,27 +59,26 @@ parameters {
 transformed parameters {
     vector[M_bg] beta_bg;
     real alpha;
-    real<lower=0> alpha_sq;
 
     beta_bg = bg_prior_lp(tau_s_bg_raw, tau_bg_raw) .* beta_bg_raw;
     /* Scale parameter */
+    /* alpha_raw is on real line */
     alpha = exp(tau_al * alpha_raw);
-    alpha_sq = alpha^2;
 }
 
 model {
+    /* Prior specifications*/
+    beta_bg_raw ~ normal(0.0, 1.0);
+    alpha_raw ~ normal(0.0, 1.0);
+    mu ~ normal(0.0, tau_mu);
+
     /* Events contribute densities */
-    yobs ~ lognormal(mu + Xobs_bg * beta_bg, alpha_sq);
+    yobs ~ lognormal(mu + Xobs_bg * beta_bg, alpha);
 
     /* Censorings contribute survivals. */
     /* https://github.com/stan-dev/stan/wiki/Stan-3-Density-Notation-and-Increments */
     /* log complementary cdf. log of S = (1 - F) */
-    target += lognormal_lccdf(ycen | mu + Xobs_bg * beta_bg, alpha_sq);
-
-    beta_bg_raw ~ normal(0.0, 1.0);
-    alpha_raw ~ normal(0.0, 1.0);
-
-    mu ~ normal(0.0, tau_mu);
+    target += lognormal_lccdf(ycen | mu + Xobs_bg * beta_bg, alpha);
 }
 
 generated quantities {
@@ -89,12 +88,12 @@ generated quantities {
 
     for (i in 1:Nobs) {
         lp[i] = mu + Xobs_bg[i,] * beta_bg;
-        yhat_uncens[i] = lognormal_rng(mu + Xobs_bg[i,] * beta_bg, alpha_sq);
-        log_lik[i] = lognormal_lpdf(yobs[i] | mu + Xobs_bg[i,] * beta_bg, alpha_sq);
+        yhat_uncens[i] = lognormal_rng(mu + Xobs_bg[i,] * beta_bg, alpha);
+        log_lik[i] = lognormal_lpdf(yobs[i] | mu + Xobs_bg[i,] * beta_bg, alpha);
     }
     for (i in 1:Ncen) {
         lp[Nobs + i] = mu + Xcen_bg[i,] * beta_bg;
-        yhat_uncens[Nobs + i] = lognormal_rng(mu + Xcen_bg[i,] * beta_bg, alpha_sq);
-        log_lik[Nobs + i] = lognormal_lccdf(ycen[i] | mu + Xcen_bg[i,] * beta_bg, alpha_sq);
+        yhat_uncens[Nobs + i] = lognormal_rng(mu + Xcen_bg[i,] * beta_bg, alpha);
+        log_lik[Nobs + i] = lognormal_lccdf(ycen[i] | mu + Xcen_bg[i,] * beta_bg, alpha);
     }
 }

@@ -124,9 +124,9 @@ biostan::print_stan_file(stan_lognormal_survival_model_file)
 stan_lognormal_survival_model_fit <-
     rstan::stan(file = stan_lognormal_survival_model_file,
                 data = larynx2_list,
-                chains = 1,
+                chains = 4,
                 cores = 1,
-                init_r = 5,
+                init_r = 1,
                 verbose = TRUE)
 ```
 --------------------

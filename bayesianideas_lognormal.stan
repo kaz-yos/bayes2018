@@ -67,11 +67,6 @@ transformed parameters {
 }
 
 model {
-    /* Prior specifications*/
-    beta_bg_raw ~ normal(0.0, 1.0);
-    alpha_raw ~ normal(0.0, 1.0);
-    mu ~ normal(0.0, tau_mu);
-
     /* Events contribute densities */
     yobs ~ lognormal(mu + Xobs_bg * beta_bg, alpha);
 
@@ -79,6 +74,11 @@ model {
     /* https://github.com/stan-dev/stan/wiki/Stan-3-Density-Notation-and-Increments */
     /* log complementary cdf. log of S = (1 - F) */
     target += lognormal_lccdf(ycen | mu + Xobs_bg * beta_bg, alpha);
+
+    /* Prior specifications*/
+    beta_bg_raw ~ normal(0.0, 1.0);
+    alpha_raw ~ normal(0.0, 1.0);
+    mu ~ normal(0.0, tau_mu);
 }
 
 generated quantities {

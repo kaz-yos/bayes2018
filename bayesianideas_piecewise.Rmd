@@ -60,9 +60,42 @@ $\boldsymbol{\nu} = (\nu_{1},...,\nu_{n})^{T}$ is a vector of failure (censoring
 
 Let $\boldsymbol{\lambda} = (\lambda_{1},...,\lambda_{J})^{T}$. The full likelihood for $(\boldsymbol{\beta}, \boldsymbol{\lambda})$ is the following.
 
-$$L(\boldsymbol{\beta},\boldsymbol{\lambda} | D) = \prod^{n}_{i=1} \prod^{J}_{j=1} (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{ij}\nu_{i}} \exp \left\{ - \delta_{ij} \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g}-1) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
+$$L(\boldsymbol{\beta},\boldsymbol{\lambda} | D) = \prod^{n}_{i=1} \prod^{J}_{j=1} (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{ij}\nu_{i}} \exp \left\{ - \delta_{ij} \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
 
 where $\delta_{ij}$ is an interval specific indicator of end of follow up indicator $I[y_{i} \in I_{j}]$.
+
+This is really hard, so let us dissect this into more manageable pieces. Firstly, we will focus on one individual rather than the entire dataset.
+
+$$L(\boldsymbol{\beta},\boldsymbol{\lambda} | D_{i}) = \prod^{J}_{j=1} (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{ij}\nu_{i}} \exp \left\{ - \delta_{ij} \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
+
+Thus, this is a product of interval-specific contributions. However, for interval $I_{j}$ in which the individual just survived without death or censoring $\delta_{ij} = 0$, there is no contribution (no parameters left).
+
+$$(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(0) \nu_{i}} \exp \left\{ - (0) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\} = 1$$
+
+Therefore, the only contribution happens at the interval when the individual either dies or becomes censored. Note in general, an event individual contributes a density, which is a product of hazard and survival. On the other hand, a censored individual can only contribute survival information.
+
+
+### Event individual contribution
+
+Firstly, we will consider death in interval $I_{j}$.
+
+$$(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(1) (1)} \exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
+
+$(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(1) (1)}$ is the hazard contribution.
+
+$\exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$ is the survival contribution. Taken together this individual contributes density information.
+
+Note $\left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right]$ is the cumulative baseline hazard that this individual faced. By multiplying this with time-constant (by the PH assumption) multiplication factor, $\exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta})$, we obtain the individual-specific cumulative hazard. An exponential of the negative cumulative hazard is the survival.
+
+### Censored individual contribution
+
+Now we will consider censoring in interval $I_{j}$.
+
+$$(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(1) (0)} \exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
+
+$(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(1) (0)} = 1$. There is no hazard contribution.
+
+$\exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$ is the survival contribution.
 
 
 ## Load packages

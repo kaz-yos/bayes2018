@@ -40,7 +40,29 @@ The proportional hazards (PH) model (Cox 1972) is a very popular regression meth
 
 In Bayesian paradigm, obtaining the posterior distribution of parameters requires the full likelihood function involving all parameters including nuisance ones and the prior for all these parameters. In the case of survival analysis, one of the parameters that requires modeling is the entire baseline hazard function. One way to proceed is to parametrize the baseline hazard function parsimoniously, i.e., parametric survival analysis (BIDA p325, BSA chap 2). The other approach is to more flexibly model the baseline hazard function.
 
-Here we will examine
+Here we will examine the simplest form of the latter, the piecewise constant hazard model.
+
+## Piecewise constant hazard model
+
+This model formulation was taken from BSA (p47-).
+
+Firstly, partition the time axis into $J$ intervals using $0 < s_{1} < s_{2} ... < s_{J} < \infty$.
+
+ $$(0,s_{1}], (s_{1},s_{2}], ..., (s_{J-1},s_{J}]$$
+
+$s_{J}$ is a finite value that has to be larger than the largest observed time in the study. Name each interval $I_{j} = (s_{j-1},s_{j}]$. We assume a constant hazard $\lambda$ within each interval. Let $D = (n,\mathbf{y}, X, \nu)$ describe the observed data.
+
+$\mathbf{y} = (y_{1}, ..., y_{n})^{T}$ is the observed times.
+
+$X$ is a $n \times p$ matrix of covariates associated with a length $p$ vector $\boldsymbol{\beta}$.
+
+$\boldsymbol{\nu} = (\nu_{1},...,\nu_{n})^{T}$ is a vector of failure (censoring) indicators.
+
+Let $\boldsymbol{\lambda} = (\lambda_{1},...,\lambda_{J})^{T}$. The full likelihood for $(\boldsymbol{\beta}, \boldsymbol{\lambda})$ is the following.
+
+$$L(\boldsymbol{\beta},\boldsymbol{\lambda} | D) = \prod^{n}_{i=1} \prod^{J}_{j=1} (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{ij}\nu_{i}} \exp \left\{ - \delta_{ij} \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g}-1) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$$
+
+where $\delta_{ij}$ is an interval specific indicator of end of follow up indicator $I[y_{i} \in I_{j}]$.
 
 
 ## Load packages

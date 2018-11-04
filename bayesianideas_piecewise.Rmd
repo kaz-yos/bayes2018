@@ -1,0 +1,61 @@
+---
+title: "BIDA in Stan: Piecewise constant hazard Cox"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+
+## R configuration
+options(width = 116, scipen = 5)
+```
+
+## References
+- Online
+  - [Stan Leukemia example](https://github.com/stan-dev/example-models/blob/master/bugs_examples/vol1/leuk/leuk.stan)
+  - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
+  - [PyMC3 Bayesian Survival Analysis](https://docs.pymc.io/notebooks/survival_analysis.html)
+- Books
+  - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+  - [(BUGS) The BUGS Book: A Practical Introduction to Bayesian Analysis](https://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-the-bugs-book/)
+  - [(BSA) Bayesian Survival Analysis](https://www.springer.com/us/book/9780387952772)
+
+
+## Background
+
+The proportional hazards (PH) model (Cox 1972) is a very popular regression method for survival data. The popularity likely originated in not having to specify the (baseline) hazard function. These days, it is popular probably because it is the only survival regression model that many applied researchers are aware of. In Frequentist PH model, parameter estimation is conducted via partial likelihood from which the baseline hazard function has dropped out (BSA p16).
+
+In Bayesian paradigm, obtaining the posterior distribution of parameters requires the full likelihood function involving all parameters including nuisance ones and the prior for all these parameters. In the case of survival analysis, one of the parameters that requires modeling is the entire baseline hazard function. One way to proceed is to parametrize the baseline hazard function parsimoniously, i.e., parametric survival analysis (BIDA p325, BSA chap 2). The other approach is to more flexibly model the baseline hazard function.
+
+Here we will examine
+
+
+## Load packages
+
+```{r}
+library(tidyverse)
+```
+
+##
+
+```{r}
+
+```
+
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos

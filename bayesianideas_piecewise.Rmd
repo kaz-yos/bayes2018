@@ -41,9 +41,10 @@ The proportional hazards (PH) model (Cox 1972) is a very popular regression meth
 
 In Bayesian paradigm, obtaining the posterior distribution of parameters requires the full likelihood function involving all parameters including nuisance ones and the prior for all these parameters. In the case of survival analysis, one of the parameters that requires modeling is the entire baseline hazard function. One way to proceed is to parametrize the baseline hazard function parsimoniously, i.e., parametric survival analysis (BIDA p325, BSA chap 2). The other approach is to more flexibly model the baseline hazard function.
 
-Here we will examine the simplest form of the latter, the piecewise constant hazard model.
+Here we will examine the simplest form of the latter, the piecewise constant hazard model (piecewise exponential model).
 
 ## Piecewise constant hazard model
+### Likelihood
 
 This model formulation was taken from BSA (p47-).
 
@@ -100,7 +101,7 @@ $\exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lamb
 
 ### Poisson trick
 
-Let us examine the likelihood for individual $i$ further. As stated above only contribution happens at the interval in which follow up ends by death or censoring. Without loss of generality, consider this interval as $I_{j}$.
+This part follows BIDA (p347-) and [Piece-Wise Exponential Model](http://data.princeton.edu/wws509/notes/c7s4.html). Let us examine the likelihood for individual $i$ further. As stated above only contribution happens at the interval in which follow up ends by death or censoring. Without loss of generality, consider this interval as $I_{j}$.
 
 $$
 \begin{align*}
@@ -115,7 +116,7 @@ L(\boldsymbol{\beta},\boldsymbol{\lambda} | D_{i})
  &~~~\text{Note the new middle piece is 1.}\\
  &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \left[ \prod^{j-1}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{0} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
  &\propto (\lambda_{j} H_{i,j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \left[ \prod^{j-1}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{0} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
- &~~~\text{By reintroducing } \delta_{i,g}\\
+ &~~~\text{By reintroducing } \delta_{i,g} \text{, which is 0 for }g < j\\
  &= \left[ \prod^{j}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{i,g} \nu_{i}} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
  &= \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{i,g} \nu_{i}}\\
  &~~~\text{By } \delta_{i,g} \nu_{i} \in \{0,1\}\\

@@ -98,6 +98,31 @@ $(\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{(1) (0)} = 1$. There 
 
 $\exp \left\{ - (1) \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}$ is the survival contribution.
 
+### Poisson trick
+
+Let us examine the likelihood for individual $i$ further. As stated above only contribution happens at the interval in which follow up ends by death or censoring. Without loss of generality, consider this interval as $I_{j}$.
+
+$$
+\begin{align*}
+L(\boldsymbol{\beta},\boldsymbol{\lambda} | D_{i})
+&= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{ij}\nu_{i}} \exp \left\{ - \delta_{ij} \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &~~~\text{By } \delta_{ij} = 1\\
+ &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \exp \left\{ - \left[ \lambda_{j}(y_{i} - s_{j-1}) + \sum^{j-1}_{g=1} \lambda_{g}(s_{g} - s_{g-1}) \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &~~~\text{Let $H_{i,g}$ represent at-risk time during $I_{g}$ for $i$}.\\
+ &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \exp \left\{ - \left[ \sum^{j}_{g=1} \lambda_{g} H_{i,g} \right] \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \exp \left\{ - \sum^{j}_{g=1} \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &~~~\text{Note the new middle piece is 1.}\\
+ &= (\lambda_{j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \left[ \prod^{j-1}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{0} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &\propto (\lambda_{j} H_{i,j} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\nu_{i}} \left[ \prod^{j-1}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{0} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &~~~\text{By reintroducing } \delta_{i,g}\\
+ &= \left[ \prod^{j}_{g=1} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{i,g} \nu_{i}} \right] \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\}\\
+ &= \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{i,g} \nu_{i}}\\
+ &~~~\text{By } \delta_{i,g} \nu_{i} \in \{0,1\}\\
+ &= \prod^{j}_{g=1} \exp \left\{ - \lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}) \right\} (\lambda_{g} H_{i,g} \exp(\mathbf{x}_{i}^{T}\boldsymbol{\beta}))^{\delta_{i,g} \nu_{i}} \big/ (\delta_{i,g} \nu_{i})!\\
+\end{align*}
+$$
+
 
 ## Load packages
 

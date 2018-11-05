@@ -123,6 +123,8 @@ L(\boldsymbol{\beta},\boldsymbol{\lambda} | D_{i})
 \end{align*}
 $$
 
+We can multiply the likelihood with a term that does not contain parameters and retain the same inference. Note the last expression is a product of individual- and interval-specific Poisson likelihood. This transformation implies that we can split each individual's observation into interval-specific observations up until the interval in which follow up ended. In addition to copying covariates, each interval-specific observation has to have the duration of the at-risk time and an indicator that is 1 in the last interval if the individual died otherwise 0. The latter indicator serves as the outcome of the Poisson model.
+
 
 ## Load packages
 

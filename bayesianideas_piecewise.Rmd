@@ -29,6 +29,7 @@ options(width = 116, scipen = 5)
   - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
   - [PyMC3 Bayesian Survival Analysis](https://docs.pymc.io/notebooks/survival_analysis.html)
   - [Piece-Wise Exponential Model](http://data.princeton.edu/wws509/notes/c7s4.html)
+  - [Stan-dev Prior Choice Recommendations](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations)
 - Books
   - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
   - [(BUGS) The BUGS Book: A Practical Introduction to Bayesian Analysis](https://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-the-bugs-book/)
@@ -137,13 +138,17 @@ $$
 \end{align*}
 $$
 
-Therefore, $\log(H_{i,g})$ becomes the offset. The intercept $\beta_{0,g} = \log(\lambda_{g})$ is interval-specific. The outcome, the indicator variable $(\delta_{i,g} \nu_{i})$ is not independent within an individual because it is all zero except the last one, which can be 1 if the individual died. However, the likelihood has the form of a product of interval-specific Poisson contributions. Thus, the Poisson modeling can proceed as if these interval-specific observations from one individual are independent.
+Therefore, $\log(H_{i,g})$ becomes the offset. The intercept $\beta_{0,g} = \log(\lambda_{g})$ is interval-specific. The outcome, the indicator variable $(\delta_{i,g} \nu_{i})$ is not independent within an individual because it is all zero except the last one, which can be 1 if the individual died. However, the likelihood has the form of a product of interval-specific Poisson contributions. Thus, the Poisson modeling can proceed as if these interval-specific observations from one individual were independent.
 
 
 ### Prior specification
 
 We have clarified the likelihood part, so now we need to specify the priors for all parameters. We have the covariate coefficient vector $\boldsymbol{\beta}$. After the Poisson transformation, we also have the interval-specific intercepts. Each one of the parameters can take on any value on the real line.
 
+The Stan developer website has a web page dedicated to prior choice philosophy [(Prior Choice Recommendations)](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations). Here we adopt the principle of weakly informative priors that are informative enough to regularize. The direct quote is the following.
+
+
+> Weakly informative prior should contain enough information to regularize: the idea is that the prior rules out unreasonable parameter values but is not so strong as to rule out values that might make sense.
 
 ## Load packages
 

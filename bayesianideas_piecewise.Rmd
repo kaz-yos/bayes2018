@@ -141,7 +141,7 @@ Therefore, $\log(H_{i,g})$ becomes the offset. The intercept $\beta_{0,g} = \log
 
 ### Prior specification
 
-We have clarified the
+We have clarified the likelihood part, so now we need to specify the priors for all parameters. We have the covariate coefficient vector $\boldsymbol{\beta}$. After the Poisson transformation, we also have the interval-specific intercepts. Each one of the parameters can take on any value on the real line.
 
 
 ## Load packages

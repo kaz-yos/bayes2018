@@ -138,7 +138,7 @@ $$
 \end{align*}
 $$
 
-Therefore, $\log(H_{i,g})$ becomes the offset. The intercept $\beta_{0,g} = \log(\lambda_{g})$ is interval-specific. The outcome, the indicator variable $(\delta_{i,g} \nu_{i})$ is not independent within an individual because it is all zero except the last one, which can be 1 if the individual died. However, the likelihood has the form of a product of interval-specific Poisson contributions. Thus, the Poisson modeling can proceed as if these interval-specific observations from one individual were independent.
+Therefore, $\log(H_{i,g})$ becomes the offset. The intercept $\beta_{0,g} = \log(\lambda_{g})$ is interval-specific. The outcome, the indicator variable $(\delta_{i,g} \nu_{i})$ is not independent within an individual because it is all zero except the last one, which can be 1 if the individual died. However, the likelihood has the form of a product of interval-specific Poisson contributions. Thus, the Poisson modeling can proceed as if these interval-specific observations from one individual were independent. In R, [survival::survSplit](https://stat.ethz.ch/R-manual/R-devel/library/survival/html/survSplit.html) function can create this long-format dataset from a single-row-per-person dataset.
 
 
 ### Prior specification

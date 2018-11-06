@@ -230,9 +230,9 @@ Check distribution of observed times and decide cut points. This
 
 ```{r}
 cut_one
-cut_two <- c(median(leukemia$time), cut_one)
+cut_two <- c(median(leukemia$time), cut_one) %>% round
 cut_two
-cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one)
+cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one) %>% round
 cut_three
 ```
 
@@ -241,19 +241,19 @@ Now transform dataset into long-format ones. We need an interval indicator and a
 ```{r}
 ## No cut for all same constant hazard
 leukemia_one <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_one) %>%
-    mutate(interval = as.numeric(factor(tstart)),
+    mutate(interval = factor(tstart),
            interval_length = time - tstart) %>%
     as_data_frame
 leukemia_one
 ## Split into two observations
 leukemia_two <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_two) %>%
-    mutate(interval = as.numeric(factor(tstart)),
+    mutate(interval = factor(tstart),
            interval_length = time - tstart) %>%
     as_data_frame
 leukemia_two
 ## Split into three observations
 leukemia_three <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_three) %>%
-    mutate(interval = as.numeric(factor(tstart)),
+    mutate(interval = factor(tstart),
            interval_length = time - tstart) %>%
     as_data_frame
 leukemia_three
@@ -264,22 +264,25 @@ leukemia_three
 ```{r}
 coxph(formula = Surv(time, status) ~ x,
          data    = leukemia,
-         ties    = c("efron","breslow","exact")[1])
+         ties    = c("efron","breslow","exact")[1]) %>% summary
 
 glm(formula = status ~ x + offset(log(interval_length)),
     family  = poisson(link = "log"),
-    data    = leukemia_one)
+    data    = leukemia_one) %>% summary
 
-glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+## Drop intercept to show all interval-specific log rates
+glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
     data = leukemia_two,
-    family = poisson(link = "log"))
+    family = poisson(link = "log")) %>% summary
 
-glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
     data = leukemia_three,
-    family = poisson(link = "log"))
+    family = poisson(link = "log")) %>% summary
 ```
 
 ### Model with rstanarm
+
+Here we will use normal priors.
 
 ```{r}
 fit_leukemia_one <- rstanarm::stan_glm(formula = status ~ x + offset(log(interval_length)),

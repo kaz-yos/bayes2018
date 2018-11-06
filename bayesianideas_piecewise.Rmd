@@ -236,23 +236,52 @@ cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one)
 cut_three
 ```
 
-Now transform dataset into long-format ones.
+Now transform dataset into long-format ones. We need an interval indicator and an interval length variable.
 
 ```{r}
 ## No cut for all same constant hazard
-leukemia_one <- leukemia
+leukemia_one <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_one) %>%
+    mutate(interval = as.numeric(factor(tstart)),
+           interval_length = time - tstart) %>%
+    as_data_frame
 leukemia_one
 ## Split into two observations
 leukemia_two <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_two) %>%
+    mutate(interval = as.numeric(factor(tstart)),
+           interval_length = time - tstart) %>%
     as_data_frame
 leukemia_two
 ## Split into three observations
 leukemia_three <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_three) %>%
+    mutate(interval = as.numeric(factor(tstart)),
+           interval_length = time - tstart) %>%
     as_data_frame
 leukemia_three
 ```
 
+### Model with rstanarm
 
+```{r}
+fit_leukemia_one <- rstanarm::stan_glm(formula = status ~ x + offset(log(interval_length)),
+                                       data = leukemia_one,
+                                       family = poisson(link = "log"))
+fit_leukemia_one
+```
+
+```{r}
+fit_leukemia_two <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+                                       data = leukemia_two,
+                                       family = poisson(link = "log"))
+fit_leukemia_two
+```
+
+
+```{r}
+fit_leukemia_three <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+                                         data = leukemia_three,
+                                         family = poisson(link = "log"))
+fit_leukemia_three
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

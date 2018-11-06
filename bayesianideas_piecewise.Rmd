@@ -196,10 +196,60 @@ library(survival)
 library(rstanarm)
 ```
 
-### Load dataset
+### Load and prepare dataset
+
+```
+aml                  package:survival                  R Documentation
+Acute Myelogenous Leukemia survival data
+Description:
+     Survival in patients with Acute Myelogenous Leukemia.  The
+     question at the time was whether the standard course of
+     chemotherapy should be extended ('maintainance') for additional
+     cycles.
+Usage:
+     aml
+     leukemia
+Format:
+       time:    survival or censoring time
+       status:  censoring status
+       x:       maintenance chemotherapy given? (factor)
+Source:
+     Rupert G. Miller (1997), _Survival Analysis_.  John Wiley & Sons.
+     ISBN: 0-471-25218-2.
+```
 
 ```{r}
+data(leukemia, package = "survival")
+leukemia <- as_data_frame(leukemia) %>%
+    mutate(id = seq_len(n())) %>%
+    select(id, everything())
+leukemia
+```
 
+Check distribution of observed times and decide cut points. This
+
+```{r}
+cut_one
+cut_two <- c(median(leukemia$time), cut_one)
+cut_two
+cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one)
+cut_three
+```
+
+Now transform dataset into long-format ones.
+
+```{r}
+## No cut for all same constant hazard
+leukemia_one <- leukemia
+leukemia_one
+## Split into two observations
+leukemia_two <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_two) %>%
+    as_data_frame
+leukemia_two
+## Split into three observations
+leukemia_three <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_three) %>%
+    as_data_frame
+leukemia_three
 ```
 
 

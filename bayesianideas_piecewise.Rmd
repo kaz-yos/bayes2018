@@ -259,6 +259,26 @@ leukemia_three <- survival::survSplit(formula = Surv(time, status) ~ ., data = l
 leukemia_three
 ```
 
+### Sanity check with frequentist methods
+
+```{r}
+coxph(formula = Surv(time, status) ~ x,
+         data    = leukemia,
+         ties    = c("efron","breslow","exact")[1])
+
+glm(formula = status ~ x + offset(log(interval_length)),
+    family  = poisson(link = "log"),
+    data    = leukemia_one)
+
+glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+    data = leukemia_two,
+    family = poisson(link = "log"))
+
+glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+    data = leukemia_three,
+    family = poisson(link = "log"))
+```
+
 ### Model with rstanarm
 
 ```{r}
@@ -266,17 +286,12 @@ fit_leukemia_one <- rstanarm::stan_glm(formula = status ~ x + offset(log(interva
                                        data = leukemia_one,
                                        family = poisson(link = "log"))
 fit_leukemia_one
-```
 
-```{r}
 fit_leukemia_two <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
                                        data = leukemia_two,
                                        family = poisson(link = "log"))
 fit_leukemia_two
-```
 
-
-```{r}
 fit_leukemia_three <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
                                          data = leukemia_three,
                                          family = poisson(link = "log"))

@@ -150,7 +150,23 @@ The Stan developer website has a web page dedicated to prior choice philosophy [
 
 > Weakly informative prior should contain enough information to regularize: the idea is that the prior rules out unreasonable parameter values but is not so strong as to rule out values that might make sense.
 
-## Load packages
+#### Priors for covariate coefficients
+
+These coefficients for covariates are on the log hazard ratio scale. Based on the substantive ground, we would like to rule out hazard ratios that are greater than 50 or smaller than 1/50. $\log(50) = 3.912023$. Thus, $N(0,2^2)$ may be a good choice. This prior puts approximately 5% of the prior probability located outside the above stated reasonable range.
+
+#### Priors for baseline hazards
+
+BSA (p48) suggests independent gamma priors for the piecewise baseline hazard parameters and multivariate normal prior for the vector of log baseline hazard parameters. BSA does not mention numerical values. It is hard to think of the reasonable range for the piecewise baseline hazards.
+
+BIDA (p351-) acknowledges this difficulty and suggest centering the priors on an exponential regression model.
+
+$$\lambda_{k} \sim Gamma(\lambda_{*}w_{k}, w_{k})$$
+
+where $w_{k}$ is the interval length times some hyperparameter $w$.
+
+
+## Data analysis example
+### Load packages
 
 ```{r}
 library(tidyverse)

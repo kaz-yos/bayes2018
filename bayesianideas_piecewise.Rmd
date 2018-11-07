@@ -158,6 +158,8 @@ These coefficients for covariates are on the log hazard ratio scale. Based on th
 
 BSA (p48) suggests independent gamma priors for the piecewise baseline hazard parameters and multivariate normal prior for the vector of log baseline hazard parameters. BSA does not mention numerical values. It is hard to think of the reasonable range for the piecewise baseline hazards.
 
+BUGS (p290) uses independent $Gamma(0.001, 0.001)$ (```dgamma```) as a prior for each $\lambda$. This has mean 1 and variance 1000.
+
 BIDA (p351-) acknowledges this difficulty and suggest centering the priors on an exponential regression model.
 
 $$\lambda_{k} \sim Gamma(\lambda_{*}w_{k}, w_{k})$$
@@ -282,22 +284,33 @@ glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
 
 ### Model with rstanarm
 
-Here we will use normal priors.
+Here we will use normal priors because they are readily available in rstanarm. Centering the prior for a log hazard ratio parameter at 0 (hazard ratio 1) sounds reasonable.
+
+Where to center the prior for a log baseline hazard is unclear, so we will center it around 0, but make it vague. Here we will use $N(0,4^2)$, which means 95% of the prior probability is in [-7.839856, +7.839856] on the natural log scale.
+
+We will remove the intercept term to make all interval terms parametrized as log baseline hazard (rather than change from the initial log baseline hazard). rstanarm does not seem to allow a different prior for each regression coefficient. So we will just use $N(0,4^2)$ for all.
 
 ```{r}
 fit_leukemia_one <- rstanarm::stan_glm(formula = status ~ x + offset(log(interval_length)),
                                        data = leukemia_one,
-                                       family = poisson(link = "log"))
+                                       family = poisson(link = "log"),
+                                       prior_intercept = normal(location = 0, scale = 4),
+                                       prior = normal(location = 0, scale = 4))
+prior_summary(fit_leukemia_one)
 fit_leukemia_one
 
-fit_leukemia_two <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+fit_leukemia_two <- rstanarm::stan_glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
                                        data = leukemia_two,
-                                       family = poisson(link = "log"))
+                                       family = poisson(link = "log"),
+                                       prior = normal(location = 0, scale = 4))
+prior_summary(fit_leukemia_two)
 fit_leukemia_two
 
-fit_leukemia_three <- rstanarm::stan_glm(formula = status ~ factor(interval) + x + offset(log(interval_length)),
+fit_leukemia_three <- rstanarm::stan_glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
                                          data = leukemia_three,
-                                         family = poisson(link = "log"))
+                                         family = poisson(link = "log"),
+                                         prior = normal(location = 0, scale = 4))
+prior_summary(fit_leukemia_three)
 fit_leukemia_three
 ```
 --------------------

@@ -314,7 +314,7 @@ glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
     family = poisson(link = "log")) %>% summary
 ```
 
-Some log baseline hazard estimates are -22.8454 with a standard error of 8693.5021. This occurs if the interval (a,b] does not contain any event, such as (13,16] in the model that defined intervals by all observed times.
+Some log baseline hazard estimates are -22.8454 with a standard error of 8693.5021. This non-convergence of the MLE algorithm occurs if the interval (a,b] does not contain any event, such as (13,16] in the model that defined intervals by all observed times. There is only one censoring at time 16 in this interval.
 
 ### Model with rstanarm
 

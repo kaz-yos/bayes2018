@@ -228,14 +228,34 @@ leukemia <- as_data_frame(leukemia) %>%
 leukemia
 ```
 
-Check distribution of observed times and decide cut points. This
+Check distribution of observed times and decide cut points for piecewise constant hazard function.
 
 ```{r}
+## One piece
+cut_one <- max(leukemia$time) + 1
 cut_one
-cut_two <- c(median(leukemia$time), cut_one) %>% round
+## Two pieces
+cut_two <- c(median(leukemia$time), cut_one) %>% round()
 cut_two
-cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one) %>% round
+## Three pieces
+cut_three <- c(quantile(leukemia$time, probs = c(1/3, 2/3)), cut_one) %>% round()
 cut_three
+## At all event times
+cut_events <- c(leukemia %>%
+                filter(status == 1) %>%
+                select(time) %>%
+                arrange(time) %>%
+                magrittr::extract2("time") %>%
+                unique,
+                cut_one) %>% round()
+cut_events
+## At all event or censoring
+cut_times <- c(sort(unique(leukemia$time)),
+               cut_one) %>% round()
+cut_times
+## Every unit time
+cut_unit <- seq(from = 1, to = cut_one, by = 1)
+cut_unit
 ```
 
 Now transform dataset into long-format ones. We need an interval indicator and an interval length variable.
@@ -259,6 +279,24 @@ leukemia_three <- survival::survSplit(formula = Surv(time, status) ~ ., data = l
            interval_length = time - tstart) %>%
     as_data_frame
 leukemia_three
+## Split at event times
+leukemia_events <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_events) %>%
+    mutate(interval = factor(tstart),
+           interval_length = time - tstart) %>%
+    as_data_frame
+leukemia_events
+## Split at event and censoring times
+leukemia_times <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_times) %>%
+    mutate(interval = factor(tstart),
+           interval_length = time - tstart) %>%
+    as_data_frame
+leukemia_times
+## Split at every unit time
+leukemia_unit <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_unit) %>%
+    mutate(interval = factor(tstart),
+           interval_length = time - tstart) %>%
+    as_data_frame
+leukemia_unit
 ```
 
 ### Sanity check with frequentist methods

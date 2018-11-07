@@ -305,20 +305,28 @@ leukemia_unit
 coxph(formula = Surv(time, status) ~ x,
          data    = leukemia,
          ties    = c("efron","breslow","exact")[1]) %>% summary
-
 glm(formula = status ~ x + offset(log(interval_length)),
     family  = poisson(link = "log"),
     data    = leukemia_one) %>% summary
-
 ## Drop intercept to show all interval-specific log rates
 glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
     data = leukemia_two,
     family = poisson(link = "log")) %>% summary
-
 glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
     data = leukemia_three,
     family = poisson(link = "log")) %>% summary
+glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
+    data = leukemia_events,
+    family = poisson(link = "log")) %>% summary
+glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
+    data = leukemia_times,
+    family = poisson(link = "log")) %>% summary
+glm(formula = status ~ -1 + interval + x + offset(log(interval_length)),
+    data = leukemia_unit,
+    family = poisson(link = "log")) %>% summary
 ```
+
+Some log baseline hazard estimates are -22.8454 with a standard error of 8693.5021. This occurs if the interval (a,b] does not contain any event, such as (13,16] in the model that defined intervals by all observed times.
 
 ### Model with rstanarm
 

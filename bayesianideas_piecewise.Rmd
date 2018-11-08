@@ -374,6 +374,7 @@ cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards
     function(t, group) {
         ## We do not need intervals after t
         cutpoints_to_use <- cutpoints[cutpoints < t]
+        ## diff(c(0)) -> numeric(0), which has length 0.
         interval_lengths <- diff(c(cutpoints_to_use, t))
         n_zero_padding <- max(length(log_baseline_hazards) - length(interval_lengths), 0)
         zero_padding <- rep(0, n_zero_padding)
@@ -384,80 +385,92 @@ cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards
 }
 ```
 
-Here we construct posterior samples of cumulative hazard functions
+We can use the tidybayes package to obtain each posterior sample as a row of a data frame. The columns named interval are interval-specific constant log hazards.
+
+```{r}
+tidybayes::tidy_draws(fit_leukemia_three)
+```
+
+Then we construct posterior samples of cumulative hazard functions based on the interval-specific constant log hazards. No-so-tidy tidyverse code follows.
 
 ```{r}
 cum_haz_leukemia_one <- tidybayes::tidy_draws(fit_leukemia_one) %>%
-    mutate(`H(t,group)` = pmap(list(`(Intercept)`, xNonmaintained),
-                               function(`(Intercept)`, xNonmaintained){
-                                   cunstruct_cumulative_hazard_function(
-                                       cutpoints = c(0),
-                                       log_baseline_hazards = c(`(Intercept)`),
-                                       group_effect = xNonmaintained)
-                               })) %>%
-    select(.chain, .iteration, .draw, `H(t,group)`)
+    mutate(`H(t|x)` = pmap(list(`(Intercept)`, xNonmaintained),
+                           function(`(Intercept)`, xNonmaintained){
+                               cunstruct_cumulative_hazard_function(
+                                   cutpoints = c(0),
+                                   log_baseline_hazards = c(`(Intercept)`),
+                                   group_effect = xNonmaintained)
+                           })) %>%
+    select(.chain, .iteration, .draw, `H(t|x)`)
 
 cum_haz_leukemia_two <- tidybayes::tidy_draws(fit_leukemia_two) %>%
-    mutate(`H(t,group)` = pmap(list(interval0, interval23, xNonmaintained),
-                               function(interval0, interval23, xNonmaintained){
-                                   cunstruct_cumulative_hazard_function(
-                                       cutpoints = c(0,23),
-                                       log_baseline_hazards = c(interval0, interval23),
-                                       group_effect = xNonmaintained)
-                               })) %>%
-    select(.chain, .iteration, .draw, `H(t,group)`)
+    mutate(`H(t|x)` = pmap(list(interval0, interval23, xNonmaintained),
+                           function(interval0, interval23, xNonmaintained){
+                               cunstruct_cumulative_hazard_function(
+                                   cutpoints = c(0,23),
+                                   log_baseline_hazards = c(interval0, interval23),
+                                   group_effect = xNonmaintained)
+                           })) %>%
+    select(.chain, .iteration, .draw, `H(t|x)`)
 
 cum_haz_leukemia_three <- tidybayes::tidy_draws(fit_leukemia_three) %>%
-    mutate(`H(t,group)` = pmap(list(interval0, interval14, interval31, xNonmaintained),
-                               function(interval0, interval14, interval31, xNonmaintained){
-                                   cunstruct_cumulative_hazard_function(
-                                       cutpoints = c(0,14,31),
-                                       log_baseline_hazards = c(interval0, interval14, interval31),
-                                       group_effect = xNonmaintained)
-                               })) %>%
-    select(.chain, .iteration, .draw, `H(t,group)`)
+    mutate(`H(t|x)` = pmap(list(interval0, interval14, interval31, xNonmaintained),
+                           function(interval0, interval14, interval31, xNonmaintained){
+                               cunstruct_cumulative_hazard_function(
+                                   cutpoints = c(0,14,31),
+                                   log_baseline_hazards = c(interval0, interval14, interval31),
+                                   group_effect = xNonmaintained)
+                           })) %>%
+    select(.chain, .iteration, .draw, `H(t|x)`)
 
 cum_haz_leukemia_events <- tidybayes::tidy_draws(fit_leukemia_events) %>%
-    mutate(`H(t,group)` = pmap(list(interval0, interval5, interval8, interval9, interval12,
+    mutate(`H(t|x)` = pmap(list(interval0, interval5, interval8, interval9, interval12,
+                                interval13, interval18, interval23, interval27, interval30,
+                                interval31, interval33, interval34, interval43, interval45,
+                                interval48, xNonmaintained),
+                           function(interval0, interval5, interval8, interval9, interval12,
                                     interval13, interval18, interval23, interval27, interval30,
                                     interval31, interval33, interval34, interval43, interval45,
-                                    interval48, xNonmaintained),
-                               function(interval0, interval5, interval8, interval9, interval12,
-                                        interval13, interval18, interval23, interval27, interval30,
-                                        interval31, interval33, interval34, interval43, interval45,
-                                        interval48, xNonmaintained){
-                                   cunstruct_cumulative_hazard_function(
-                                       cutpoints = c(0, 5, 8, 9, 12, 13, 18, 23, 27, 30, 31, 33, 34, 43, 45, 48),
-                                       log_baseline_hazards = c(interval0, interval5, interval8, interval9,
-                                                                interval12, interval13, interval18, interval23,
-                                                                interval27, interval30, interval31, interval33,
-                                                                interval34, interval43, interval45, interval48),
-                                       group_effect = xNonmaintained)
-                               })) %>%
-    select(.chain, .iteration, .draw, `H(t,group)`)
+                                    interval48, xNonmaintained){
+                               cunstruct_cumulative_hazard_function(
+                                   cutpoints = c(0, 5, 8, 9, 12, 13, 18, 23, 27, 30, 31, 33, 34, 43, 45, 48),
+                                   log_baseline_hazards = c(interval0, interval5, interval8, interval9,
+                                                            interval12, interval13, interval18, interval23,
+                                                            interval27, interval30, interval31, interval33,
+                                                            interval34, interval43, interval45, interval48),
+                                   group_effect = xNonmaintained)
+                           })) %>%
+    select(.chain, .iteration, .draw, `H(t|x)`)
 
 
 
 cum_haz_leukemia_times <- tidybayes::tidy_draws(fit_leukemia_times) %>%
-    mutate(`H(t,group)` = pmap(list(interval0, interval5, interval8, interval9, interval12, interval13,
+    mutate(`H(t|x)` = pmap(list(interval0, interval5, interval8, interval9, interval12, interval13,
+                                interval16, interval18, interval23, interval27, interval28, interval30,
+                                interval31, interval33, interval34, interval43, interval45, interval48,
+                                xNonmaintained),
+                           function(interval0, interval5, interval8, interval9, interval12, interval13,
                                     interval16, interval18, interval23, interval27, interval28, interval30,
                                     interval31, interval33, interval34, interval43, interval45, interval48,
-                                    xNonmaintained),
-                               function(interval0, interval5, interval8, interval9, interval12, interval13,
-                                        interval16, interval18, interval23, interval27, interval28, interval30,
-                                        interval31, interval33, interval34, interval43, interval45, interval48,
-                                        xNonmaintained){
-                                   cunstruct_cumulative_hazard_function(
-                                       cutpoints = c(0, 5, 8, 9, 12, 13, 16, 18, 23, 27, 28, 30, 31, 33,
-                                                     34, 43, 45, 48),
-                                       log_baseline_hazards = c(interval0, interval5, interval8, interval9,
-                                                                interval12, interval13, interval16, interval18,
-                                                                interval23, interval27, interval28, interval30,
-                                                                interval31, interval33, interval34, interval43,
-                                                                interval45, interval48),
-                                       group_effect = xNonmaintained)
-                               })) %>%
-    select(.chain, .iteration, .draw, `H(t,group)`)
+                                    xNonmaintained){
+                               cunstruct_cumulative_hazard_function(
+                                   cutpoints = c(0, 5, 8, 9, 12, 13, 16, 18, 23, 27, 28, 30, 31, 33,
+                                                 34, 43, 45, 48),
+                                   log_baseline_hazards = c(interval0, interval5, interval8, interval9,
+                                                            interval12, interval13, interval16, interval18,
+                                                            interval23, interval27, interval28, interval30,
+                                                            interval31, interval33, interval34, interval43,
+                                                            interval45, interval48),
+                                   group_effect = xNonmaintained)
+                           })) %>%
+    select(.chain, .iteration, .draw, `H(t|x)`)
+```
+
+As you can see, each row corresponds to a posterior sample of a cumulative hazard function that can be evaluated at an arbitrary time point $t \ge 0$.
+
+```{r}
+cum_haz_leukemia_times
 ```
 
 --------------------

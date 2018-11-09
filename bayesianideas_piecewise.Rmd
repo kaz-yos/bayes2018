@@ -523,8 +523,7 @@ plot_df <- function(df) {
                   survival_95lower = quantile(survival, probs = 0.025))
     df %>%
         ggplot(mapping = aes(x = t, y = survival,
-                             group = interaction(.chain, .iteration, .draw, treatment),
-                             color = treatment)) +
+                             group = interaction(.chain, .iteration, .draw, treatment))) +
         geom_line(size = 0.1, alpha = 0.05) +
         geom_line(data = df_summary,
                   mapping = aes(y = survival_mean, group = treatment)) +

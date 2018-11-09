@@ -515,11 +515,25 @@ create_plot_df <- function(cum_haz_leukemia_df) {
 }
 
 plot_df <- function(df) {
+    df_summary <-
+        df %>%
+        group_by(treatment, t) %>%
+        summarize(survival_mean = mean(survival),
+                  survival_95upper = quantile(survival, probs = 0.975),
+                  survival_95lower = quantile(survival, probs = 0.025))
     df %>%
         ggplot(mapping = aes(x = t, y = survival,
                              group = interaction(.chain, .iteration, .draw, treatment),
                              color = treatment)) +
         geom_line(size = 0.1, alpha = 0.05) +
+        geom_line(data = df_summary,
+                  mapping = aes(y = survival_mean, group = treatment)) +
+        geom_line(data = df_summary,
+                  mapping = aes(y = survival_95upper, group = treatment),
+                  linetype = "dotted") +
+        geom_line(data = df_summary,
+                  mapping = aes(y = survival_95lower, group = treatment),
+                  linetype = "dotted") +
         facet_grid(. ~ treatment) +
         theme_bw() +
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -536,18 +550,30 @@ cum_haz_leukemia_one %>%
     create_plot_df() %>%
     plot_df() +
     labs(title = "One constant hazard")
+```
+
+```{r}
 cum_haz_leukemia_two %>%
     create_plot_df() %>%
     plot_df() +
     labs(title = "Two constant hazards")
+```
+
+```{r}
 cum_haz_leukemia_three %>%
     create_plot_df() %>%
     plot_df() +
     labs(title = "Three constant hazards")
+```
+
+```{r}
 cum_haz_leukemia_events %>%
     create_plot_df() %>%
     plot_df() +
     labs(title = "At all events")
+```
+
+```{r}
 cum_haz_leukemia_times %>%
     create_plot_df() %>%
     plot_df() +

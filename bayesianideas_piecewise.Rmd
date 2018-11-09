@@ -369,27 +369,37 @@ By the virtue of regularization by the prior, even the log baseline hazards for 
 Now we have posterior samples of interval-specific log baseline hazards as well as log hazard ratio for treatment. We can construct treatment group-specific posterior survival curves. Since we have piecewise constant hazards, it is easier to first construct a cumulative hazard function. Here is the constructor.
 
 ```{r}
-## This is easier than survival curve sampling.
 cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards, group_effect) {
 
+    ## t is a vector of time points. group is {0,1} scalar
     cumulative_hazard_function <- function(t, group) {
+        ## Boolean for any exposed time in each interval
+        ## length(cutpoints) x length(t)
+        interval_exposed <- outer(cutpoints, t, `<`)
 
-        if (length(t) > 1) {
-            return(sapply(t, function(t) {
-                cumulative_hazard_function(t, group)
-            }))
-        }
+        ## t - cutpoint. Multiply by interval exposed to avoid negative times.
+        time_exposed <-  -outer(cutpoints, t, `-`) * interval_exposed
 
-        ## We do not need intervals after t
-        cutpoints_to_use <- cutpoints[cutpoints < t]
-        ## diff(c(0)) -> numeric(0), which has length 0.
-        interval_lengths <- diff(c(cutpoints_to_use, t))
-        n_zero_padding <- max(length(log_baseline_hazards) - length(interval_lengths), 0)
-        zero_padding <- rep(0, n_zero_padding)
-        interval_lengths_padded <- c(interval_lengths, zero_padding)
-        baseline_cumulative_hazard <- sum(interval_lengths_padded * exp(log_baseline_hazards))
+        ## Last interval is of width Inf
+        interval_widths <- c(diff(cutpoints), Inf)
 
-        return(baseline_cumulative_hazard * exp(group_effect * group))
+        ## For each interval, time exposed cannot exceed interval width.
+        time_exposed_correct  <- sweep(x = time_exposed,
+                                       MARGIN = 1,
+                                       STATS = interval_widths,
+                                       FUN = pmin)
+
+        ## Multiply by corresponding baseline hazards to get interval specific cumulative baseline hazards.
+        interval_baseline_cumulative_hazards <- sweep(x = time_exposed_correct,
+                                                      MARGIN = 1,
+                                                      STATS = exp(log_baseline_hazards),
+                                                      FUN = `*`)
+
+        ## Cumulative baseline hazard vector length(t)
+        baseline_cumulative_hazards <- colSums(interval_baseline_cumulative_hazards)
+
+        ## return after applying group effect
+        return(baseline_cumulative_hazards * exp(group_effect * group))
     }
 
     return(cumulative_hazard_function)
@@ -453,8 +463,6 @@ cum_haz_leukemia_events <- tidybayes::tidy_draws(fit_leukemia_events) %>%
                                    group_effect = xNonmaintained)
                            })) %>%
     select(.chain, .iteration, .draw, `H(t|x)`)
-
-
 
 cum_haz_leukemia_times <- tidybayes::tidy_draws(fit_leukemia_times) %>%
     mutate(`H(t|x)` = pmap(list(interval0, interval5, interval8, interval9, interval12, interval13,

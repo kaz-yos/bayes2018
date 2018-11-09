@@ -366,12 +366,20 @@ By the virtue of regularization by the prior, even the log baseline hazards for 
 
 ### Survival curve prediction
 
-Now we have posterior samples of interval-specific log baseline hazards as well as log hazard ratio for treatment. We can construct treatment group-specific posterior survival curves. Since we have piecewise constant hazards, it is easier to construct a cumulative hazard function. Here is the constructor.
+Now we have posterior samples of interval-specific log baseline hazards as well as log hazard ratio for treatment. We can construct treatment group-specific posterior survival curves. Since we have piecewise constant hazards, it is easier to first construct a cumulative hazard function. Here is the constructor.
 
 ```{r}
 ## This is easier than survival curve sampling.
 cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards, group_effect) {
-    function(t, group) {
+
+    cumulative_hazard_function <- function(t, group) {
+
+        if (length(t) > 1) {
+            return(sapply(t, function(t) {
+                cumulative_hazard_function(t, group)
+            }))
+        }
+
         ## We do not need intervals after t
         cutpoints_to_use <- cutpoints[cutpoints < t]
         ## diff(c(0)) -> numeric(0), which has length 0.
@@ -380,8 +388,11 @@ cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards
         zero_padding <- rep(0, n_zero_padding)
         interval_lengths_padded <- c(interval_lengths, zero_padding)
         baseline_cumulative_hazard <- sum(interval_lengths_padded * exp(log_baseline_hazards))
-        baseline_cumulative_hazard * exp(group_effect * group)
+
+        return(baseline_cumulative_hazard * exp(group_effect * group))
     }
+
+    return(cumulative_hazard_function)
 }
 ```
 
@@ -471,6 +482,76 @@ As you can see, each row corresponds to a posterior sample of a cumulative hazar
 
 ```{r}
 cum_haz_leukemia_times
+```
+
+Here we define functions to create plotting data and to plot.
+
+```{r}
+create_plot_df <- function(cum_haz_leukemia_df) {
+    ## Evaluation time points
+    times_df <- data_frame(t = seq(from = 0, to = cut_one, by = 1))
+
+    cum_haz_leukemia_df %>%
+        mutate(times_df = list(times_df)) %>%
+        mutate(times_df = pmap(list(times_df, `H(t|x)`),
+                               function(times_df, `H(t|x)`) {
+                                   times_df %>%
+                                       mutate(`H(t|1)` = `H(t|x)`(t, 1),
+                                              `H(t|0)` = `H(t|x)`(t, 0)) %>%
+                                       mutate(`S(t|1)` = exp(-`H(t|1)`),
+                                              `S(t|0)` = exp(-`H(t|0)`)) %>%
+                                       select(-`H(t|1)`, -`H(t|0)`)
+                               }
+                               )
+               ) %>%
+        select(-`H(t|x)`) %>%
+        unnest() %>%
+        gather(key = treatment,
+               value = survival,
+               `S(t|1)`, `S(t|0)`) %>%
+        mutate(treatment = factor(treatment,
+                                  levels = c("S(t|0)", "S(t|1)"),
+                                  labels = c("Maintained","Nonmaintained")))
+}
+
+plot_df <- function(df) {
+    df %>%
+        ggplot(mapping = aes(x = t, y = survival,
+                             group = interaction(.chain, .iteration, .draw, treatment),
+                             color = treatment)) +
+        geom_line(size = 0.1, alpha = 0.05) +
+        facet_grid(. ~ treatment) +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+              legend.key = element_blank(),
+              plot.title = element_text(hjust = 0.5),
+              strip.background = element_blank())
+}
+```
+
+Plot different models.
+
+```{r}
+cum_haz_leukemia_one %>%
+    create_plot_df() %>%
+    plot_df() +
+    labs(title = "One constant hazard")
+cum_haz_leukemia_two %>%
+    create_plot_df() %>%
+    plot_df() +
+    labs(title = "Two constant hazards")
+cum_haz_leukemia_three %>%
+    create_plot_df() %>%
+    plot_df() +
+    labs(title = "Three constant hazards")
+cum_haz_leukemia_events %>%
+    create_plot_df() %>%
+    plot_df() +
+    labs(title = "At all events")
+cum_haz_leukemia_times %>%
+    create_plot_df() %>%
+    plot_df() +
+    labs(title = "At all times")
 ```
 
 --------------------

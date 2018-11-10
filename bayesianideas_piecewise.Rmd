@@ -388,6 +388,18 @@ summary(fit_leukemia_times)
 
 By the virtue of regularization by the prior, even the log baseline hazards for intervals without events does not break the model, but has lower posterior means.
 
+Examine model fit with loo.
+
+```{r}
+list_fits_leukemia <- list(fit_leukemia_one = fit_leukemia_one,
+                           fit_leukemia_two = fit_leukemia_two,
+                           fit_leukemia_three = fit_leukemia_three,
+                           fit_leukemia_events = fit_leukemia_events,
+                           fit_leukemia_times = fit_leukemia_times)
+lapply(list_fits_leukemia, loo::loo)
+```
+
+
 ### Survival curve prediction
 
 Now we have posterior samples of interval-specific log baseline hazards as well as log hazard ratio for treatment. We can construct treatment group-specific posterior survival curves. Since we have piecewise constant hazards, it is easier to first construct a cumulative hazard function. Here is the constructor.

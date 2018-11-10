@@ -21,6 +21,28 @@ opts_knit$set(animation.fun = hook_ffmpeg_html)
 
 ## R configuration
 options(width = 116, scipen = 5)
+
+## Record start time
+start_time <- Sys.time()
+## cat("### Started ", as.character(start_time), "\n")
+
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+## Report multicore use
+## cat("### Using", foreach::getDoParWorkers(), "cores\n")
+## cat("### Using", foreach::getDoParName(), "as backend\n")
 ```
 
 ## References
@@ -464,6 +486,8 @@ cum_haz_leukemia_events <- tidybayes::tidy_draws(fit_leukemia_events) %>%
                            })) %>%
     select(.chain, .iteration, .draw, `H(t|x)`)
 
+
+
 cum_haz_leukemia_times <- tidybayes::tidy_draws(fit_leukemia_times) %>%
     mutate(`H(t|x)` = pmap(list(interval0, interval5, interval8, interval9, interval12, interval13,
                                 interval16, interval18, interval23, interval27, interval28, interval30,
@@ -640,6 +664,16 @@ survival_leukemia_together %>%
           strip.background = element_blank())
 ```
 
+## Record session information
+
+```{r}
+print(sessionInfo())
+## Record execution time
+end_time <- Sys.time()
+cat("\n### Started  ", as.character(start_time), "\n")
+cat("### Finished ", as.character(end_time), "\n")
+print(end_time - start_time)
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

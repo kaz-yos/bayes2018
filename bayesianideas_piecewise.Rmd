@@ -218,6 +218,8 @@ doParallel::registerDoParallel(cores = n_cores)
 library(tidyverse)
 library(survival)
 library(rstanarm)
+library(broom)
+library(directlabels)
 ```
 
 ### Load and prepare dataset
@@ -625,28 +627,61 @@ survival_leukemia_times %>%
     labs(title = "All times")
 ```
 
+```{r bayesianideas_piecewise-19}
+## Frequentist Kaplan-Meier estimates
+km_leukemia_fit <- survival::survfit(formula = Surv(time, status) ~ x,
+                                     data = leukemia,
+                                     type      = "kaplan-meier",
+                                     error     = "greenwood",
+                                     conf.type = "log-log")
+survival_leukemia_km <-
+    km_leukemia_fit %>%
+    broom::tidy() %>%
+    mutate(treatment = gsub("x=", "", strata),
+           model = "Kaplan-Meier") %>%
+    rename(t = time,
+           ## These are misnomers, but for plotting purpuse.
+           survival_mean = estimate,
+           survival_95upper = conf.high,
+           survival_95lower = conf.low) %>%
+    select(treatment, t, survival_mean, survival_95upper, survival_95lower, model) %>%
+    right_join(y = crossing(treatment = c("Maintained","Nonmaintained"),
+                            t = seq(from = 0, to = cut_one, by = 1),
+                            model = "Kaplan-Meier")) %>%
+    mutate(treatment = factor(treatment,
+                              levels = c("Maintained","Nonmaintained"))) %>%
+    arrange(treatment, t) %>%
+    mutate(survival_mean = if_else(t == 0, 1, survival_mean),
+           survival_95upper = if_else(t == 0, 1, survival_95upper),
+           survival_95lower = if_else(t == 0, 1, survival_95lower)) %>%
+    ## Need LOCF to recover step function
+    tidyr::fill(survival_mean, survival_95upper, survival_95lower,
+                .direction = "down")
+```
+
 Now plot together for comparison.
 
-```{r bayesianideas_piecewise-19}
+```{r bayesianideas_piecewise-20}
 ## Summarize
 survival_leukemia_together <-
-bind_rows(
-    survival_leukemia_one %>%
-    summarize_df() %>%
-    mutate(model = "One constant hazard"),
-    survival_leukemia_two %>%
-    summarize_df() %>%
-    mutate(model = "Two constant hazards"),
-    survival_leukemia_three %>%
-    summarize_df() %>%
-    mutate(model = "Three constant hazards"),
-    survival_leukemia_events %>%
-    summarize_df() %>%
-    mutate(model = "All event times"),
-    survival_leukemia_times %>%
-    summarize_df() %>%
-    mutate(model = "All times")
-    )
+    bind_rows(
+        survival_leukemia_one %>%
+        summarize_df() %>%
+        mutate(model = "One constant hazard"),
+        survival_leukemia_two %>%
+        summarize_df() %>%
+        mutate(model = "Two constant hazards"),
+        survival_leukemia_three %>%
+        summarize_df() %>%
+        mutate(model = "Three constant hazards"),
+        survival_leukemia_events %>%
+        summarize_df() %>%
+        mutate(model = "All event times"),
+        survival_leukemia_times %>%
+        summarize_df() %>%
+        mutate(model = "All times"),
+        ## KM
+        survival_leukemia_km)
 
 gg_together <- survival_leukemia_together %>%
     ggplot(mapping = aes(x = t, y = survival_mean,
@@ -669,9 +704,11 @@ gg_together
 directlabels::direct.label(gg_together + scale_x_continuous(limit = c(0, 200)))
 ```
 
+For the Nonmaintained group, all methods
+
 ## Record session information
 
-```{r bayesianideas_piecewise-20}
+```{r bayesianideas_piecewise-21}
 print(sessionInfo())
 ## Record execution time
 end_time <- Sys.time()

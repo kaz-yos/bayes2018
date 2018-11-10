@@ -659,7 +659,7 @@ survival_leukemia_km <-
                 .direction = "down")
 ```
 
-Now plot together for comparison.
+Now plot together for comparison. Note the Kaplan-Meier estimates are Frequentist estimates. The Kaplan-Meier interval is Frequentist 95% confidence interval. For other methods, the intervals are 95% credible intervals (posterior probability intervals).
 
 ```{r bayesianideas_piecewise-20}
 ## Summarize
@@ -704,7 +704,8 @@ gg_together
 directlabels::direct.label(gg_together + scale_x_continuous(limit = c(0, 200)))
 ```
 
-For the Nonmaintained group, all methods
+All methods are similar for the Nonmaintained group, whereas there are larger differences for the Maintained group. This is likely due to departure from the exponential model (One constant hazard).
+
 
 ## Record session information
 

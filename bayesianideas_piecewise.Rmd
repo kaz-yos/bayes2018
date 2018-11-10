@@ -648,19 +648,25 @@ bind_rows(
     mutate(model = "All times")
     )
 
-survival_leukemia_together %>%
-    ggplot(mapping = aes(y = survival_mean, group = interaction(treatment, model), color = model)) +
+gg_together <- survival_leukemia_together %>%
+    ggplot(mapping = aes(x = t, y = survival_mean,
+                         group = interaction(treatment, model), color = model)) +
     geom_line() +
     geom_line(mapping = aes(y = survival_95upper),
               linetype = "dotted") +
     geom_line(mapping = aes(y = survival_95lower),
               linetype = "dotted") +
     facet_grid(. ~ treatment) +
+    labs(x = "Time in Days", y = "Survival") +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+## Regular plot
+gg_together
+## Direct labeling
+directlabels::direct.label(gg_together + scale_x_continuous(limit = c(0, 200)))
 ```
 
 ## Record session information
@@ -669,8 +675,8 @@ survival_leukemia_together %>%
 print(sessionInfo())
 ## Record execution time
 end_time <- Sys.time()
-cat("\n### Started  ", as.character(start_time), "\n")
-cat("### Finished ", as.character(end_time), "\n")
+cat("\n Started  ", as.character(start_time), "\n")
+cat(" Finished ", as.character(end_time), "\n")
 print(end_time - start_time)
 ```
 --------------------

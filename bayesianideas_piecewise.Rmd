@@ -5,7 +5,7 @@ date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
 ---
 
-```{r, message = FALSE, tidy = FALSE, echo = F}
+```{r bayesianideas_piecewise-1, message = FALSE, tidy = FALSE, echo = F}
 ## knitr configuration: http://yihui.name/knitr/options#chunk_options
 library(knitr)
 showMessage <- FALSE
@@ -192,7 +192,7 @@ where $w_{k}$ is the interval length times some hyperparameter $w$.
 ## Data analysis example
 ### Set up multicore environment
 
-```{r}
+```{r bayesianideas_piecewise-2}
 ## Configure parallelization
 ## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
 library(doParallel)
@@ -214,7 +214,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ### Load packages
 
-```{r}
+```{r bayesianideas_piecewise-3}
 library(tidyverse)
 library(survival)
 library(rstanarm)
@@ -242,7 +242,7 @@ Source:
      ISBN: 0-471-25218-2.
 ```
 
-```{r}
+```{r bayesianideas_piecewise-4}
 data(leukemia, package = "survival")
 leukemia <- as_data_frame(leukemia) %>%
     mutate(id = seq_len(n())) %>%
@@ -252,7 +252,7 @@ leukemia
 
 Check distribution of observed times and decide cut points for piecewise constant hazard function.
 
-```{r}
+```{r bayesianideas_piecewise-5}
 ## One piece
 cut_one <- max(leukemia$time) + 1
 cut_one
@@ -279,7 +279,7 @@ cut_times
 
 Now transform dataset into long-format ones. We need an interval indicator and an interval length variable.
 
-```{r}
+```{r bayesianideas_piecewise-6}
 ## No cut for all same constant hazard
 leukemia_one <- survival::survSplit(formula = Surv(time, status) ~ ., data = leukemia, cut = cut_one) %>%
     mutate(interval = factor(tstart),
@@ -314,7 +314,7 @@ leukemia_times
 
 ### Sanity check with frequentist methods
 
-```{r}
+```{r bayesianideas_piecewise-7}
 coxph(formula = Surv(time, status) ~ x,
          data    = leukemia,
          ties    = c("efron","breslow","exact")[1]) %>% summary
@@ -346,7 +346,7 @@ Where to center the prior for a log baseline hazard is unclear, so we will cente
 
 We will remove the intercept term to make all interval terms parametrized as log baseline hazard (rather than change from the initial log baseline hazard). rstanarm does not seem to allow a different prior for each regression coefficient. So we will just use $N(0,4^2)$ for all.
 
-```{r}
+```{r bayesianideas_piecewise-8}
 fit_leukemia_one <- rstanarm::stan_glm(formula = status ~ x + offset(log(interval_length)),
                                        data = leukemia_one,
                                        family = poisson(link = "log"),
@@ -390,7 +390,7 @@ By the virtue of regularization by the prior, even the log baseline hazards for 
 
 Now we have posterior samples of interval-specific log baseline hazards as well as log hazard ratio for treatment. We can construct treatment group-specific posterior survival curves. Since we have piecewise constant hazards, it is easier to first construct a cumulative hazard function. Here is the constructor.
 
-```{r}
+```{r bayesianideas_piecewise-9}
 cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards, group_effect) {
 
     ## t is a vector of time points. group is {0,1} scalar
@@ -430,13 +430,13 @@ cunstruct_cumulative_hazard_function <- function(cutpoints, log_baseline_hazards
 
 We can use the tidybayes package to obtain each posterior sample as a row of a data frame. The columns named interval are interval-specific constant log hazards.
 
-```{r}
+```{r bayesianideas_piecewise-10}
 tidybayes::tidy_draws(fit_leukemia_three)
 ```
 
 Then we construct posterior samples of cumulative hazard functions based on the interval-specific constant log hazards. No-so-tidy tidyverse code follows.
 
-```{r}
+```{r bayesianideas_piecewise-11}
 cum_haz_leukemia_one <- tidybayes::tidy_draws(fit_leukemia_one) %>%
     mutate(`H(t|x)` = pmap(list(`(Intercept)`, xNonmaintained),
                            function(`(Intercept)`, xNonmaintained){
@@ -512,13 +512,13 @@ cum_haz_leukemia_times <- tidybayes::tidy_draws(fit_leukemia_times) %>%
 
 As you can see, each row corresponds to a posterior sample of a cumulative hazard function that can be evaluated at an arbitrary time point $t \ge 0$.
 
-```{r}
+```{r bayesianideas_piecewise-12}
 cum_haz_leukemia_times
 ```
 
 Here we define functions to create plotting data and to plot.
 
-```{r}
+```{r bayesianideas_piecewise-13}
 create_plot_df <- function(cum_haz_leukemia_df) {
     ## Evaluation time points
     times_df <- data_frame(t = seq(from = 0, to = cut_one, by = 1))
@@ -580,7 +580,7 @@ plot_df <- function(df) {
 
 Plot different models.
 
-```{r}
+```{r bayesianideas_piecewise-14}
 survival_leukemia_one <-
     cum_haz_leukemia_one %>%
     create_plot_df()
@@ -589,7 +589,7 @@ survival_leukemia_one %>%
     labs(title = "One constant hazard")
 ```
 
-```{r}
+```{r bayesianideas_piecewise-15}
 survival_leukemia_two <-
     cum_haz_leukemia_two %>%
     create_plot_df()
@@ -598,7 +598,7 @@ survival_leukemia_two %>%
     labs(title = "Two constant hazards")
 ```
 
-```{r}
+```{r bayesianideas_piecewise-16}
 survival_leukemia_three <-
     cum_haz_leukemia_three %>%
     create_plot_df()
@@ -607,7 +607,7 @@ survival_leukemia_three %>%
     labs(title = "Three constant hazards")
 ```
 
-```{r}
+```{r bayesianideas_piecewise-17}
 survival_leukemia_events <-
     cum_haz_leukemia_events %>%
     create_plot_df()
@@ -616,7 +616,7 @@ survival_leukemia_events %>%
     labs(title = "All event times")
 ```
 
-```{r}
+```{r bayesianideas_piecewise-18}
 survival_leukemia_times <-
     cum_haz_leukemia_times %>%
     create_plot_df()
@@ -627,7 +627,7 @@ survival_leukemia_times %>%
 
 Now plot together for comparison.
 
-```{r}
+```{r bayesianideas_piecewise-19}
 ## Summarize
 survival_leukemia_together <-
 bind_rows(
@@ -666,7 +666,7 @@ survival_leukemia_together %>%
 
 ## Record session information
 
-```{r}
+```{r bayesianideas_piecewise-20}
 print(sessionInfo())
 ## Record execution time
 end_time <- Sys.time()

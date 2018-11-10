@@ -649,7 +649,6 @@ bind_rows(
     )
 
 survival_leukemia_together %>%
-    df %>%
     ggplot(mapping = aes(y = survival_mean, group = interaction(treatment, model), color = model)) +
     geom_line() +
     geom_line(mapping = aes(y = survival_95upper),

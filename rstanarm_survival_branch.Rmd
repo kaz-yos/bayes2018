@@ -53,6 +53,7 @@ library(tidyverse)
 ## devtools::install_github("stan-dev/rstanarm", ref = "feature/survival", build_vignettes = FALSE)
 library(rstanarm)
 library(tidybayes)
+library(bayesplot)
 library(survival)
 
 set.seed(167268372)
@@ -247,6 +248,17 @@ plot(stan_surv_bspline) + coord_cartesian(ylim = c(0, 0.1))
 ```
 
 This baseline hazard estimate with B-spline appears wired. There is a region with a negative hazard, so there is some posterior resurrection happening...
+
+
+### Baseline hazard function comparison
+
+```{r}
+bayesplot::bayesplot_grid(plot(stan_surv_exponential),
+                          plot(stan_surv_weibull),
+                          plot(stan_surv_mspline),
+                          plot(stan_surv_bspline),
+                          ylim = c(-0.01, 0.15))
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

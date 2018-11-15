@@ -388,7 +388,7 @@ summary(fit_leukemia_times)
 
 By the virtue of regularization by the prior, even the log baseline hazards for intervals without events does not break the model, but has lower posterior means.
 
-Examine model fit with loo.
+Examine model fit with loo. Note @avehtari (https://twitter.com/avehtari/status/1063048345118273536, BDA3 co-author, developer of Stan, GPy, etc!) pointed out that in the case of sub-patient level dataset (multiple rows representing intervals for each patient), leave-one-observation-out method is tricky. In this instance, what each observation represents in terms of the duration of the interval is different across models. This likely requires manually coded cross-validation with patient-level nested data frame (each row represents one patient with multiple time points nested within it).
 
 ```{r bayesianideas_piecewise-9 }
 list_fits_leukemia <- list(fit_leukemia_one = fit_leukemia_one,

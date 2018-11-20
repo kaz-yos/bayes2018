@@ -42,6 +42,7 @@ doParallel::registerDoParallel(cores = n_cores)
 - Books
   - [(BNPDA) Bayesian Nonparametric Data Analysis](https://www.springer.com/us/book/9783319189673)
 - Software
+  - [BNPDA code](https://web.ma.utexas.edu/users/pmueller/bnp/)
   - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
   - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
 - Papers
@@ -85,6 +86,69 @@ The notation $y_{i} | G \overset{iid}\sim G$ puzzled me for a while, but the LHS
 
 In the Dirichlet process formulation, each random probability measure $G$ retains the same support as $G_{0}$. Here we will choose a Poisson with mean 2 that truncates at 1 (zeros are removed).
 
+### Fitting
+
+```{r}
+## data
+## healthy Tconv mouse 2
+yf <- c(37,11,5,2) # frequencies
+xf <- c(1,2,3,4)   # counts
+## y <- rep(xf,yf)    # raw data
+## n <- length(y)
+## k <- n             # initialize
+
+## hyperparameters
+## a0 <- 1;   b0 <- 1   # hyperprior b ~ Ga(a0,b0)
+## a <- 1; b <- .05     # G0(mu) = Ga(a,b)
+## lambda <- 300        # k ~ Poi(lambda)
+## M <- 1
+## H <- 10
+## N <- 25; p=8
+
+rdiric<- function(n,a) {
+    ## generates x ~ Dir(a,...a) (n-dim)
+    p <- length(a)
+    m <- matrix(nrow=n,ncol=p)
+    for (i in 1:p) {
+        m[,i] <- rgamma(n,a[i])
+    }
+    sumvec <- m %*% rep(1,p)
+    m / as.vector(sumvec)
+}
+
+sample.dponly <- function(N=10,M=1,p=8) {
+    ## generates posterior p(G | y)
+    ## for yi ~ G
+    ## G0:   prior mean
+    ## Ghat: empirical
+    ## Gbar: posterior mean
+    ## G:    posterior sample
+    xgrid <- 1:p
+    r <-  1/(1-dpois(0, lambda=2)) # trunction to x>=1
+    G0 <- dpois(xgrid, lambda=2) * r # prior base measure
+    G1 <- M*G0                    # post base measure
+    G1[xf] <- G1[xf]+yf     # +1 because xgrid starts at 0
+    ## Sample a random probability measure N times
+    G <- rdiric(N,G1)
+    Gcdf <- apply(G,1,cumsum)
+    n <- sum(yf)
+    Gbar <- G1/(n+M)
+    Gbarcdf <- cumsum(Gbar)
+
+    G0cdf <- cumsum(G0)
+
+    Ghat <- rep(0,p) # initialize
+    n <- sum(yf)
+    Ghat[xf] <- yf/n
+    Ghatcdf <- cumsum(Ghat)
+    ##
+    return(Ghatcdf)
+  }
+```
+
+```{r}
+sample.dponly()
+```
 
 ## Dirichlet Process Mixture
 

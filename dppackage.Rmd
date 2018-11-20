@@ -54,6 +54,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ```{r}
 library(tidyverse)
 library(DPpackage)
+library(MCMCpack)
 ```
 
 ## Dirichlet Process
@@ -82,13 +83,74 @@ y_{i} | G \overset{iid}\sim G\\
 G \sim DP(M, G_{0})
 $$
 
-The notation $y_{i} | G \overset{iid}\sim G$ puzzled me for a while, but the LHS data | parameter is necessary because we consider the joint distribution of data and parameter in Bayesian statistics. An IID argument like seen in Frequentist paradigm is only possible after fixing (conditioning on) the parameter. Importantly, once we marginalize this conditioning over the prior distribution, exchangeability remains, but not generally IID.
+The notation $y_{i} | G \overset{iid}\sim G$ puzzled me for a while, but the LHS data | parameter notation is necessary because we consider the joint distribution of data and parameter in Bayesian statistics. An iid argument like seen in Frequentist paradigm is only possible after fixing (conditioning on) the parameter. Importantly, once we marginalize this conditioning over the prior distribution, exchangeability remains, but not generally iid.
 
-In the Dirichlet process formulation, each random probability measure $G$ retains the same support as $G_{0}$. Here we will choose a Poisson with mean 2 that truncates at 1 (zeros are removed).
+In the Dirichlet process formulation, each random probability measure $G$ retains the same support as the centering measure $G_{0}$. Here we will choose a Poisson with mean 2 that truncates at 1 (zeros are removed). Because we have a discrete centering measure, the partitioning property is relatively clear. If we collapse all values beyond 8 to 8+ bin, the following is the distribution.
+
+$$
+\begin{bmatrix}
+   G(0)\\
+   G(1)\\
+   \vdots\\
+   G(8+)\\
+ \end{bmatrix}
+\sim Dirichlet
+\begin{bmatrix}
+   M G_{0}(0)\\
+   M G_{0}(1)\\
+   \vdots\\
+   M G_{0}(8+)\\
+ \end{bmatrix}
+$$
+
+Now we define a function to give appropriately collapsed finite probability vector for the centering measure.
+
+```{r}
+G0_vector <- function(lambda, min, max) {
+    ## values below min are truncated
+    ## values above max are collapsed
+
+    ## Probabilities from Poisson(lambda) for min:max
+    p_vec <- dpois(x = min:max, lambda = lambda)
+    ## Probability for max+1 ...
+    p_upper_tail <- 1 - ppois(q = max, lambda = lambda)
+    ## Collapse to max
+    p_vec[length(p_vec)] <- p_vec[length(p_vec)] + p_upper_tail
+    ## Renormalize
+    p_vec <- p_vec / sum(p_vec)
+    ## Name
+    names(p_vec) <- min:max
+    ##
+    return(p_vec)
+}
+
+## Collapse all values beyond 8 to 8+ bin
+G0_vector(lambda = 2, min = 1, max = 8)
+```
+
+Now we can define a function to create random Dirichlet draws given the probability vector and mass $M$.
+
+```{r}
+## This function gives random Dirichlet draws via normalization of Gammas.
+MCMCpack::rdirichlet
+
+## Make sure G0_vector has integer names
+draw_dirichlet <- function(n, M, G0_vector) {
+    MCMCpack::rdirichlet(n, alpha = M * G0_vector) %>%
+    t %>%
+    as_data_frame %>%
+    mutate(y = names(G0_vector)) %>%
+    gather(key = .iter, value = p, -y) %>%
+    mutate(.iter = as.integer(gsub("V", "", .iter)))
+}
+
+draw_dirichlet(n = 10, M = 1, G0_vector = G0_vector(lambda = 2, min = 1, max = 8))
+```
 
 ### Fitting
 
 ```{r}
+
 ## data
 ## healthy Tconv mouse 2
 yf <- c(37,11,5,2) # frequencies

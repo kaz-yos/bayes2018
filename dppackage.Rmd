@@ -139,8 +139,8 @@ Now we can define a function to create random Dirichlet draws given the probabil
 MCMCpack::rdirichlet
 
 ## Make sure G0_vector has integer names
-draw_dirichlet <- function(n, M, G0_vector) {
-    MCMCpack::rdirichlet(n, alpha = M * G0_vector) %>%
+draw_dirichlet <- function(n_draws, M, G0_vector) {
+    MCMCpack::rdirichlet(n_draws, alpha = M * G0_vector) %>%
     t %>%
     as_data_frame %>%
     mutate(y = names(G0_vector)) %>%
@@ -164,8 +164,8 @@ prior_mean <- data_frame(y = names(G0_vector_values),
 n_draws <- 50
 prior_draws <- bind_rows(
     draw_dirichlet(n_draws = n_draws, M = 0.1, G0_vector = G0_vector_values),
-    draw_dirichlet(n_draws = n_draws, M = 1, G0_vector = G0_vector_values),
-    draw_dirichlet(n_draws = n_draws, M = 10, G0_vector = G0_vector_values),
+    draw_dirichlet(n_draws = n_draws, M = 1,   G0_vector = G0_vector_values),
+    draw_dirichlet(n_draws = n_draws, M = 10,  G0_vector = G0_vector_values),
     draw_dirichlet(n_draws = n_draws, M = 100, G0_vector = G0_vector_values),
     )
 
@@ -191,8 +191,7 @@ Now we can update our model with the observed data.
 
 ```{r}
 df1 <- data_frame(y = c(1:4),
-                  count = c(37, 11, 5, 2))
-df1 <- df1 %>%
+                  count = c(37, 11, 5, 2)) %>%
     mutate(total_n = sum(count))
 df1
 ```
@@ -200,17 +199,15 @@ df1
 The total sample size is n = 55. Value 1 was observed most frequently. Values equal to and greater than 5 were not observed. The empirical distribution is the following.
 
 ```{r}
-df1 <- df1 %>%
-    mutate(G_hat = count/total_n)
-
-## 8 is 8 and above
-df1_extended <- df1 %>%
+df1_extended <-  df1 %>%
     bind_rows(data_frame(y = 5:8,
-                         G_hat = 0))
-df1_extended
+                         count = 0)) %>%
+    mutate(total_n = sum(count),
+           p = count/total_n,
+           .iter = 0)
 
 df1_extended %>%
-    ggplot(mapping = aes(x = y, y = G_hat)) +
+    ggplot(mapping = aes(x = y, y = p)) +
     geom_line() +
     theme_bw() +
     scale_y_continuous(limits = c(0,1)) +
@@ -227,17 +224,58 @@ $$
 G | \mathbf{y} \sim DP \left( M+n, \frac{M}{M+n}G_{0} + \frac{n}{M+n}\widehat{G} \right)
 $$
 
-The updated centering measure is a weighted mean of the prior centering measure and
+The updated centering measure is a weighted mean of the prior centering measure $G_{0}$ and the empirical measure (empirical probability mass function) $\widehat{G}$. The mass (concentration) parameter becomes $M+n$. $M$ can roughly be interpreted as the "sample size" of the prior information.
 
 ```{r}
-
-data_frame(y = as.integer(names(G0_vector_values)),
-           G0 = G0_vector_values,
-           n = 55,
-           G_hat = c(37, 11, 5, 2, 0, 0, 0, 0) / 55)
-
+df1_posterior <- data_frame(y = as.integer(names(G0_vector_values)),
+                            G0 = G0_vector_values,
+                            n = 55,
+                            G_hat = c(37, 11, 5, 2, 0, 0, 0, 0) / 55,
+                            ## Weighted average at different M
+                            `M = 0.1` = (0.1 * G0 + n * G_hat) / (0.1 + n),
+                            `M = 1` = (1 * G0 + n * G_hat) / (1 + n),
+                            `M = 10` = (10 * G0 + n * G_hat) / (10 + n),
+                            `M = 100` = (100 * G0 + n * G_hat) / (100 + n),
+                            )
+G0_vector_new_M0.1 <- df1_posterior$`M = 0.1`
+G0_vector_new_M1 <- df1_posterior$`M = 1`
+G0_vector_new_M10 <- df1_posterior$`M = 10`
+G0_vector_new_M100 <- df1_posterior$`M = 100`
+names(G0_vector_new_M0.1) <- 1:8
+names(G0_vector_new_M1) <- 1:8
+names(G0_vector_new_M10) <- 1:8
+names(G0_vector_new_M100) <- 1:8
+df1_posterior
 ```
 
+
+```{r}
+n <- 55
+n_draws <- 50
+posterior_draws <- bind_rows(
+    draw_dirichlet(n_draws = n_draws, M = n + 0.1, G0_vector = G0_vector_new_M0.1) %>% mutate(M = 0.1),
+    draw_dirichlet(n_draws = n_draws, M = n + 1,   G0_vector = G0_vector_new_M1) %>% mutate(M = 1),
+    draw_dirichlet(n_draws = n_draws, M = n + 10,  G0_vector = G0_vector_new_M10) %>% mutate(M = 10),
+    draw_dirichlet(n_draws = n_draws, M = n + 100, G0_vector = G0_vector_new_M100) %>% mutate(M = 100),
+    )
+
+posterior_draws %>%
+    ggplot(mapping = aes(x = y, y = p, group = .iter)) +
+    ## Draws
+    geom_line(size = 0.1) +
+    ## Prior centering measure
+    geom_line(data = prior_mean, size = 1) +
+    ## Empirical distribution
+    geom_line(data = df1_extended, size = 1, color = "red") +
+    scale_y_continuous(limits = c(0,1)) +
+    facet_wrap(~ M) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

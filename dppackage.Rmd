@@ -41,6 +41,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ## References
 - Books
   - [(BNPDA) Bayesian Nonparametric Data Analysis](https://www.springer.com/us/book/9783319189673)
+  - [(FNBI) Fundamentals of Nonparametric Bayesian Inference](https://www.cambridge.org/core/books/fundamentals-of-nonparametric-bayesian-inference/C96325101025D308C9F31F4470DEA2E8)
 - Software
   - [BNPDA code](https://web.ma.utexas.edu/users/pmueller/bnp/)
   - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
@@ -144,7 +145,8 @@ draw_dirichlet <- function(n, M, G0_vector) {
     as_data_frame %>%
     mutate(y = names(G0_vector)) %>%
     gather(key = .iter, value = p, -y) %>%
-    mutate(.iter = as.integer(gsub("V", "", .iter)))
+    mutate(.iter = as.integer(gsub("V", "", .iter)),
+           M = M)
 }
 
 draw_dirichlet(n = 10, M = 1, G0_vector = G0_vector(lambda = 2, min = 1, max = 8))
@@ -159,21 +161,18 @@ prior_mean <- data_frame(y = names(G0_vector_values),
                          p = G0_vector_values,
                          .iter = 0)
 
+n_draws <- 50
 prior_draws <- bind_rows(
-    draw_dirichlet(n = 10, M = 0.1, G0_vector = G0_vector_values) %>%
-    mutate(M = 0.1),
-    draw_dirichlet(n = 10, M = 1, G0_vector = G0_vector_values) %>%
-    mutate(M = 1),
-    draw_dirichlet(n = 10, M = 10, G0_vector = G0_vector_values) %>%
-    mutate(M = 10),
-    draw_dirichlet(n = 10, M = 100, G0_vector = G0_vector_values) %>%
-    mutate(M = 100),
-)
+    draw_dirichlet(n_draws = n_draws, M = 0.1, G0_vector = G0_vector_values),
+    draw_dirichlet(n_draws = n_draws, M = 1, G0_vector = G0_vector_values),
+    draw_dirichlet(n_draws = n_draws, M = 10, G0_vector = G0_vector_values),
+    draw_dirichlet(n_draws = n_draws, M = 100, G0_vector = G0_vector_values),
+    )
 
 prior_draws %>%
     ggplot(mapping = aes(x = y, y = p, group = .iter)) +
-    geom_line() +
-    geom_line(data = prior_mean, size = 2) +
+    geom_line(data = prior_mean, size = 1) +
+    geom_line(size = 0.1) +
     facet_wrap(~ M) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -183,72 +182,61 @@ prior_draws %>%
 
 ```
 
-### Fitting
+The thicker line is $G_{0}$. We can see as the mass parameter $M$ increases, the prior distribution of $G$ (thin lines represent draws) is more tightly packed around $G_{0}$.
+
+
+### Posterior inference
+
+Now we can update our model with the observed data.
+
+```{r}
+df1 <- data_frame(y = c(1:4),
+                  count = c(37, 11, 5, 2))
+df1 <- df1 %>%
+    mutate(total_n = sum(count))
+df1
+```
+
+The total sample size is n = 55. Value 1 was observed most frequently. Values equal to and greater than 5 were not observed. The empirical distribution is the following.
+
+```{r}
+df1 <- df1 %>%
+    mutate(G_hat = count/total_n)
+
+## 8 is 8 and above
+df1_extended <- df1 %>%
+    bind_rows(data_frame(y = 5:8,
+                         G_hat = 0))
+df1_extended
+
+df1_extended %>%
+    ggplot(mapping = aes(x = y, y = G_hat)) +
+    geom_line() +
+    theme_bw() +
+    scale_y_continuous(limits = c(0,1)) +
+    scale_x_discrete(limits = c(1:8)) +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+A Dirichlet process prior conjugate prior to iid sampling, so we get a Dirichlet process posterior.
+
+$$
+G | \mathbf{y} \sim DP \left( M+n, \frac{M}{M+n}G_{0} + \frac{n}{M+n}\widehat{G} \right)
+$$
+
+The updated centering measure is a weighted mean of the prior centering measure and
 
 ```{r}
 
-## data
-## healthy Tconv mouse 2
-yf <- c(37,11,5,2) # frequencies
-xf <- c(1,2,3,4)   # counts
-## y <- rep(xf,yf)    # raw data
-## n <- length(y)
-## k <- n             # initialize
+data_frame(y = as.integer(names(G0_vector_values)),
+           G0 = G0_vector_values,
+           n = 55,
+           G_hat = c(37, 11, 5, 2, 0, 0, 0, 0) / 55)
 
-## hyperparameters
-## a0 <- 1;   b0 <- 1   # hyperprior b ~ Ga(a0,b0)
-## a <- 1; b <- .05     # G0(mu) = Ga(a,b)
-## lambda <- 300        # k ~ Poi(lambda)
-## M <- 1
-## H <- 10
-## N <- 25; p=8
-
-rdiric<- function(n,a) {
-    ## generates x ~ Dir(a,...a) (n-dim)
-    p <- length(a)
-    m <- matrix(nrow=n,ncol=p)
-    for (i in 1:p) {
-        m[,i] <- rgamma(n,a[i])
-    }
-    sumvec <- m %*% rep(1,p)
-    m / as.vector(sumvec)
-}
-
-sample.dponly <- function(N=10,M=1,p=8) {
-    ## generates posterior p(G | y)
-    ## for yi ~ G
-    ## G0:   prior mean
-    ## Ghat: empirical
-    ## Gbar: posterior mean
-    ## G:    posterior sample
-    xgrid <- 1:p
-    r <-  1/(1-dpois(0, lambda=2)) # trunction to x>=1
-    G0 <- dpois(xgrid, lambda=2) * r # prior base measure
-    G1 <- M*G0                    # post base measure
-    G1[xf] <- G1[xf]+yf     # +1 because xgrid starts at 0
-    ## Sample a random probability measure N times
-    G <- rdiric(N,G1)
-    Gcdf <- apply(G,1,cumsum)
-    n <- sum(yf)
-    Gbar <- G1/(n+M)
-    Gbarcdf <- cumsum(Gbar)
-
-    G0cdf <- cumsum(G0)
-
-    Ghat <- rep(0,p) # initialize
-    n <- sum(yf)
-    Ghat[xf] <- yf/n
-    Ghatcdf <- cumsum(Ghat)
-    ##
-    return(Ghatcdf)
-  }
 ```
-
-```{r}
-sample.dponly()
-```
-
-## Dirichlet Process Mixture
 
 
 --------------------

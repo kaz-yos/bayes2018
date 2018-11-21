@@ -103,6 +103,9 @@ $$
  \end{bmatrix}
 $$
 
+
+### Prior
+
 Now we define a function to give appropriately collapsed finite probability vector for the centering measure.
 
 ```{r}
@@ -145,6 +148,39 @@ draw_dirichlet <- function(n, M, G0_vector) {
 }
 
 draw_dirichlet(n = 10, M = 1, G0_vector = G0_vector(lambda = 2, min = 1, max = 8))
+```
+
+Let us visualize some random draws from the prior at different $M$.
+
+```{r}
+G0_vector_values <- G0_vector(lambda = 2, min = 1, max = 8)
+
+prior_mean <- data_frame(y = names(G0_vector_values),
+                         p = G0_vector_values,
+                         .iter = 0)
+
+prior_draws <- bind_rows(
+    draw_dirichlet(n = 10, M = 0.1, G0_vector = G0_vector_values) %>%
+    mutate(M = 0.1),
+    draw_dirichlet(n = 10, M = 1, G0_vector = G0_vector_values) %>%
+    mutate(M = 1),
+    draw_dirichlet(n = 10, M = 10, G0_vector = G0_vector_values) %>%
+    mutate(M = 10),
+    draw_dirichlet(n = 10, M = 100, G0_vector = G0_vector_values) %>%
+    mutate(M = 100),
+)
+
+prior_draws %>%
+    ggplot(mapping = aes(x = y, y = p, group = .iter)) +
+    geom_line() +
+    geom_line(data = prior_mean, size = 2) +
+    facet_wrap(~ M) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
 ```
 
 ### Fitting

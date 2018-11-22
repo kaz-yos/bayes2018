@@ -1,0 +1,103 @@
+---
+title: "Dirichlet Process Mixture"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- Books
+  - [(BNPDA) Bayesian Nonparametric Data Analysis](https://www.springer.com/us/book/9783319189673)
+  - [(HSAUR) A Handbook of Statistical Analyses using R](https://www.crcpress.com/A-Handbook-of-Statistical-Analyses-using-R/Hothorn-Everitt/p/book/9781482204582)
+  - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+  - [(FNBI) Fundamentals of Nonparametric Bayesian Inference](https://www.cambridge.org/core/books/fundamentals-of-nonparametric-bayesian-inference/C96325101025D308C9F31F4470DEA2E8)
+- Software
+  - [BNPDA code](https://web.ma.utexas.edu/users/pmueller/bnp/)
+  - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
+  - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
+- Papers
+  - [Chan et al (2017). Nonparametric estimation in economics: Bayesian and frequentist approaches.](https://onlinelibrary.wiley.com/doi/pdf/10.1002/wics.1406) (pre-print available)
+
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(DPpackage)
+## library(MCMCpack)
+```
+
+## Dirichlet Process and Dirichlet Process Mixture
+
+### Why Construct a Mixture
+The [previous example of the Dirichlet Process](http://rpubs.com/kaz_yos/dp1) was based on discrete data with a discrete centering measure $G_{0}$. So it was not a surprise that we got a posterior distribution of discrete measures $G$. However, the Dirichlet process results in measures $G$ that are discrete almost surely (with probability one) regardless of the centering measure $G_{0}$. Therefore, for density estimation, adding one more layer to the model to use the DP as a mixture distribution is more appealing.
+
+### Hierarchical Structure
+
+$$\begin{align*}
+  y_{i} | \theta_{i} &\overset{\text{ind}}{\sim} f_{\theta_{i}}\\
+  \\
+  \theta_{i} | G &\overset{\text{iid}}{\sim} G\\
+  \\
+  G &\sim DP(M G_{0})
+  \end{align*}
+$$
+
+This is interpreted as follows.
+
+1. Each data point $y_{i}$ has its own latent parameter value $\theta_{i}$. Given this latent parameter value, $y_{i} | \theta_{i}$ follows a parametric distribution with a density function $f_{\theta_{i}}$.
+
+2. In turn, each individual-specific latent parameter value $\theta_{i}$ given a random probability measure $G$ is an iid sample from the distribution defined by $G$.
+
+3. The distribution over the random measure $G$ is governed by a Dirichlet process with a mass (concentration) parameter $M$ and a centering measure $G_{0}$, where $G_{0}$ should have a support appropriate for $\theta_{i}$.
+
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

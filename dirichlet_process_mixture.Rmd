@@ -40,7 +40,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - Books
-  - [(BNPDA) Bayesian Nonparametric Data Analysis](https://www.springer.com/us/book/9783319189673)
+  - [(BNPDA) Bayesian Nonparametric Data Analysis](https://web.ma.utexas.edu/users/pmueller/bnp/)
   - [(HSAUR) A Handbook of Statistical Analyses using R](https://www.crcpress.com/A-Handbook-of-Statistical-Analyses-using-R/Hothorn-Everitt/p/book/9781482204582)
   - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
   - [(FNBI) Fundamentals of Nonparametric Bayesian Inference](https://www.cambridge.org/core/books/fundamentals-of-nonparametric-bayesian-inference/C96325101025D308C9F31F4470DEA2E8)
@@ -100,6 +100,88 @@ $$\begin{align*}
   \end{align*}
 $$
 
+### Load data
+
+This is an example from the BNPDA book (p13).
+
+```{r}
+## https://web.ma.utexas.edu/users/pmueller/bnp/R/DP/eig121/EIG.txt
+data1 <- read.table(header = TRUE, text = "
+  id recorded-EIG121 imputed-EIG121
+  1      NA 0.00941
+  2 0.00533 0.00533
+  3 0.02310 0.02310
+  4      NA 0.67871
+  5 0.00008 0.00008
+  6 0.27840 0.27840
+  7 0.06530 0.06530
+  8      NA 0.03108
+  9      NA 0.03108
+ 10 0.00060 0.00060
+ 11 0.02750 0.02750
+ 12      NA 0.03108
+ 13 0.03060 0.03060
+ 14      NA 0.03108
+ 15      NA 0.67871
+ 16 0.03300 0.03300
+ 17      NA 0.03108
+ 18      NA 0.03108
+ 19      NA 0.67871
+ 20 0.09650 0.09650
+ 21 0.02560 0.02560
+ 22 0.01670 0.01670
+ 23 0.06980 0.06980
+ 24 0.00730 0.00730
+ 25      NA 0.03108
+ 26      NA 0.77071
+ 27      NA 0.03108
+ 28 0.00500 0.00500
+ 29      NA 0.03108
+ 31 0.00891 0.00891
+ 32      NA 0.22861
+ 33      NA 0.22861
+ 34 0.02630 0.02630
+ 35      NA 0.22861
+ 36      NA 0.03108
+ 37      NA 0.03108
+ 38      NA 0.03108
+ 39      NA 0.00941
+ 40 0.01357 0.01357
+ 41 0.01759 0.01759
+ 42 0.83840 0.83840
+ 43 1.18167 1.18167
+ 44 0.01540 0.01540
+ 45 0.67239 0.67239
+ 46 0.09752 0.09752
+ 47 0.16455 0.16455
+ 48 0.55606 0.55606
+ 49 0.64961 0.64961
+ 50 0.01287 0.01287
+ 51 0.00192 0.00192
+ 52 0.00043 0.00043
+ 53 0.01897 0.01897
+ 54 0.00036 0.00036
+ 55 0.23272 0.23272
+ 56 0.43327 0.43327
+ 57 1.10649 1.10649
+ 58 0.85073 0.85073
+ 59 0.00318 0.00318
+ 60 0.03394 0.03394
+ 61 0.13869 0.13869
+ 62 0.00345 0.00345
+ 63 0.22849 0.22849
+ 64 0.28294 0.28294
+ 65 0.75363 0.75363
+ 66 0.18504 0.18504
+ 67 0.01930 0.01930
+ 68 1.05398 1.05398
+ 69 0.02071 0.02071
+ 70 0.00295 0.00295
+ 71 0.00394 0.00394
+ 72 0.32358 0.32358
+ 73 0.01006 0.01006
+ ")
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

@@ -84,6 +84,22 @@ This is interpreted as follows.
 
 3. The distribution over the random measure $G$ is governed by a Dirichlet process with a mass (concentration) parameter $M$ and a centering measure $G_{0}$, where $G_{0}$ should have a support appropriate for $\theta_{i}$.
 
+### Posterior Inference
+
+Give the structure above and vector notations $\boldsymbol{\theta} = (\theta_{1},\dots,\theta_{n})$ and $\mathbf{y} = (y_{1}, \dots, y_{n})$. The posterior distribution of the random measure $G$ given $\boldsymbol{\theta}$ is the following.
+
+$$\begin{align*}
+  G | \boldsymbol{\theta} &\sim DP \left( MG_{0} + \sum^{n}_{i=1} \delta_{\theta_{i}} \right)
+  \end{align*}
+$$
+
+Consider the posterior distribution of $\boldsymbol{\theta}$ given $\mathbf{y}$, $p(\boldsymbol{\theta} | \mathbf{y})$. If we integrate out $\boldsymbol{\theta}$ in the above expression using this posterior distribution, we obtain the following.
+
+$$\begin{align*}
+  G | \mathbf{y} &\sim \int DP \left( MG_{0} + \sum^{n}_{i=1} \delta_{\theta_{i}} \right) \text{d} p(\boldsymbol{\theta} | \mathbf{y})
+  \end{align*}
+$$
+
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

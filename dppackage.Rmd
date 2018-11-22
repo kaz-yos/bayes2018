@@ -1,5 +1,5 @@
 ---
-title: "DPpackage"
+title: "Dirichlet Process Prior"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -54,7 +54,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ```{r}
 library(tidyverse)
-library(DPpackage)
+## library(DPpackage)
 library(MCMCpack)
 ```
 
@@ -274,8 +274,10 @@ posterior_draws %>%
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
-
 ```
+
+Here the thick red line is the empirical measure $\widehat{G}$ and the thick black line is the prior centering measure $G_{0}$. The thin lines are the posterior samples. As $M$ increases, the posterior draws approach $G_{0}$ (more influence of the prior).
+
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

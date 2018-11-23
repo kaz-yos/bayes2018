@@ -183,6 +183,132 @@ data1 <- read.table(header = TRUE, text = "
  ")
 ```
 
+### Specific Model
+
+As outlined in [this program](https://web.ma.utexas.edu/users/pmueller/bnp/R/DP/eig121/geneExpr-ex4-DPM.R), we will use the following model.
+
+$$\begin{align*}
+  y_{i} | \theta_{i} &\overset{\text{ind}}{\sim} N(\theta_{i}, \sigma^{2})\\
+  \\
+  \theta_{i} | G &\overset{\text{iid}}{\sim} G\\
+  \\
+  G &\sim DP(M, N(0,4))\\
+  \\
+  \frac{1}{\sigma} &\sim Gamma(1, 1)\\
+  \end{align*}
+$$
+
+The model implemented in ```DPdensity``` is the following. See the [manual](https://cran.r-project.org/web/packages/DPpackage/DPpackage.pdf) for detail.
+
+$$\begin{align*}
+  y_{i} | (\mu_{i}, \Sigma_{i}) &\overset{\text{ind}}{\sim} N(\mu_{i},\Sigma_{i})\\
+  \\
+  (\mu_{i}, \Sigma_{i}) | G &\overset{\text{iid}}{\sim} G\\
+  \\
+  G | (\alpha, G_{0}) &\sim DP(\alpha G_{0})\\
+  \\
+  G_{0} &= N \left( \mu \bigg| m_{1}, \frac{1}{k_{0}} \Sigma \right) IW \left( \Sigma | \nu_{i}, \psi_{1} \right)\\
+  \\
+  \alpha | (a_{0},b_{0}) &\sim Gamma(a_{0},b_{0})\\
+  m_{1} | (m_{2},s_{2}) &\sim N(m_{2},s_{2})\\
+  k_{0} | (\tau_{1},\tau_{2}) &\sim Gamma \left( \frac{\tau_{1}}{2}, \frac{\tau_{2}}{2} \right)\\
+  \psi_{1} | (\nu_{2}, \psi_{2}) &\sim IW(\nu_{2}, \psi_{2})\\
+  \end{align*}
+$$
+
+
+### Fitting
+
+```{r, cache = TRUE, results = 'hide'}
+mcmc <- list(nburn = 1000,
+             nsave = 10000,
+             nskip = 10,
+             ndisplay = 100)
+
+## Example of Prior information 1
+## Fixing alpha, m1, and Psi1
+prior1 <- list(alpha=1,m1=rep(0,1),psiinv1=diag(0.5,1),
+               nu1=4, tau1=1,tau2=100)
+## Example of Prior information 2
+## Fixing alpha and m1
+prior2 <- list(alpha=1,m1=rep(0,1),
+               psiinv2=solve(diag(0.5,1)),
+               nu1=4,nu2=4,tau1=1,tau2=100)
+## Example of Prior information 3
+## Fixing only alpha
+prior3 <- list(alpha=1,
+               m2=rep(0,1),s2=diag(100000,1),
+               psiinv2=solve(diag(0.5,1)),
+               nu1=4,nu2=4,tau1=1,tau2=100)
+## Example of Prior information 4
+## Everything is random (alpha, m1, nd Psi1)
+prior4 <- list(a0=2,b0=1,m2=rep(0,1),s2=diag(100000,1),
+               psiinv2=solve(diag(0.5,1)),
+               nu1=4,nu2=4,tau1=1,tau2=100)
+
+## Fit the models
+state <- NULL
+fit1.1 <- DPdensity(y=data1$imputed.EIG121,
+                    prior=prior1,
+                    mcmc=mcmc,
+                    state=state,
+                    status=TRUE)
+fit1.2 <- DPdensity(y=data1$imputed.EIG121,
+                    prior=prior2,
+                    mcmc=mcmc,
+                    state=state,
+                    status=TRUE)
+fit1.3 <- DPdensity(y=data1$imputed.EIG121,
+                    prior=prior3,
+                    mcmc=mcmc,
+                    state=state,
+                    status=TRUE)
+fit1.4 <- DPdensity(y=data1$imputed.EIG121,
+                    prior=prior4,
+                    mcmc=mcmc,
+                    state=state,
+                    status=TRUE)
+```
+
+Check posterior means.
+
+```{r}
+fit1.1
+fit1.2
+fit1.3
+fit1.4
+```
+
+Plot diagnostics.
+
+```{r}
+plot(fit1.1,ask=FALSE,output="param")
+plot(fit1.2,ask=FALSE,output="param")
+plot(fit1.3,ask=FALSE,output="param")
+plot(fit1.4,ask=FALSE,output="param")
+```
+
+Plot specific aspects.
+
+```{r}
+## Extracting the posterior mean of the specific
+## means and covariance matrices
+## (only prior 2 for illustration)
+DPrandom(fit1.2)
+## Ploting predictive information about the specific
+## means and covariance matrices
+## with HPD and Credibility intervals
+## (only prior 2 for illustration)
+## (to see the plots gradually set ask=TRUE)
+plot(DPrandom(fit1.2,predictive=TRUE),ask=FALSE)
+plot(DPrandom(fit1.2,predictive=TRUE),ask=FALSE,hpd=FALSE)
+## Ploting information about all the specific means
+## and covariance matrices
+## with HPD and Credibility intervals
+## (only prior 2 for illustration)
+## (to see the plots gradually set ask=TRUE)
+plot(DPrandom(fit1.2),ask=FALSE,hpd=FALSE)
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

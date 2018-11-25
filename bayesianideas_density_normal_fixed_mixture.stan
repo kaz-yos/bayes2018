@@ -54,7 +54,7 @@ model {
     // sigma^2 has inverse gamma (alpha = 1, beta = 1) prior
     sigma_squared ~ inv_gamma(alpha, beta);
     // cluster probability vector
-    Pi ~ dirichlet(rep_vector(dirichlet_alpha, H));
+    Pi ~ dirichlet(rep_vector(dirichlet_alpha / H, H));
 
     // Likelihood part of Bayesian inference
     // Outcome model N(mu, sigma^2) (use SD rather than Var)

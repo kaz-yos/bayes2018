@@ -1,0 +1,128 @@
+---
+title: "BIDA: Density Estimation"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- Books
+  - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+  - [(BDA) Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+- Software
+  - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
+  - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
+
+
+## Background
+Here we have 82 data points in the galaxy from a 1-dimensional unknown distribution.
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(rstan)
+## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
+library(biostan)
+library(DPpackage)
+```
+
+## Prepare data
+
+```{r}
+data(galaxy, package = "DPpackage")
+galaxy %>%
+    as_data_frame() %>%
+    mutate(log_speed = log(speed))
+```
+
+## Single Normal
+### Model
+$$\begin{align*}
+  y_{i} | (\mu, \sigma^{2}) &\sim N(\mu, \sigma^{2})\\
+  \\
+  p(\mu,\sigma^{2}) &= p(\mu|\sigma^{2})p(\sigma^{2})\\
+  &= N(\mu | 0, 10^{3}) Inverse-Gamma(\sigma^{2} | 10^{-3})\\
+  &= \left[ \frac{1}{\sqrt{2\pi 10^{3}}} \exp \left( - \frac{(\mu - 0)^{2}}{2 \times 10^{3}} \right) \right]
+    \left[ \frac{(10^{-3})^{10^{-3}}}{\Gamma(10^{-3})} (\sigma^{2})^{-10^{-3} - 1} \exp \left( - \frac{10^{-3}}{\sigma^{2}} \right) \right]
+  \end{align*}
+$$
+
+### Implementation
+```{r}
+normal_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal.stan")
+biostan::print_stan_code(normal_stan_code, section = NULL)
+```
+
+### Fitting
+```{r}
+normal_stan_fit <-
+    rstan::stan(model_code = normal_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed))
+```
+
+## Finite Mixture of Normals
+### Model
+$$\begin{align*}
+  y_{i} | (z_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})
+  \end{align*}
+$$
+
+## Dirichlet Process Mixture of Normals
+### Model
+
+## Mixture of Polya Trees using Normal
+### Model
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

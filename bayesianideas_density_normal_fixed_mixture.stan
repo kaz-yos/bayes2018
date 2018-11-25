@@ -9,10 +9,10 @@ data {
     // Define variables in data
     // Number of observations (an integer)
     int<lower=0> n;
-    // Number of latent clusters
-    int<lower=1> H;
     // Outcome (a real vector of length n)
     real y[n];
+    // Number of latent clusters
+    int<lower=1> H;
 }
 
 transformed data {
@@ -27,7 +27,7 @@ parameters {
     // Population variance (a positive real number)
     real<lower=0> sigma_squared[H];
     // Cluster probability
-    simplex pi[H];
+    simplex[H] Pi;
 }
 
 transformed parameters {
@@ -38,6 +38,9 @@ transformed parameters {
 }
 
 model {
+    // Temporary vector for loop use. Need to come first before priors.
+    real contributions[H];
+
     // Prior part of Bayesian inference
     /* for (j in 1:H) { */
     /*     // Mean */
@@ -51,19 +54,19 @@ model {
     // sigma^2 has inverse gamma (alpha = 1, beta = 1) prior
     sigma_squared ~ inv_gamma(alpha, beta);
     // cluster probability vector
-    pi ~ dirichlet(rep_vector(dirichlet_alpha, H));
+    Pi ~ dirichlet(rep_vector(dirichlet_alpha, H));
 
     // Likelihood part of Bayesian inference
     // Outcome model N(mu, sigma^2) (use SD rather than Var)
-    for (i in 1:N) {
+    for (i in 1:n) {
         // Loop over individuals
         // z[i] in {1,...,H} gives the cluster membership.
         /* y[i] ~ normal(mu[z[i]], sigma[z[i]]); */
 
           for (h in 1:H) {
               // Loop over clusters within each individual
-              // Log likelihood contributions log(pi[h] * N(y[i] | mu[h],sigma[h]))
-              contributions[h] = log(pi[h]) + normal_lpdf(y[i] | mu[h], sigma[h]);
+              // Log likelihood contributions log(Pi[h] * N(y[i] | mu[h],sigma[h]))
+              contributions[h] = log(Pi[h]) + normal_lpdf(y[i] | mu[h], sigma[h]);
           }
 
           // log(sum(exp(contribution element)))

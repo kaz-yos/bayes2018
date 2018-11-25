@@ -194,6 +194,25 @@ normal_fixed_mixture_stan_code <- biostan::read_stan_file("./bayesianideas_densi
 biostan::print_stan_code(normal_fixed_mixture_stan_code, section = NULL)
 ```
 
+### Fitting
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 2,
+                            H = 6))
+```
+
+```{r}
+normal_fixed_mixture_stan_fit
+```
+
+The sampling process seems ok.
+
+
 
 ## Dirichlet Process Mixture of Normals
 ### Model

@@ -23,7 +23,7 @@ transformed data {
 parameters {
     // Define parameters to estimate
     // Population mean (a real number)
-    real mu[H];
+    ordered[H] mu;
     // Population variance (a positive real number)
     real<lower=0> sigma_squared[H];
     // Cluster probability
@@ -42,12 +42,6 @@ model {
     real contributions[H];
 
     // Prior part of Bayesian inference
-    /* for (j in 1:H) { */
-    /*     // Mean */
-    /*     mu[j] ~ normal(m, s); */
-    /*     // sigma^2 has inverse gamma (alpha = 1, beta = 1) prior */
-    /*     sigma_squared[j] ~ inv_gamma(alpha, beta); */
-    /* } */
     // All vectorized
     // Mean
     mu ~ normal(m, s);

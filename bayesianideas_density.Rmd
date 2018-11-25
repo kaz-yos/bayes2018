@@ -237,7 +237,9 @@ normal_fixed_mixture_stan_fit <-
 
 ```{r}
 normal_fixed_mixture_stan_fit
-traceplot(normal_fixed_mixture_stan_fit, pars = c("mu[1]","mu[2]","mu[3]"))
+traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("mu[%s]", 1:6))
+traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("sigma[%s]", 1:6))
+traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("Pi[%s]", 1:6))
 ```
 
 This model broke down badly.

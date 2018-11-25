@@ -56,28 +56,46 @@ Here we have 82 data points in the galaxy from a 1-dimensional unknown distribut
 library(tidyverse)
 library(rstan)
 ## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
-library(biostan)
+## library(biostan)
 library(DPpackage)
 ```
 
 ## Prepare data
-
 ```{r}
 data(galaxy, package = "DPpackage")
-galaxy %>%
+galaxy <- galaxy %>%
     as_data_frame() %>%
     mutate(log_speed = log(speed))
+galaxy
+ggplot(data = galaxy, mapping = aes(x = log_speed)) +
+    geom_point(y = 0.5) +
+    scale_y_continuous(limits = c(0,1), breaks = NULL) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
+The log speed data seem to show some distinct clusters.
+
+
 ## Single Normal
+We will start with density estimation with a single normal distribution as a starting point.
+
 ### Model
 $$\begin{align*}
   y_{i} | (\mu, \sigma^{2}) &\sim N(\mu, \sigma^{2})\\
   \\
   p(\mu,\sigma^{2}) &= p(\mu|\sigma^{2})p(\sigma^{2})\\
-  &= N(\mu | 0, 10^{3}) Inverse-Gamma(\sigma^{2} | 10^{-3})\\
-  &= \left[ \frac{1}{\sqrt{2\pi 10^{3}}} \exp \left( - \frac{(\mu - 0)^{2}}{2 \times 10^{3}} \right) \right]
-    \left[ \frac{(10^{-3})^{10^{-3}}}{\Gamma(10^{-3})} (\sigma^{2})^{-10^{-3} - 1} \exp \left( - \frac{10^{-3}}{\sigma^{2}} \right) \right]
+  &= N(\mu | m, s^{2}) Inverse-Gamma(\sigma^{2} | \alpha, \beta)\\
+  &= \left[ \frac{1}{\sqrt{2\pi s^{2}}} \exp \left( - \frac{(\mu - m)^{2}}{2 \times s^{2}} \right) \right]
+    \left[ \frac{\beta^{\alpha}}{\Gamma(\alpha)} (\sigma^{2})^{-\alpha - 1} \exp \left( - \frac{\beta}{\sigma^{2}} \right) \right]\\
+  &\text{where}\\
+  m &= 0\\
+  s^{2} &= 10^{3}\\
+  \alpha &= 10^{-3}\\
+  \beta &= 10^{-3}\\
   \end{align*}
 $$
 
@@ -88,7 +106,7 @@ biostan::print_stan_code(normal_stan_code, section = NULL)
 ```
 
 ### Fitting
-```{r}
+```{r, cache = TRUE, results = 'hide'}
 normal_stan_fit <-
     rstan::stan(model_code = normal_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -96,6 +114,63 @@ normal_stan_fit <-
                             n = nrow(galaxy),
                             y = galaxy$log_speed))
 ```
+
+```{r}
+normal_stan_fit
+```
+
+The sampling process seems ok.
+
+```{r}
+normal_stan_draws <- tidybayes::tidy_draws(normal_stan_fit)
+## Evaluation grid
+eval_grid <- seq(from = floor(min(galaxy$log_speed)), to = ceiling(max(galaxy$log_speed)), length.out = 10^2)
+eval_df <- data_frame(x = eval_grid)
+## Evaluate each density function over a grid
+normal_stan_draws <- normal_stan_draws %>%
+    ## Density function at each parameter draw
+    mutate(density_fun = pmap(list(mu, sigma),
+                              .f = function(mu, sigma) {
+                                  partial(dnorm, mean = mu, sd = sigma)
+                              }),
+           data = list(eval_df)) %>%
+    ## Grid evaluation
+    mutate(data = pmap(list(density_fun, data),
+                       .f = function(density_fun, data) {
+                           data %>%
+                               mutate(density = density_fun(x = x))
+                       })) %>%
+    select(.chain, .iteration, .draw, density_fun, data)
+```
+
+Plot density function draws.
+
+```{r}
+normal_stan_draws_unnest <- normal_stan_draws %>%
+    select(-density_fun) %>%
+    unnest()
+normal_stan_draws_unnest_mean <-
+    normal_stan_draws_unnest %>%
+    group_by(x) %>%
+    summarise(density = mean(density))
+normal_stan_draws_unnest %>%
+    ggplot(mapping = aes(x = x, y = density, group = interaction(.chain, .iteration, .draw))) +
+    geom_line(size = 0.1, alpha = 1/20) +
+    geom_line(data = normal_stan_draws_unnest_mean,
+              color = "red", alpha = 0.5, size = 2,
+              mapping = aes(group = NULL)) +
+    geom_point(data = galaxy,
+               mapping = aes(x = log_speed, group = NULL),
+               y = 0) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+Apparently, a single normal distribution model is not a sufficient description of the density.
+
 
 ## Finite Mixture of Normals
 ### Model

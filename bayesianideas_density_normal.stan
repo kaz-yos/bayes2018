@@ -14,7 +14,7 @@ data {
 
 transformed data {
     real s;
-    s <- sqrt(s_squared);
+    s = sqrt(s_squared);
 }
 
 parameters {
@@ -29,7 +29,7 @@ transformed parameters {
     // Population standard deviation (a positive real number)
     real<lower=0> sigma;
     // Standard deviation (derived from variance)
-    sigma <- sqrt(sigma_squared);
+    sigma = sqrt(sigma_squared);
 }
 
 model {

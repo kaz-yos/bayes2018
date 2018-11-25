@@ -43,7 +43,9 @@ doParallel::registerDoParallel(cores = n_cores)
   - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
   - [(BDA) Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
 - Web sites
+  - [Bayesian Statistics Using Stan 10 Finite Mixtures](http://www.stat.columbia.edu/~gelman/bda.course/_book/mixture-modeling-chapter.html)
   - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
+  - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
   - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
 - Software
   - [Stan Modeling Language User's Guide and Reference Manual, Version 2.17.0](http://mc-stan.org/users/documentation/)
@@ -181,10 +183,32 @@ Apparently, a single normal distribution model is not a sufficient description o
 Now we examine if modeling the distribution as a mixture of several underlying cluster-specific normals better fit the data. Here we assume some fixed number of clusters $H$.
 
 ### Model
-Let $z_{i} \in \left\{ 1, \dots, H \right\}$ be the cluster membership latent variable.
+Let $z_{i} \in \left\{ 1, \dots, H \right\}$ be the cluster membership latent variable and $\mathbf{z}_{i} = (I(z_{i}=1),\dots,I(z_{i}=H))^{T}$ be the vector indicator version. We have the following model.
 
 $$\begin{align*}
-  y_{i} | (\mathbf{z}_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})
+  y_{i} | (z_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})\\
+  \mathbf{z}_{i} | \boldsymbol{\pi} &\sim Multinomial(1, \boldsymbol{\pi})\\
+  \\
+  p(\mu_{h},\sigma^{2}_{h}) &= p(\mu_{h}|\sigma^{2}_{h})p(\sigma^{2}_{h})\\
+  &= N(\mu_{h} | m, s^{2}) Inverse-Gamma(\sigma^{2}_{h} | \alpha, \beta)\\
+  &= \left[ \frac{1}{\sqrt{2\pi s^{2}}} \exp \left( - \frac{(\mu_{h} - m)^{2}}{2 \times s^{2}} \right) \right]
+    \left[ \frac{\beta^{\alpha}}{\Gamma(\alpha)} (\sigma^{2}_{h})^{-\alpha - 1} \exp \left( - \frac{\beta}{\sigma^{2}_{h}} \right) \right]\\
+  &\text{where}\\
+  m &= 0\\
+  s^{2} &= 10^{3}\\
+  \alpha &= 10^{-3}\\
+  \beta &= 10^{-3}\\
+  \\
+  p(\boldsymbol{\pi}) &\sim Dirichlet \left( \frac{\alpha}{H}, \dots, \frac{\alpha}{H} \right)\\
+  \end{align*}
+$$
+
+Summing out the latent categorical variable $z_{i}$ results in the following (conditioning on parameters suppressed for simplicity) marginal density. Note the cluster membership latent variable $z_i$ is not measured, thus, it is a discrete parameter. Stan's Hamiltonian Monte Carlo (HMC) cannot deal with discrete parameters, this marginalization step is required fro Stan. JAGS seems to allow a discrete parameter and accepts the original model above.
+
+$$\begin{align*}
+  p(y) &= \sum^{H}_{z=1} p(y|z) p(z)\\
+  &= \sum^{H}_{z=1} \pi_{z} p(y|z)\\
+  &= \sum^{H}_{h=1} \pi_h N(y | \mu_{h}, \sigma^{2}_{h})\\
   \end{align*}
 $$
 
@@ -198,7 +222,7 @@ biostan::print_stan_code(normal_fixed_mixture_stan_code, section = NULL)
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
-                data = list(alpha = 10^(-3), beta = 10^(-3),
+                data = list(alpha = 10^(-1), beta = 10^(-1),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$log_speed,
@@ -209,9 +233,6 @@ normal_fixed_mixture_stan_fit <-
 ```{r}
 normal_fixed_mixture_stan_fit
 ```
-
-The sampling process seems ok.
-
 
 
 ## Dirichlet Process Mixture of Normals

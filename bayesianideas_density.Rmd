@@ -42,7 +42,11 @@ doParallel::registerDoParallel(cores = n_cores)
 - Books
   - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
   - [(BDA) Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+- Web sites
+  - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
+  - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
 - Software
+  - [Stan Modeling Language User's Guide and Reference Manual, Version 2.17.0](http://mc-stan.org/users/documentation/)
   - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
   - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
 
@@ -173,11 +177,23 @@ Apparently, a single normal distribution model is not a sufficient description o
 
 
 ## Finite Mixture of Normals
+
+Now we examine if modeling the distribution as a mixture of several underlying cluster-specific normals better fit the data. Here we assume some fixed number of clusters $H$.
+
 ### Model
+Let $z_{i} \in \left\{ 1, \dots, H \right\}$ be the cluster membership latent variable.
+
 $$\begin{align*}
-  y_{i} | (z_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})
+  y_{i} | (\mathbf{z}_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})
   \end{align*}
 $$
+
+### Implementation
+```{r}
+normal_fixed_mixture_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture.stan")
+biostan::print_stan_code(normal_fixed_mixture_stan_code, section = NULL)
+```
+
 
 ## Dirichlet Process Mixture of Normals
 ### Model

@@ -225,7 +225,7 @@ Please note the ordering constrain on the $\mu_{h}$.
 
 Let us try a 6 latent cluster model with otherwise similar
 ```{r, cache = TRUE, results = 'hide'}
-normal_fixed_mixture_stan_fit <-
+normal_fixed_mixture_stan_fit6 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
@@ -236,13 +236,67 @@ normal_fixed_mixture_stan_fit <-
 ```
 
 ```{r}
-normal_fixed_mixture_stan_fit
-traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("mu[%s]", 1:6))
-traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("sigma[%s]", 1:6))
-traceplot(normal_fixed_mixture_stan_fit, pars = sprintf("Pi[%s]", 1:6))
+normal_fixed_mixture_stan_fit6
+traceplot_all <- function(fit, H) {
+    traceplot(fit, pars = sprintf("mu[%s]", seq_len(H)))
+    traceplot(fit, pars = sprintf("sigma[%s]", seq_len(H)))
+    traceplot(fit, pars = sprintf("Pi[%s]", seq_len(H)))
+}
+traceplot_all(normal_fixed_mixture_stan_fit6, 6)
 ```
 
-This model broke down badly.
+This model broke down badly. Let us sanity check with just one cluster.
+
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit1 <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 1,
+                            H = 1))
+```
+
+```{r}
+normal_fixed_mixture_stan_fit1
+traceplot_all(normal_fixed_mixture_stan_fit1, 1)
+```
+
+This gave a similar result to the first single normal fit, except that the $\pi$ parameter
+
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2 <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 1,
+                            H = 2))
+```
+
+```{r}
+normal_fixed_mixture_stan_fit2
+traceplot_all(normal_fixed_mixture_stan_fit2, 2)
+```
+
+
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit3 <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 1,
+                            H = 3))
+```
+
+```{r}
+normal_fixed_mixture_stan_fit3
+traceplot_all(normal_fixed_mixture_stan_fit3, 3)
+```
 
 ## Dirichlet Process Mixture of Normals
 ### Model

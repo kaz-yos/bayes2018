@@ -331,8 +331,8 @@ Increasing the mass parameter for the Dirichlet prior on the cluster probabiliti
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2b <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
-                data = list(alpha = 10^(-3), beta = 10^(-3),
-                            m = 0, s_squared = 10,
+                data = list(alpha = 10^(1), beta = 10^(1),
+                            m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$log_speed,
                             dirichlet_alpha = 1,
@@ -345,13 +345,16 @@ traceplot_all(normal_fixed_mixture_stan_fit2b, 2)
 
 Making the priors on mean parameters more precise did not help.
 
-#### 2 latent cluster model with more precise prior on variance
-
+#### 2 latent cluster model with tau (precision) ~ Gamma(a,b) parametrization
+```{r}
+normal_fixed_mixture_tau_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_tau.stan")
+biostan::print_stan_code(normal_fixed_mixture_tau_stan_code, section = NULL)
+```
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2c <-
-    rstan::stan(model_code = normal_fixed_mixture_stan_code,
-                data = list(alpha = 10, beta = 10,
-                            m = 0, s_squared = 10^(1),
+    rstan::stan(model_code = normal_fixed_mixture_tau_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$log_speed,
                             dirichlet_alpha = 2,

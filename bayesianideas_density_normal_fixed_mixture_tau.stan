@@ -34,7 +34,9 @@ transformed parameters {
     // Population standard deviation (a positive real number)
     real<lower=0> sigma[H];
     // Standard deviation (derived from variance)
-    sigma = sqrt(1 / tau);
+    for (h in 1:H) {
+        sigma[h] = sqrt(1 / tau[h]);
+    }
 }
 
 model {

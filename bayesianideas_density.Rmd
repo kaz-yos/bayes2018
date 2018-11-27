@@ -289,7 +289,6 @@ traceplot_all(normal_fixed_mixture_stan_fit2, 2)
 This model also exhibits poor mixing. Particularly, $\sigma^{2}_{1}$ has a extremely broad posterior distribution.
 
 #### 3 latent cluster model
-
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit3 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
@@ -308,7 +307,6 @@ traceplot_all(normal_fixed_mixture_stan_fit3, 3)
 Adding another latent cluster does not help.
 
 #### 2 latent cluster model with increased Dirichlet alpha
-
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2a <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
@@ -327,12 +325,11 @@ traceplot_all(normal_fixed_mixture_stan_fit2a, 2)
 Increasing the mass parameter for the Dirichlet prior on the cluster probabilities does not seem to help.
 
 #### 2 latent cluster model with more precise prior on means
-
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2b <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
-                data = list(alpha = 10^(1), beta = 10^(1),
-                            m = 0, s_squared = 10^(3),
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 1,
                             n = nrow(galaxy),
                             y = galaxy$log_speed,
                             dirichlet_alpha = 1,
@@ -343,7 +340,43 @@ normal_fixed_mixture_stan_fit2b
 traceplot_all(normal_fixed_mixture_stan_fit2b, 2)
 ```
 
-Making the priors on mean parameters more precise did not help.
+#### 2 latent cluster model with more precise prior on means and variance
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2c <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(1), beta = 10^(1),
+                            m = 0, s_squared = 1,
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 1,
+                            H = 2))
+```
+```{r}
+normal_fixed_mixture_stan_fit2c
+traceplot_all(normal_fixed_mixture_stan_fit2c, 2)
+```
+
+Additionally making the prior for variance more precise did not help.
+
+
+#### 2 latent cluster model with more chains and iterations
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2d <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$log_speed,
+                            dirichlet_alpha = 1,
+                            H = 2),
+                chains = 12,
+                iter = 10000)
+```
+```{r}
+normal_fixed_mixture_stan_fit2d
+traceplot_all(normal_fixed_mixture_stan_fit2d, 2)
+```
+
 
 #### 2 latent cluster model with tau (precision) ~ Gamma(a,b) parametrization
 ```{r}
@@ -351,7 +384,7 @@ normal_fixed_mixture_tau_stan_code <- biostan::read_stan_file("./bayesianideas_d
 biostan::print_stan_code(normal_fixed_mixture_tau_stan_code, section = NULL)
 ```
 ```{r, cache = TRUE, results = 'hide'}
-normal_fixed_mixture_stan_fit2c <-
+normal_fixed_mixture_stan_fit2e <-
     rstan::stan(model_code = normal_fixed_mixture_tau_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
@@ -361,8 +394,8 @@ normal_fixed_mixture_stan_fit2c <-
                             H = 2))
 ```
 ```{r}
-normal_fixed_mixture_stan_fit2c
-traceplot_all(normal_fixed_mixture_stan_fit2c, 2)
+normal_fixed_mixture_stan_fit2e
+traceplot_all(normal_fixed_mixture_stan_fit2e, 2)
 ```
 
 

@@ -3,7 +3,7 @@ data {
     real alpha;
     real beta;
     real m;
-    real s_squared;
+    real<lower=0> s_squared;
     real<lower=0> dirichlet_alpha;
 
     // Define variables in data
@@ -25,7 +25,7 @@ parameters {
     // Population mean (a real number)
     ordered[H] mu;
     // Population variance (a positive real number)
-    real<lower=0> sigma_squared[H];
+    real<lower=0> tau[H];
     // Cluster probability
     simplex[H] Pi;
 }
@@ -34,7 +34,7 @@ transformed parameters {
     // Population standard deviation (a positive real number)
     real<lower=0> sigma[H];
     // Standard deviation (derived from variance)
-    sigma = sqrt(sigma_squared);
+    sigma = sqrt(1 / tau);
 }
 
 model {
@@ -45,8 +45,8 @@ model {
     // All vectorized
     // Mean
     mu ~ normal(m, s);
-    // sigma^2 has inverse gamma (alpha = 1, beta = 1) prior
-    sigma_squared ~ inv_gamma(alpha, beta);
+    // tau = 1/sigma^2 has gamma prior
+    tau ~ gamma(alpha, beta);
     // cluster probability vector
     Pi ~ dirichlet(rep_vector(dirichlet_alpha / H, H));
 

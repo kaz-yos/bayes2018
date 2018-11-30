@@ -502,12 +502,49 @@ tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2i) %>%
 ```
 
 
-#### 5 latent cluster model with more precise prior on means and variance (density grid)
+#### 2 latent cluster model with more precise prior on variance, concentrated probability (density grid)
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2j <-
+    rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
+                data = list(alpha = 10^(1), beta = 10^(1),
+                            m = 0, s_squared = 10,
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 2,
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+```
+```{r}
+normal_fixed_mixture_stan_fit2j
+traceplot_all(normal_fixed_mixture_stan_fit2j, 2)
+```
+```{r}
+tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2j) %>%
+    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
+    gather(key = key, value = value, starts_with("log_f")) %>%
+    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
+           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
+               as.character() %>%
+               as.numeric(),
+           value = exp(value)) %>%
+    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
+                         group = interaction(.chain, .iteration, .draw))) +
+    geom_line(size = 0.1, alpha = 1/20) +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+
+#### 5 latent cluster model with more precise prior on variance (density grid)
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit5 <-
     rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
                 data = list(alpha = 10^(1), beta = 10^(1),
-                            m = 0, s_squared = 1,
+                            m = 0, s_squared = 10,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
@@ -527,8 +564,10 @@ tidybayes::tidy_draws(normal_fixed_mixture_stan_fit5) %>%
                as.character() %>%
                as.numeric(),
            value = exp(value)) %>%
-    ggplot(mapping = aes(x = x, y = value, group = interaction(.chain, .iteration, .draw))) +
+    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
+                         group = interaction(.chain, .iteration, .draw))) +
     geom_line(size = 0.1, alpha = 1/20) +
+    facet_wrap(~ .chain) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

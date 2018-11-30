@@ -47,7 +47,8 @@ doParallel::registerDoParallel(cores = n_cores)
   - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
   - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
   - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
-- Software
+  - [Identification of mixture of multivariate normal distributions](https://discourse.mc-stan.org/t/identification-of-mixture-of-multivariate-normal-distributions/4203)
+- jSoftware
   - [Stan Modeling Language User's Guide and Reference Manual, Version 2.17.0](http://mc-stan.org/users/documentation/)
   - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
   - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
@@ -72,9 +73,10 @@ set.seed(732565397)
 data(galaxy, package = "DPpackage")
 galaxy <- galaxy %>%
     as_data_frame() %>%
-    mutate(log_speed = log(speed))
+    mutate(log_speed = log(speed),
+           k_speed = speed / 1000)
 galaxy
-ggplot(data = galaxy, mapping = aes(x = log_speed)) +
+ggplot(data = galaxy, mapping = aes(x = k_speed)) +
     geom_point(y = 0.5) +
     scale_y_continuous(limits = c(0,1), breaks = NULL) +
     theme_bw() +
@@ -119,7 +121,7 @@ normal_stan_fit <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed))
+                            y = galaxy$k_speed))
 ```
 
 ```{r}
@@ -131,7 +133,7 @@ The sampling process seems ok.
 ```{r}
 normal_stan_draws <- tidybayes::tidy_draws(normal_stan_fit)
 ## Evaluation grid
-eval_grid <- seq(from = floor(min(galaxy$log_speed)), to = ceiling(max(galaxy$log_speed)), length.out = 10^2)
+eval_grid <- seq(from = floor(min(galaxy$k_speed)), to = ceiling(max(galaxy$k_speed)), length.out = 10^2)
 eval_df <- data_frame(x = eval_grid)
 ## Evaluate each density function over a grid
 normal_stan_draws <- normal_stan_draws %>%
@@ -167,7 +169,7 @@ normal_stan_draws_unnest %>%
               color = "red", alpha = 0.5, size = 2,
               mapping = aes(group = NULL)) +
     geom_point(data = galaxy,
-               mapping = aes(x = log_speed, group = NULL),
+               mapping = aes(x = k_speed, group = NULL),
                y = 0) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -232,16 +234,16 @@ normal_fixed_mixture_stan_fit6 <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 6))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit6
 traceplot_all <- function(fit, H) {
-    print(traceplot(fit, pars = sprintf("mu[%s]", seq_len(H))))
-    print(traceplot(fit, pars = sprintf("sigma[%s]", seq_len(H))))
-    print(traceplot(fit, pars = sprintf("Pi[%s]", seq_len(H))))
+    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("mu[%s]", seq_len(H))))
+    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("sigma[%s]", seq_len(H))))
+    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("Pi[%s]", seq_len(H))))
 }
 traceplot_all(normal_fixed_mixture_stan_fit6, 6)
 ```
@@ -257,7 +259,7 @@ normal_fixed_mixture_stan_fit1 <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 1))
 ```
@@ -277,7 +279,7 @@ normal_fixed_mixture_stan_fit2 <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 2))
 ```
@@ -295,7 +297,7 @@ normal_fixed_mixture_stan_fit3 <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 3))
 ```
@@ -313,7 +315,7 @@ normal_fixed_mixture_stan_fit2a <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 2,
                             H = 2))
 ```
@@ -331,7 +333,7 @@ normal_fixed_mixture_stan_fit2b <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 1,
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 2))
 ```
@@ -347,7 +349,7 @@ normal_fixed_mixture_stan_fit2c <-
                 data = list(alpha = 10^(1), beta = 10^(1),
                             m = 0, s_squared = 1,
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 2))
 ```
@@ -366,7 +368,7 @@ normal_fixed_mixture_stan_fit2d <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 2),
                 chains = 12,
@@ -389,7 +391,7 @@ normal_fixed_mixture_stan_fit2e <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$log_speed,
+                            y = galaxy$k_speed,
                             dirichlet_alpha = 2,
                             H = 2))
 ```
@@ -399,13 +401,105 @@ traceplot_all(normal_fixed_mixture_stan_fit2e, 2)
 ```
 
 
+#### 2 latent cluster model on original scale
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2f <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$speed,
+                            dirichlet_alpha = 1,
+                            H = 2))
+```
+```{r}
+normal_fixed_mixture_stan_fit2f
+traceplot_all(normal_fixed_mixture_stan_fit2f, 2)
+```
 
 
-## Dirichlet Process Mixture of Normals
-### Model
+#### 2 latent cluster model on original scale with smaller steps
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2g <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$speed,
+                            dirichlet_alpha = 1,
+                            H = 2),
+                control = list(adapt_delta = 0.99999999999))
+```
+```{r}
+normal_fixed_mixture_stan_fit2g
+traceplot_all(normal_fixed_mixture_stan_fit2g, 2)
+```
 
-## Mixture of Polya Trees using Normal
-### Model
+
+#### 2 latent cluster model with log-normal prior on sigma
+```{r}
+normal_fixed_mixture_lognormal_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_lognormal.stan")
+biostan::print_stan_code(normal_fixed_mixture_lognormal_stan_code, section = NULL)
+```
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2h <-
+    rstan::stan(model_code = normal_fixed_mixture_lognormal_stan_code,
+                data = list(mean_log_normal = 0, sd_log_normal = 2,
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 1,
+                            H = 2),
+                control = list(adapt_delta = 0.99999999999))
+```
+```{r}
+normal_fixed_mixture_stan_fit2h
+traceplot_all(normal_fixed_mixture_stan_fit2h, 2)
+```
+
+
+#### 2 latent cluster model with more precise prior on means and variance
+```{r}
+normal_fixed_mixture_grid_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_grid.stan")
+biostan::print_stan_code(normal_fixed_mixture_grid_stan_code, section = NULL)
+```
+
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit2i <-
+    rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
+                data = list(alpha = 10^(1), beta = 10^(1),
+                            m = 0, s_squared = 1,
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 1,
+                            H = 2,
+                            grid_max = 40, grid_min = 5, grid_length = 10))
+```
+```{r}
+normal_fixed_mixture_stan_fit2i
+traceplot_all(normal_fixed_mixture_stan_fit2i, 2)
+```
+```{r}
+tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2i) %>%
+    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
+    gather(key = key, value = value, starts_with("log_f")) %>%
+    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
+           x = seq(from = 5, to = 40, length.out = 10)) %>%
+    ggplot(mapping = aes(x = x, y = value, group = interaction(.chain, .iteration, .draw))) +
+    geom_line() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+
+<!-- ## Dirichlet Process Mixture of Normals -->
+<!-- ### Model -->
+
+<!-- ## Mixture of Polya Trees using Normal -->
+<!-- ### Model -->
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

@@ -458,12 +458,16 @@ traceplot_all(normal_fixed_mixture_stan_fit2h, 2)
 ```
 
 
-#### 2 latent cluster model with more precise prior on means and variance
+#### 2 latent cluster model with more precise prior on means and variance (density grid)
 ```{r}
 normal_fixed_mixture_grid_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_grid.stan")
 biostan::print_stan_code(normal_fixed_mixture_grid_stan_code, section = NULL)
 ```
-
+```{r}
+grid_max <- 40
+grid_min <- -20
+grid_length <- 100
+```
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2i <-
     rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
@@ -473,7 +477,7 @@ normal_fixed_mixture_stan_fit2i <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
                             H = 2,
-                            grid_max = 40, grid_min = 5, grid_length = 10))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2i
@@ -484,9 +488,47 @@ tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2i) %>%
     select(.chain, .iteration, .draw, starts_with("log_f")) %>%
     gather(key = key, value = value, starts_with("log_f")) %>%
     mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
-           x = seq(from = 5, to = 40, length.out = 10)) %>%
+           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
+               as.character() %>%
+               as.numeric(),
+           value = exp(value)) %>%
     ggplot(mapping = aes(x = x, y = value, group = interaction(.chain, .iteration, .draw))) +
-    geom_line() +
+    geom_line(size = 0.1, alpha = 1/20) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+
+#### 5 latent cluster model with more precise prior on means and variance (density grid)
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit5 <-
+    rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
+                data = list(alpha = 10^(1), beta = 10^(1),
+                            m = 0, s_squared = 1,
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 1,
+                            H = 5,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+```
+```{r}
+normal_fixed_mixture_stan_fit5
+traceplot_all(normal_fixed_mixture_stan_fit5, 5)
+```
+```{r}
+tidybayes::tidy_draws(normal_fixed_mixture_stan_fit5) %>%
+    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
+    gather(key = key, value = value, starts_with("log_f")) %>%
+    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
+           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
+               as.character() %>%
+               as.numeric(),
+           value = exp(value)) %>%
+    ggplot(mapping = aes(x = x, y = value, group = interaction(.chain, .iteration, .draw))) +
+    geom_line(size = 0.1, alpha = 1/20) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

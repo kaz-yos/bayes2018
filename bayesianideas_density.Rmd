@@ -234,13 +234,13 @@ normal_fixed_mixture_stan_fit6 <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit6
-traceplot_all <- function(fit, H) {
-    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("mu[%s]", seq_len(H))))
-    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("sigma[%s]", seq_len(H))))
-    print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("Pi[%s]", seq_len(H))))
+traceplot_all <- function(fit) {
+    print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
     print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
 }
-traceplot_all(normal_fixed_mixture_stan_fit6, 6)
+traceplot_all(normal_fixed_mixture_stan_fit6)
 plot_draws(normal_fixed_mixture_stan_fit6)
 ```
 
@@ -262,7 +262,7 @@ normal_fixed_mixture_stan_fit1 <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit1
-traceplot_all(normal_fixed_mixture_stan_fit1, 1)
+traceplot_all(normal_fixed_mixture_stan_fit1)
 plot_draws(normal_fixed_mixture_stan_fit1)
 ```
 
@@ -284,8 +284,10 @@ normal_fixed_mixture_stan_fit2 <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2
-traceplot_all(normal_fixed_mixture_stan_fit2, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2)
 plot_draws(normal_fixed_mixture_stan_fit2)
+pairs(normal_fixed_mixture_stan_fit2, pars = "mu")
+pairs(normal_fixed_mixture_stan_fit2, pars = "Pi")
 ```
 
 This model also exhibits poor mixing. Particularly, $\sigma^{2}_{1}$ has a extremely broad posterior distribution.
@@ -304,7 +306,7 @@ normal_fixed_mixture_stan_fit3 <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit3
-traceplot_all(normal_fixed_mixture_stan_fit3, 3)
+traceplot_all(normal_fixed_mixture_stan_fit3)
 plot_draws(normal_fixed_mixture_stan_fit3)
 ```
 
@@ -324,7 +326,7 @@ normal_fixed_mixture_stan_fit2a <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2a
-traceplot_all(normal_fixed_mixture_stan_fit2a, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2a)
 plot_draws(normal_fixed_mixture_stan_fit2a)
 ```
 
@@ -344,7 +346,7 @@ normal_fixed_mixture_stan_fit2b <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2b
-traceplot_all(normal_fixed_mixture_stan_fit2b, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2b)
 plot_draws(normal_fixed_mixture_stan_fit2b)
 ```
 
@@ -362,7 +364,7 @@ normal_fixed_mixture_stan_fit2c <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2c
-traceplot_all(normal_fixed_mixture_stan_fit2c, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2c)
 plot_draws(normal_fixed_mixture_stan_fit2c)
 ```
 
@@ -385,7 +387,7 @@ normal_fixed_mixture_stan_fit2d <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2d
-traceplot_all(normal_fixed_mixture_stan_fit2d, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2d)
 plot_draws(normal_fixed_mixture_stan_fit2d)
 ```
 
@@ -408,7 +410,7 @@ normal_fixed_mixture_stan_fit2e <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2e
-traceplot_all(normal_fixed_mixture_stan_fit2e, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2e)
 plot_draws(normal_fixed_mixture_stan_fit2e)
 ```
 
@@ -427,7 +429,7 @@ normal_fixed_mixture_stan_fit2f <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2f
-traceplot_all(normal_fixed_mixture_stan_fit2f, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2f)
 plot_draws(normal_fixed_mixture_stan_fit2f)
 ```
 
@@ -447,7 +449,7 @@ normal_fixed_mixture_stan_fit2g <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2g
-traceplot_all(normal_fixed_mixture_stan_fit2g, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2g)
 plot_draws(normal_fixed_mixture_stan_fit2g)
 ```
 
@@ -471,7 +473,7 @@ normal_fixed_mixture_stan_fit2h <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2h
-traceplot_all(normal_fixed_mixture_stan_fit2h, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2h)
 plot_draws(normal_fixed_mixture_stan_fit2h)
 ```
 
@@ -494,7 +496,7 @@ normal_fixed_mixture_stan_fit2i <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2i
-traceplot_all(normal_fixed_mixture_stan_fit2i, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2i)
 plot_draws(normal_fixed_mixture_stan_fit2i)
 ```
 
@@ -513,7 +515,7 @@ normal_fixed_mixture_stan_fit2j <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2j
-traceplot_all(normal_fixed_mixture_stan_fit2j, 2)
+traceplot_all(normal_fixed_mixture_stan_fit2j)
 plot_draws(normal_fixed_mixture_stan_fit2j)
 ```
 
@@ -532,7 +534,7 @@ normal_fixed_mixture_stan_fit5 <-
 ```
 ```{r}
 normal_fixed_mixture_stan_fit5
-traceplot_all(normal_fixed_mixture_stan_fit5, 5)
+traceplot_all(normal_fixed_mixture_stan_fit5)
 plot_draws(normal_fixed_mixture_stan_fit5)
 ```
 

@@ -46,6 +46,7 @@ doParallel::registerDoParallel(cores = n_cores)
   - [Bayesian Statistics Using Stan 10 Finite Mixtures](http://www.stat.columbia.edu/~gelman/bda.course/_book/mixture-modeling-chapter.html)
   - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
   - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
+  - [Taming Divergences in Stan Models](https://www.martinmodrak.cz/2018/02/19/taming-divergences-in-stan-models/)
   - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
   - [Identification of mixture of multivariate normal distributions](https://discourse.mc-stan.org/t/identification-of-mixture-of-multivariate-normal-distributions/4203)
 - jSoftware
@@ -243,13 +244,36 @@ traceplot_all <- function(fit) {
 traceplot_all(normal_fixed_mixture_stan_fit6)
 plot_draws(normal_fixed_mixture_stan_fit6)
 pairs(normal_fixed_mixture_stan_fit6, pars = "mu")
-pairs(normal_fixed_mixture_stan_fit6, sprintf("mu[%s]", 1:3))
-pairs(normal_fixed_mixture_stan_fit6, sprintf("mu[%s]", 4:6))
 pairs(normal_fixed_mixture_stan_fit6, pars = "sigma_squared")
 pairs(normal_fixed_mixture_stan_fit6, pars = "Pi")
 ```
 
 This model broke down badly.
+
+#### 6 latent cluster model with unordered mu
+```{r}
+normal_fixed_mixture_unordered_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_unordered.stan")
+biostan::print_stan_code(normal_fixed_mixture_unordered_stan_code, section = NULL)
+```
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_stan_fit6_unordered <-
+    rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 1,
+                            H = 6,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+```
+```{r}
+normal_fixed_mixture_stan_fit6_unordered
+traceplot_all(normal_fixed_mixture_stan_fit6_unordered)
+plot_draws(normal_fixed_mixture_stan_fit6_unordered)
+pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "mu")
+pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "sigma_squared")
+pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "Pi")
+```
 
 #### 1 latent cluster model
 Let us sanity check with just one cluster.

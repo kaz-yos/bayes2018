@@ -242,6 +242,11 @@ traceplot_all <- function(fit) {
 }
 traceplot_all(normal_fixed_mixture_stan_fit6)
 plot_draws(normal_fixed_mixture_stan_fit6)
+pairs(normal_fixed_mixture_stan_fit6, pars = "mu")
+pairs(normal_fixed_mixture_stan_fit6, sprintf("mu[%s]", 1:3))
+pairs(normal_fixed_mixture_stan_fit6, sprintf("mu[%s]", 4:6))
+pairs(normal_fixed_mixture_stan_fit6, pars = "sigma_squared")
+pairs(normal_fixed_mixture_stan_fit6, pars = "Pi")
 ```
 
 This model broke down badly.

@@ -90,8 +90,13 @@ ggplot(data = galaxy, mapping = aes(x = k_speed)) +
           strip.background = element_blank())
 ```
 
-The log speed data seem to show some distinct clusters.
+The speed data seem to show some distinct clusters. We will use the following grid for later visualization.
 
+```{r}
+grid_max <- 40
+grid_min <- -20
+grid_length <- 100
+```
 
 ## Single Normal
 We will start with density estimation with a single normal distribution as a starting point.
@@ -125,61 +130,45 @@ normal_stan_fit <-
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
-                            y = galaxy$k_speed))
+                            y = galaxy$k_speed,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 
 ```{r}
 normal_stan_fit
 ```
 
-The sampling process seems ok.
+The sampling process seems ok. Plot density function draws.
 
 ```{r}
-normal_stan_draws <- tidybayes::tidy_draws(normal_stan_fit)
-## Evaluation grid
-eval_grid <- seq(from = floor(min(galaxy$k_speed)), to = ceiling(max(galaxy$k_speed)), length.out = 10^2)
-eval_df <- data_frame(x = eval_grid)
-## Evaluate each density function over a grid
-normal_stan_draws <- normal_stan_draws %>%
-    ## Density function at each parameter draw
-    mutate(density_fun = pmap(list(mu, sigma),
-                              .f = function(mu, sigma) {
-                                  partial(dnorm, mean = mu, sd = sigma)
-                              }),
-           data = list(eval_df)) %>%
-    ## Grid evaluation
-    mutate(data = pmap(list(density_fun, data),
-                       .f = function(density_fun, data) {
-                           data %>%
-                               mutate(density = density_fun(x = x))
-                       })) %>%
-    select(.chain, .iteration, .draw, density_fun, data)
-```
+plot_draws <- function(stan_fit) {
+    ## Note direct access to global variables
+    draw_data  <- tidybayes::tidy_draws(stan_fit) %>%
+        select(.chain, .iteration, .draw, starts_with("log_f")) %>%
+        gather(key = key, value = value, starts_with("log_f")) %>%
+        mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
+           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
+               as.character() %>%
+               as.numeric(),
+           value = exp(value))
 
-Plot density function draws.
+    summary_density <- draw_data %>%
+        group_by(.chain, x) %>%
+        summarize(value = mean(value))
 
-```{r}
-normal_stan_draws_unnest <- normal_stan_draws %>%
-    select(-density_fun) %>%
-    unnest()
-normal_stan_draws_unnest_mean <-
-    normal_stan_draws_unnest %>%
-    group_by(x) %>%
-    summarise(density = mean(density))
-normal_stan_draws_unnest %>%
-    ggplot(mapping = aes(x = x, y = density, group = interaction(.chain, .iteration, .draw))) +
+    ggplot(data = draw_data, mapping = aes(x = x, y = value,
+           group = interaction(.chain, .iteration, .draw))) +
     geom_line(size = 0.1, alpha = 1/20) +
-    geom_line(data = normal_stan_draws_unnest_mean,
-              color = "red", alpha = 0.5, size = 2,
-              mapping = aes(group = NULL)) +
-    geom_point(data = galaxy,
-               mapping = aes(x = k_speed, group = NULL),
-               y = 0) +
+    geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
+    geom_point(data = galaxy, mapping = aes(x = k_speed, group = NULL), y = 0) +
+    facet_wrap(~ .chain) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+}
+plot_draws(normal_stan_fit)
 ```
 
 Apparently, a single normal distribution model is not a sufficient description of the density.
@@ -240,7 +229,8 @@ normal_fixed_mixture_stan_fit6 <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 6))
+                            H = 6,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit6
@@ -250,6 +240,7 @@ traceplot_all <- function(fit, H) {
     print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("Pi[%s]", seq_len(H))))
 }
 traceplot_all(normal_fixed_mixture_stan_fit6, 6)
+plot_draws(normal_fixed_mixture_stan_fit6)
 ```
 
 This model broke down badly.
@@ -265,11 +256,13 @@ normal_fixed_mixture_stan_fit1 <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 1))
+                            H = 1,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit1
 traceplot_all(normal_fixed_mixture_stan_fit1, 1)
+plot_draws(normal_fixed_mixture_stan_fit1)
 ```
 
 This gave a similar result to the first single normal fit, except that the additional $\pi$ parameter, which can only be 1 in this case.
@@ -285,11 +278,13 @@ normal_fixed_mixture_stan_fit2 <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2
 traceplot_all(normal_fixed_mixture_stan_fit2, 2)
+plot_draws(normal_fixed_mixture_stan_fit2)
 ```
 
 This model also exhibits poor mixing. Particularly, $\sigma^{2}_{1}$ has a extremely broad posterior distribution.
@@ -303,11 +298,13 @@ normal_fixed_mixture_stan_fit3 <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 3))
+                            H = 3,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit3
 traceplot_all(normal_fixed_mixture_stan_fit3, 3)
+plot_draws(normal_fixed_mixture_stan_fit3)
 ```
 
 Adding another latent cluster does not help.
@@ -321,11 +318,13 @@ normal_fixed_mixture_stan_fit2a <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 2,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2a
 traceplot_all(normal_fixed_mixture_stan_fit2a, 2)
+plot_draws(normal_fixed_mixture_stan_fit2a)
 ```
 
 Increasing the mass parameter for the Dirichlet prior on the cluster probabilities does not seem to help.
@@ -339,11 +338,13 @@ normal_fixed_mixture_stan_fit2b <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2b
 traceplot_all(normal_fixed_mixture_stan_fit2b, 2)
+plot_draws(normal_fixed_mixture_stan_fit2b)
 ```
 
 #### 2 latent cluster model with more precise prior on means and variance
@@ -355,11 +356,13 @@ normal_fixed_mixture_stan_fit2c <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2c
 traceplot_all(normal_fixed_mixture_stan_fit2c, 2)
+plot_draws(normal_fixed_mixture_stan_fit2c)
 ```
 
 Additionally making the prior for variance more precise did not help.
@@ -374,13 +377,15 @@ normal_fixed_mixture_stan_fit2d <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 2),
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 chains = 12,
                 iter = 10000)
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2d
 traceplot_all(normal_fixed_mixture_stan_fit2d, 2)
+plot_draws(normal_fixed_mixture_stan_fit2d)
 ```
 
 
@@ -397,11 +402,13 @@ normal_fixed_mixture_stan_fit2e <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 2,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2e
 traceplot_all(normal_fixed_mixture_stan_fit2e, 2)
+plot_draws(normal_fixed_mixture_stan_fit2e)
 ```
 
 
@@ -414,11 +421,13 @@ normal_fixed_mixture_stan_fit2f <-
                             n = nrow(galaxy),
                             y = galaxy$speed,
                             dirichlet_alpha = 1,
-                            H = 2))
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2f
 traceplot_all(normal_fixed_mixture_stan_fit2f, 2)
+plot_draws(normal_fixed_mixture_stan_fit2f)
 ```
 
 
@@ -431,12 +440,14 @@ normal_fixed_mixture_stan_fit2g <-
                             n = nrow(galaxy),
                             y = galaxy$speed,
                             dirichlet_alpha = 1,
-                            H = 2),
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 control = list(adapt_delta = 0.99999999999))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2g
 traceplot_all(normal_fixed_mixture_stan_fit2g, 2)
+plot_draws(normal_fixed_mixture_stan_fit2g)
 ```
 
 
@@ -453,12 +464,14 @@ normal_fixed_mixture_stan_fit2h <-
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
                             dirichlet_alpha = 1,
-                            H = 2),
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 control = list(adapt_delta = 0.99999999999))
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2h
 traceplot_all(normal_fixed_mixture_stan_fit2h, 2)
+plot_draws(normal_fixed_mixture_stan_fit2h)
 ```
 
 
@@ -466,11 +479,6 @@ traceplot_all(normal_fixed_mixture_stan_fit2h, 2)
 ```{r}
 normal_fixed_mixture_grid_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_grid.stan")
 biostan::print_stan_code(normal_fixed_mixture_grid_stan_code, section = NULL)
-```
-```{r}
-grid_max <- 40
-grid_min <- -20
-grid_length <- 100
 ```
 ```{r, cache = TRUE, results = 'hide'}
 normal_fixed_mixture_stan_fit2i <-
@@ -486,25 +494,7 @@ normal_fixed_mixture_stan_fit2i <-
 ```{r}
 normal_fixed_mixture_stan_fit2i
 traceplot_all(normal_fixed_mixture_stan_fit2i, 2)
-```
-```{r}
-tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2i) %>%
-    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
-    gather(key = key, value = value, starts_with("log_f")) %>%
-    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
-           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
-               as.character() %>%
-               as.numeric(),
-           value = exp(value)) %>%
-    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
-                         group = interaction(.chain, .iteration, .draw))) +
-    geom_line(size = 0.1, alpha = 1/20) +
-    facet_wrap(~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws(normal_fixed_mixture_stan_fit2i)
 ```
 
 
@@ -523,25 +513,7 @@ normal_fixed_mixture_stan_fit2j <-
 ```{r}
 normal_fixed_mixture_stan_fit2j
 traceplot_all(normal_fixed_mixture_stan_fit2j, 2)
-```
-```{r}
-tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2j) %>%
-    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
-    gather(key = key, value = value, starts_with("log_f")) %>%
-    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
-           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
-               as.character() %>%
-               as.numeric(),
-           value = exp(value)) %>%
-    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
-                         group = interaction(.chain, .iteration, .draw))) +
-    geom_line(size = 0.1, alpha = 1/20) +
-    facet_wrap(~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws(normal_fixed_mixture_stan_fit2j)
 ```
 
 
@@ -560,25 +532,7 @@ normal_fixed_mixture_stan_fit5 <-
 ```{r}
 normal_fixed_mixture_stan_fit5
 traceplot_all(normal_fixed_mixture_stan_fit5, 5)
-```
-```{r}
-tidybayes::tidy_draws(normal_fixed_mixture_stan_fit5) %>%
-    select(.chain, .iteration, .draw, starts_with("log_f")) %>%
-    gather(key = key, value = value, starts_with("log_f")) %>%
-    mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
-           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
-               as.character() %>%
-               as.numeric(),
-           value = exp(value)) %>%
-    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
-                         group = interaction(.chain, .iteration, .draw))) +
-    geom_line(size = 0.1, alpha = 1/20) +
-    facet_wrap(~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws(normal_fixed_mixture_stan_fit5)
 ```
 
 

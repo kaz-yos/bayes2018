@@ -1,5 +1,5 @@
 ---
-title: "BIDA: Density Estimation"
+title: "BIDA: Density Estimation (Finite Mixture Model)"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -55,7 +55,11 @@ doParallel::registerDoParallel(cores = n_cores)
 
 
 ## Background
-Here we have 82 data points in the galaxy from a 1-dimensional unknown distribution.
+Here we have 82 data points in the galaxy from a 1-dimensional unknown distribution. The aim is to fit a normal finite mixture model with a pre-specified number of latent clusters.
+
+## Assessment thus-far
+Each chain seems to converge to something, but the mixing of several chains are very poor. Is there still a label switching issue although the means are ordered in the prior?
+
 
 ## Load packages
 
@@ -492,8 +496,10 @@ tidybayes::tidy_draws(normal_fixed_mixture_stan_fit2i) %>%
                as.character() %>%
                as.numeric(),
            value = exp(value)) %>%
-    ggplot(mapping = aes(x = x, y = value, group = interaction(.chain, .iteration, .draw))) +
+    ggplot(mapping = aes(x = x, y = value, color = factor(.chain),
+                         group = interaction(.chain, .iteration, .draw))) +
     geom_line(size = 0.1, alpha = 1/20) +
+    facet_wrap(~ .chain) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

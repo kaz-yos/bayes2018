@@ -264,6 +264,7 @@ normal_fixed_mixture_stan_fit1 <-
 normal_fixed_mixture_stan_fit1
 traceplot_all(normal_fixed_mixture_stan_fit1)
 plot_draws(normal_fixed_mixture_stan_fit1)
+pairs(normal_fixed_mixture_stan_fit1)
 ```
 
 This gave a similar result to the first single normal fit, except that the additional $\pi$ parameter, which can only be 1 in this case.
@@ -287,6 +288,7 @@ normal_fixed_mixture_stan_fit2
 traceplot_all(normal_fixed_mixture_stan_fit2)
 plot_draws(normal_fixed_mixture_stan_fit2)
 pairs(normal_fixed_mixture_stan_fit2, pars = "mu")
+pairs(normal_fixed_mixture_stan_fit2, pars = "sigma_squared")
 pairs(normal_fixed_mixture_stan_fit2, pars = "Pi")
 ```
 

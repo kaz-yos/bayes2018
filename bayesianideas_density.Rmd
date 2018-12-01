@@ -238,6 +238,7 @@ traceplot_all <- function(fit, H) {
     print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("mu[%s]", seq_len(H))))
     print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("sigma[%s]", seq_len(H))))
     print(traceplot(fit, inc_warmup = TRUE, pars = sprintf("Pi[%s]", seq_len(H))))
+    print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
 }
 traceplot_all(normal_fixed_mixture_stan_fit6, 6)
 plot_draws(normal_fixed_mixture_stan_fit6)

@@ -13,11 +13,19 @@ data {
     real y[n];
     // Number of latent clusters
     int<lower=1> H;
+
+    // Grid evaluation
+    real grid_max;
+    real grid_min;
+    int<lower=1> grid_length;
 }
 
 transformed data {
     real s;
+    real grid_step;
+
     s = sqrt(s_squared);
+    grid_step = (grid_max - grid_min) / (grid_length - 1);
 }
 
 parameters {
@@ -67,4 +75,23 @@ model {
           target += log_sum_exp(contributions);
 
     }
+}
+
+generated quantities {
+
+    real log_f[grid_length];
+
+    for (g in 1:grid_length) {
+        // Definiting here avoids reporting of these intermediates.
+        real contributions[H];
+        real grid_value;
+
+        grid_value = grid_min + grid_step * (g - 1);
+        for (h in 1:H) {
+            contributions[h] = log(Pi[h]) + normal_lpdf(grid_value | mu[h], sigma[h]);
+        }
+
+        log_f[g] = log_sum_exp(contributions);
+    }
+
 }

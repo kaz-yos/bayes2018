@@ -229,7 +229,7 @@ normal_fixed_mixture_stan_fit6 <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 6*5,
                             H = 6,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -262,7 +262,7 @@ normal_fixed_mixture_stan_fit6_unordered <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 6*5,
                             H = 6,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -285,7 +285,7 @@ normal_fixed_mixture_stan_fit1 <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 1*5,
                             H = 1,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -308,7 +308,7 @@ normal_fixed_mixture_stan_fit2 <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -331,7 +331,7 @@ normal_fixed_mixture_stan_fit3 <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 3*5,
                             H = 3,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -351,7 +351,7 @@ normal_fixed_mixture_stan_fit2a <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 2,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -371,7 +371,7 @@ normal_fixed_mixture_stan_fit2b <-
                             m = 0, s_squared = 1,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -389,7 +389,7 @@ normal_fixed_mixture_stan_fit2c <-
                             m = 0, s_squared = 1,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -410,7 +410,7 @@ normal_fixed_mixture_stan_fit2d <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 chains = 12,
@@ -435,7 +435,7 @@ normal_fixed_mixture_stan_fit2e <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 2,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -454,7 +454,7 @@ normal_fixed_mixture_stan_fit2f <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -473,7 +473,7 @@ normal_fixed_mixture_stan_fit2g <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 control = list(adapt_delta = 0.99999999999))
@@ -497,7 +497,7 @@ normal_fixed_mixture_stan_fit2h <-
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
                 control = list(adapt_delta = 0.99999999999))
@@ -521,7 +521,7 @@ normal_fixed_mixture_stan_fit2i <-
                             m = 0, s_squared = 1,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -540,7 +540,7 @@ normal_fixed_mixture_stan_fit2j <-
                             m = 0, s_squared = 10,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 2,
+                            dirichlet_alpha = 2*5,
                             H = 2,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
@@ -559,7 +559,7 @@ normal_fixed_mixture_stan_fit5 <-
                             m = 0, s_squared = 10,
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
+                            dirichlet_alpha = 5*5,
                             H = 5,
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```

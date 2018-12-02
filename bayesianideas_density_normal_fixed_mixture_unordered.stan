@@ -62,8 +62,6 @@ model {
     // Outcome model N(mu, sigma^2) (use SD rather than Var)
     for (i in 1:n) {
         // Loop over individuals
-        // z[i] in {1,...,H} gives the cluster membership.
-        /* y[i] ~ normal(mu[z[i]], sigma[z[i]]); */
 
           for (h in 1:H) {
               // Loop over clusters within each individual

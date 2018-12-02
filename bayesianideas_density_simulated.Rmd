@@ -1,0 +1,213 @@
+---
+title: "BIDA: Density Estimation (Finite Mixture Model)"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = TRUE, echo = TRUE,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- Books
+  - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+  - [(BDA) Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+- Web sites
+  - [Bayesian Statistics Using Stan 10 Finite Mixtures](http://www.stat.columbia.edu/~gelman/bda.course/_book/mixture-modeling-chapter.html)
+  - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
+  - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
+  - [Taming Divergences in Stan Models](https://www.martinmodrak.cz/2018/02/19/taming-divergences-in-stan-models/)
+  - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
+  - [Identification of mixture of multivariate normal distributions](https://discourse.mc-stan.org/t/identification-of-mixture-of-multivariate-normal-distributions/4203)
+- jSoftware
+  - [Stan Modeling Language User's Guide and Reference Manual, Version 2.17.0](http://mc-stan.org/users/documentation/)
+  - [CRAN DPpackage: Bayesian Nonparametric Modeling in R](https://cran.r-project.org/package=DPpackage)
+  - [J Stat Softw. 2011. DPpackage: Bayesian Non- and Semi-parametric Modelling in R.](https://www.jstatsoft.org/article/view/v040i05)
+
+
+## Load packages
+```{r}
+library(tidyverse)
+library(rstan)
+## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
+## library(biostan)
+set.seed(732565397)
+```
+
+## Prepare data
+
+We generate a dataset with clearly separate modes.
+
+```{r}
+data1 <- data_frame(z = 1 + rbinom(n = 82, size = 1, prob = 0.3),
+           x1 = rnorm(n = length(z), mean = -10, sd = 1),
+           x2 = rnorm(n = length(z), mean = +8, sd = 2),
+           x = ifelse(z == 1, x1, x2))
+ggplot(data = data1, mapping = aes(x = x)) +
+    geom_point(y = 0.5) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+Set range of values to examine estimated density.
+
+```{r}
+grid_max <- 20
+grid_min <- -20
+grid_length <- 100
+```
+
+Define some helper functions
+
+```{r}
+plot_draws <- function(stan_fit) {
+    ## Note direct access to global variables
+    draw_data  <- tidybayes::tidy_draws(stan_fit) %>%
+        select(.chain, .iteration, .draw, starts_with("log_f")) %>%
+        gather(key = key, value = value, starts_with("log_f")) %>%
+        mutate(key = gsub("log_f|\\[|\\]", "", key) %>% as.integer(),
+           x = factor(key, labels = seq(from = grid_min, to = grid_max, length.out = grid_length)) %>%
+               as.character() %>%
+               as.numeric(),
+           value = exp(value))
+
+    summary_density <- draw_data %>%
+        group_by(.chain, x) %>%
+        summarize(value = mean(value))
+
+    ggplot(data = draw_data, mapping = aes(x = x, y = value,
+           group = interaction(.chain, .iteration, .draw))) +
+    geom_line(size = 0.1, alpha = 1/20) +
+    geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
+    geom_point(data = galaxy, mapping = aes(x = k_speed, group = NULL), y = 0) +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+}
+
+traceplot_all <- function(fit) {
+    print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma_squared"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
+    print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
+}
+
+pairs_plot_all <- function(fit) {
+    pairs(fit, pars = "mu")
+    pairs(fit, pars = "sigma_squared")
+    pairs(fit, pars = "Pi")
+}
+
+```
+
+
+## Finite Mixture of Normals
+
+### Model
+Let $z_{i} \in \left\{ 1, \dots, H \right\}$ be the cluster membership latent variable and $\mathbf{z}_{i} = (I(z_{i}=1),\dots,I(z_{i}=H))^{T}$ be the vector indicator version. We have the following model.
+
+$$\begin{align*}
+  y_{i} | (z_{i}, \mu_{1},\dots,\mu_{H}, \sigma^{2}_{1},\dots,\sigma^{2}_{H}) &\sim N(\mu_{z_{i}}, \sigma^{2}_{z_{i}})\\
+  \mathbf{z}_{i} | \boldsymbol{\pi} &\sim Multinomial(1, \boldsymbol{\pi})\\
+  \\
+  p(\mu_{h},\sigma^{2}_{h}) &= p(\mu_{h}|\sigma^{2}_{h})p(\sigma^{2}_{h})\\
+  &= N(\mu_{h} | m, s^{2}) Inverse-Gamma(\sigma^{2}_{h} | \alpha, \beta)\\
+  &= \left[ \frac{1}{\sqrt{2\pi s^{2}}} \exp \left( - \frac{(\mu_{h} - m)^{2}}{2 \times s^{2}} \right) \right]
+    \left[ \frac{\beta^{\alpha}}{\Gamma(\alpha)} (\sigma^{2}_{h})^{-\alpha - 1} \exp \left( - \frac{\beta}{\sigma^{2}_{h}} \right) \right]\\
+  &\text{where}\\
+  m &= 0\\
+  s^{2} &= 10^{3}\\
+  \alpha &= 10^{-3}\\
+  \beta &= 10^{-3}\\
+  \\
+  p(\boldsymbol{\pi}) &\sim Dirichlet \left( \frac{\alpha}{H}, \dots, \frac{\alpha}{H} \right)\\
+  \end{align*}
+$$
+
+Summing out the latent categorical variable $z_{i}$ results in the following (conditioning on parameters suppressed for simplicity) marginal density. Note the cluster membership latent variable $z_i$ is not measured, thus, it is a discrete parameter. Stan's Hamiltonian Monte Carlo (HMC) cannot deal with discrete parameters, this marginalization step is required fro Stan. JAGS seems to allow a discrete parameter and accepts the original model above.
+
+$$\begin{align*}
+  p(y) &= \sum^{H}_{z=1} p(y|z) p(z)\\
+  &= \sum^{H}_{z=1} \pi_{z} p(y|z)\\
+  &= \sum^{H}_{h=1} \pi_h N(y | \mu_{h}, \sigma^{2}_{h})\\
+  \end{align*}
+$$
+
+
+### Fitting
+#### 2 latent cluster model
+```{r}
+normal_fixed_mixture_unordered_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_unordered.stan")
+biostan::print_stan_code(normal_fixed_mixture_unordered_stan_code, section = NULL)
+```
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_unordered_stan_fit <-
+    rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(data1),
+                            y = data1$x,
+                            dirichlet_alpha = 1,
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+```
+```{r}
+normal_fixed_mixture_unordered_stan_fit
+traceplot_all(normal_fixed_mixture_unordered_stan_fit)
+plot_draws(normal_fixed_mixture_unordered_stan_fit)
+pairs_plot_all(normal_fixed_mixture_unordered_stan_fit)
+```
+
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

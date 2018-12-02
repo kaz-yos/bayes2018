@@ -1,5 +1,5 @@
 ---
-title: "BIDA: Density Estimation (Finite Mixture Model)"
+title: "Bayesian Density Estimation (Finite Mixture Model)"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -12,7 +12,7 @@ showMessage <- FALSE
 showWarning <- TRUE
 set_alias(w = "fig.width", h = "fig.height", res = "results")
 opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
-               tidy = FALSE, cache = TRUE, echo = TRUE,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
                fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
 ## for rgl
 ## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
@@ -43,9 +43,9 @@ doParallel::registerDoParallel(cores = n_cores)
   - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
   - [(BDA) Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
 - Web sites
+  - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
   - [Bayesian Statistics Using Stan 10 Finite Mixtures](http://www.stat.columbia.edu/~gelman/bda.course/_book/mixture-modeling-chapter.html)
   - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
-  - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
   - [Taming Divergences in Stan Models](https://www.martinmodrak.cz/2018/02/19/taming-divergences-in-stan-models/)
   - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
   - [Identification of mixture of multivariate normal distributions](https://discourse.mc-stan.org/t/identification-of-mixture-of-multivariate-normal-distributions/4203)
@@ -93,6 +93,10 @@ grid_length <- 100
 Define some helper functions
 
 ```{r}
+print_relevant_pars <- function(fit) {
+    print(fit, pars = c("mu","sigma_squared","Pi","sigma","lp__"))
+}
+
 plot_draws <- function(stan_fit) {
     ## Note direct access to global variables
     draw_data  <- tidybayes::tidy_draws(stan_fit) %>%
@@ -110,9 +114,9 @@ plot_draws <- function(stan_fit) {
 
     ggplot(data = draw_data, mapping = aes(x = x, y = value,
            group = interaction(.chain, .iteration, .draw))) +
-    geom_line(size = 0.1, alpha = 1/20) +
+    ## geom_line(size = 0.1, alpha = 1/20) +
     geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
-    geom_point(data = galaxy, mapping = aes(x = k_speed, group = NULL), y = 0) +
+    geom_point(data = data1, mapping = aes(x = x, group = NULL), y = 0) +
     facet_wrap(~ .chain) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -123,7 +127,7 @@ plot_draws <- function(stan_fit) {
 
 traceplot_all <- function(fit) {
     print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
-    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma_squared"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma"))
     print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
     print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
 }
@@ -188,11 +192,40 @@ normal_fixed_mixture_unordered_stan_fit <-
                             grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
 ```
 ```{r}
-normal_fixed_mixture_unordered_stan_fit
+print_relevant_pars(normal_fixed_mixture_unordered_stan_fit)
 traceplot_all(normal_fixed_mixture_unordered_stan_fit)
 plot_draws(normal_fixed_mixture_unordered_stan_fit)
 pairs_plot_all(normal_fixed_mixture_unordered_stan_fit)
 ```
+```{r, eval = FALSE}
+shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit)
+```
+
+Rhat statistics are all large. Note the Rhat for log posterior lp__ is also large.
+
+
+#### 2 latent cluster model (Dirichlet mass 3)
+```{r, cache = TRUE, results = 'hide'}
+normal_fixed_mixture_unordered_stan_fit2 <-
+    rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(data1),
+                            y = data1$x,
+                            dirichlet_alpha = 3,
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_unordered_stan_fit2)
+traceplot_all(normal_fixed_mixture_unordered_stan_fit2)
+plot_draws(normal_fixed_mixture_unordered_stan_fit2)
+pairs_plot_all(normal_fixed_mixture_unordered_stan_fit2)
+```
+```{r, eval = FALSE}
+shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit)
+```
+
 
 
 --------------------

@@ -12,7 +12,7 @@ showMessage <- FALSE
 showWarning <- TRUE
 set_alias(w = "fig.width", h = "fig.height", res = "results")
 opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
-               tidy = FALSE, cache = TRUE, echo = TRUE,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
                fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
 ## for rgl
 ## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
@@ -125,23 +125,25 @@ biostan::print_stan_code(normal_stan_code, section = NULL)
 ```
 
 ### Fitting
-```{r, cache = TRUE, results = 'hide'}
-normal_stan_fit <-
-    rstan::stan(model_code = normal_stan_code,
-                data = list(alpha = 10^(-3), beta = 10^(-3),
-                            m = 0, s_squared = 10^(3),
-                            n = nrow(galaxy),
-                            y = galaxy$k_speed,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
-```
-
+Helper functions for here and later use.
 ```{r}
-normal_stan_fit
-```
+print_relevant_pars <- function(fit) {
+    print(fit, pars = c("mu","sigma_squared","Pi","sigma","lp__"))
+}
 
-The sampling process seems ok. Plot density function draws.
+traceplot_all <- function(fit) {
+    print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma"))
+    print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
+    print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
+}
 
-```{r}
+pairs_plot_all <- function(fit) {
+    pairs(fit, pars = "mu")
+    pairs(fit, pars = "sigma_squared")
+    pairs(fit, pars = "Pi")
+}
+
 plot_draws <- function(stan_fit) {
     ## Note direct access to global variables
     draw_data  <- tidybayes::tidy_draws(stan_fit) %>%
@@ -159,7 +161,7 @@ plot_draws <- function(stan_fit) {
 
     ggplot(data = draw_data, mapping = aes(x = x, y = value,
            group = interaction(.chain, .iteration, .draw))) +
-    geom_line(size = 0.1, alpha = 1/20) +
+    ## geom_line(size = 0.1, alpha = 1/20) +
     geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
     geom_point(data = galaxy, mapping = aes(x = k_speed, group = NULL), y = 0) +
     facet_wrap(~ .chain) +
@@ -169,6 +171,25 @@ plot_draws <- function(stan_fit) {
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 }
+```
+```{r, results = 'hide'}
+normal_stan_fit <-
+    rstan::stan(model_code = normal_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+
+```{r}
+print(normal_stan_fit, pars = c("mu","sigma","lp__"))
+```
+
+The sampling process seems ok. Plot density function draws.
+
+```{r}
 plot_draws(normal_stan_fit)
 ```
 
@@ -213,16 +234,16 @@ Another layer of complexity is the label switching issue. That is, the cluster I
 
 ### Implementation
 ```{r}
-normal_fixed_mixture_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture.stan")
+normal_fixed_mixture_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_unordered.stan")
 biostan::print_stan_code(normal_fixed_mixture_stan_code, section = NULL)
 ```
-Please note the ordering constrain on the $\mu_{h}$.
 
 ### Fitting
-#### 6 latent cluster model
-Let us try a 6 latent cluster model with otherwise similar vague priors.
 
-```{r, cache = TRUE, results = 'hide'}
+#### 6 latent cluster model
+Let us try a 6 latent cluster model with otherwise similar vague priors except Dirichlet(5,...,5) to avoid cluster degeneration.
+
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit6 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -231,69 +252,38 @@ normal_fixed_mixture_stan_fit6 <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 6*5,
                             H = 6,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
-normal_fixed_mixture_stan_fit6
-traceplot_all <- function(fit) {
-    print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
-    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma"))
-    print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
-    print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
-}
+print_relevant_pars(normal_fixed_mixture_stan_fit6)
 traceplot_all(normal_fixed_mixture_stan_fit6)
+pairs_plot_all(normal_fixed_mixture_stan_fit6)
 plot_draws(normal_fixed_mixture_stan_fit6)
-pairs(normal_fixed_mixture_stan_fit6, pars = "mu")
-pairs(normal_fixed_mixture_stan_fit6, pars = "sigma_squared")
-pairs(normal_fixed_mixture_stan_fit6, pars = "Pi")
 ```
 
-This model broke down badly.
+There were many divergent transitions (red dots in the pairs plots). The cross appearance of the mu pairs plot likely indicates that once the cluster has essentially zero probability, any value of mu is allowed. Interestingly, the resulting density estimates are quite similar.
 
-#### 6 latent cluster model with unordered mu
-```{r}
-normal_fixed_mixture_unordered_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_unordered.stan")
-biostan::print_stan_code(normal_fixed_mixture_unordered_stan_code, section = NULL)
-```
-```{r, cache = TRUE, results = 'hide'}
-normal_fixed_mixture_stan_fit6_unordered <-
-    rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
-                data = list(alpha = 10^(-3), beta = 10^(-3),
-                            m = 0, s_squared = 10^(3),
-                            n = nrow(galaxy),
-                            y = galaxy$k_speed,
-                            dirichlet_alpha = 6*5,
-                            H = 6,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
-```
-```{r}
-normal_fixed_mixture_stan_fit6_unordered
-traceplot_all(normal_fixed_mixture_stan_fit6_unordered)
-plot_draws(normal_fixed_mixture_stan_fit6_unordered)
-pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "mu")
-pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "sigma_squared")
-pairs(normal_fixed_mixture_stan_fit6_unordered, pars = "Pi")
-```
 
 #### 1 latent cluster model
 Let us sanity check with just one cluster.
 
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit1 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 1*5,
+                            dirichlet_alpha = 1,
                             H = 1,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
-normal_fixed_mixture_stan_fit1
+print_relevant_pars(normal_fixed_mixture_stan_fit1)
 traceplot_all(normal_fixed_mixture_stan_fit1)
 plot_draws(normal_fixed_mixture_stan_fit1)
-pairs(normal_fixed_mixture_stan_fit1)
 ```
 
 This gave a similar result to the first single normal fit, except that the additional $\pi$ parameter, which can only be 1 in this case.
@@ -301,7 +291,7 @@ This gave a similar result to the first single normal fit, except that the addit
 #### 2 latent cluster model
 This model has two latent clusters.
 
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -310,21 +300,21 @@ normal_fixed_mixture_stan_fit2 <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 2*5,
                             H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
-normal_fixed_mixture_stan_fit2
+print_relevant_pars(normal_fixed_mixture_stan_fit2)
 traceplot_all(normal_fixed_mixture_stan_fit2)
+pairs_plot_all(normal_fixed_mixture_stan_fit2)
 plot_draws(normal_fixed_mixture_stan_fit2)
-pairs(normal_fixed_mixture_stan_fit2, pars = "mu")
-pairs(normal_fixed_mixture_stan_fit2, pars = "sigma_squared")
-pairs(normal_fixed_mixture_stan_fit2, pars = "Pi")
 ```
 
-This model also exhibits poor mixing. Particularly, $\sigma^{2}_{1}$ has a extremely broad posterior distribution.
+No divergent transitions were observed with just two clusters. However, Rhat statistics are high and mixing is poor including lp__.
+
 
 #### 3 latent cluster model
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit3 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -333,38 +323,118 @@ normal_fixed_mixture_stan_fit3 <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 3*5,
                             H = 3,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
-normal_fixed_mixture_stan_fit3
+print_relevant_pars(normal_fixed_mixture_stan_fit3)
 traceplot_all(normal_fixed_mixture_stan_fit3)
+pairs_plot_all(normal_fixed_mixture_stan_fit3)
 plot_draws(normal_fixed_mixture_stan_fit3)
 ```
 
-Adding another latent cluster does not help.
+Interestingly, lp__ has Rhat 1.00. However, the actual density estimates took on two shapes. One is with two separate peaks and the other is two peaks joined together.
 
-#### 2 latent cluster model with increased Dirichlet alpha
-```{r, cache = TRUE, results = 'hide'}
-normal_fixed_mixture_stan_fit2a <-
+#### 4 latent cluster model
+```{r, results = 'hide'}
+normal_fixed_mixture_stan_fit4 <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
                             m = 0, s_squared = 10^(3),
                             n = nrow(galaxy),
                             y = galaxy$k_speed,
-                            dirichlet_alpha = 2*5,
-                            H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            dirichlet_alpha = 4*5,
+                            H = 4,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
-normal_fixed_mixture_stan_fit2a
-traceplot_all(normal_fixed_mixture_stan_fit2a)
-plot_draws(normal_fixed_mixture_stan_fit2a)
+print_relevant_pars(normal_fixed_mixture_stan_fit4)
+traceplot_all(normal_fixed_mixture_stan_fit4)
+pairs_plot_all(normal_fixed_mixture_stan_fit4)
+plot_draws(normal_fixed_mixture_stan_fit4)
 ```
 
-Increasing the mass parameter for the Dirichlet prior on the cluster probabilities does not seem to help.
+Again lp__ has Rhat 1.00. This time, the actual density estimates took on the same shape for all chains.
+
+
+#### 5 latent cluster model
+```{r, results = 'hide'}
+normal_fixed_mixture_stan_fit5 <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 5*5,
+                            H = 5,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_stan_fit5)
+traceplot_all(normal_fixed_mixture_stan_fit5)
+pairs_plot_all(normal_fixed_mixture_stan_fit5)
+plot_draws(normal_fixed_mixture_stan_fit5)
+```
+
+Rhat for lp__ increased. The resulting density estimates appear somewhat different.
+
+
+#### 4 latent cluster model with ordered prior on mu
+```{r}
+normal_fixed_mixture_ordered_mu_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture.stan")
+biostan::print_stan_code(normal_fixed_mixture_ordered_mu_stan_code, section = NULL)
+```
+```{r, results = 'hide'}
+normal_fixed_mixture_ordered_mu_stan_fit4 <-
+    rstan::stan(model_code = normal_fixed_mixture_ordered_mu_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 4*5,
+                            H = 4,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_ordered_mu_stan_fit4)
+traceplot_all(normal_fixed_mixture_ordered_mu_stan_fit4)
+pairs_plot_all(normal_fixed_mixture_ordered_mu_stan_fit4)
+plot_draws(normal_fixed_mixture_ordered_mu_stan_fit4)
+```
+
+The chaims look
+
+#### 4 latent cluster model with ordered prior on Pi
+```{r}
+normal_fixed_mixture_ordered_Pi_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_ordered_Pi.stan")
+biostan::print_stan_code(normal_fixed_mixture_ordered_Pi_stan_code, section = NULL)
+```
+```{r, results = 'hide'}
+normal_fixed_mixture_ordered_Pi_stan_fit4 <-
+    rstan::stan(model_code = normal_fixed_mixture_ordered_Pi_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 4*5,
+                            H = 4,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_ordered_Pi_stan_fit4)
+traceplot_all(normal_fixed_mixture_ordered_Pi_stan_fit4)
+pairs_plot_all(normal_fixed_mixture_ordered_Pi_stan_fit4)
+plot_draws(normal_fixed_mixture_ordered_Pi_stan_fit4)
+```
+
+
 
 #### 2 latent cluster model with more precise prior on means
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2b <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -373,7 +443,8 @@ normal_fixed_mixture_stan_fit2b <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 2*5,
                             H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2b
@@ -382,7 +453,7 @@ plot_draws(normal_fixed_mixture_stan_fit2b)
 ```
 
 #### 2 latent cluster model with more precise prior on means and variance
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2c <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(1), beta = 10^(1),
@@ -391,7 +462,8 @@ normal_fixed_mixture_stan_fit2c <-
                             y = galaxy$k_speed,
                             dirichlet_alpha = 2*5,
                             H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
 normal_fixed_mixture_stan_fit2c
@@ -403,7 +475,7 @@ Additionally making the prior for variance more precise did not help.
 
 
 #### 2 latent cluster model with more chains and iterations
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2d <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -428,7 +500,7 @@ plot_draws(normal_fixed_mixture_stan_fit2d)
 normal_fixed_mixture_tau_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_tau.stan")
 biostan::print_stan_code(normal_fixed_mixture_tau_stan_code, section = NULL)
 ```
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2e <-
     rstan::stan(model_code = normal_fixed_mixture_tau_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -447,7 +519,7 @@ plot_draws(normal_fixed_mixture_stan_fit2e)
 
 
 #### 2 latent cluster model on original scale
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2f <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -466,7 +538,7 @@ plot_draws(normal_fixed_mixture_stan_fit2f)
 
 
 #### 2 latent cluster model on original scale with smaller steps
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2g <-
     rstan::stan(model_code = normal_fixed_mixture_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -490,7 +562,7 @@ plot_draws(normal_fixed_mixture_stan_fit2g)
 normal_fixed_mixture_lognormal_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_lognormal.stan")
 biostan::print_stan_code(normal_fixed_mixture_lognormal_stan_code, section = NULL)
 ```
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2h <-
     rstan::stan(model_code = normal_fixed_mixture_lognormal_stan_code,
                 data = list(mean_log_normal = 0, sd_log_normal = 2,
@@ -514,7 +586,7 @@ plot_draws(normal_fixed_mixture_stan_fit2h)
 normal_fixed_mixture_grid_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_grid.stan")
 biostan::print_stan_code(normal_fixed_mixture_grid_stan_code, section = NULL)
 ```
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2i <-
     rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
                 data = list(alpha = 10^(1), beta = 10^(1),
@@ -533,7 +605,7 @@ plot_draws(normal_fixed_mixture_stan_fit2i)
 
 
 #### 2 latent cluster model with more precise prior on variance, concentrated probability (density grid)
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit2j <-
     rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
                 data = list(alpha = 10^(1), beta = 10^(1),
@@ -552,7 +624,7 @@ plot_draws(normal_fixed_mixture_stan_fit2j)
 
 
 #### 5 latent cluster model with more precise prior on variance (density grid)
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_stan_fit5 <-
     rstan::stan(model_code = normal_fixed_mixture_grid_stan_code,
                 data = list(alpha = 10^(1), beta = 10^(1),

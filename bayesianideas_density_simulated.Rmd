@@ -112,10 +112,8 @@ plot_draws <- function(stan_fit) {
         group_by(.chain, x) %>%
         summarize(value = mean(value))
 
-    ggplot(data = draw_data, mapping = aes(x = x, y = value,
-           group = interaction(.chain, .iteration, .draw))) +
-    ## geom_line(size = 0.1, alpha = 1/20) +
-    geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
+    ggplot(data = summary_density, mapping = aes(x = x, y = value, group = .chain)) +
+    geom_line(size = 0.5, color = "gray") +
     geom_point(data = data1, mapping = aes(x = x, group = NULL), y = 0) +
     facet_wrap(~ .chain) +
     theme_bw() +
@@ -180,7 +178,7 @@ $$
 normal_fixed_mixture_unordered_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_unordered.stan")
 biostan::print_stan_code(normal_fixed_mixture_unordered_stan_code, section = NULL)
 ```
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_unordered_stan_fit <-
     rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -189,23 +187,41 @@ normal_fixed_mixture_unordered_stan_fit <-
                             y = data1$x,
                             dirichlet_alpha = 1,
                             H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
 print_relevant_pars(normal_fixed_mixture_unordered_stan_fit)
 traceplot_all(normal_fixed_mixture_unordered_stan_fit)
-plot_draws(normal_fixed_mixture_unordered_stan_fit)
 pairs_plot_all(normal_fixed_mixture_unordered_stan_fit)
+plot_draws(normal_fixed_mixture_unordered_stan_fit)
 ```
 ```{r, eval = FALSE}
 shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit)
 ```
 
-Rhat statistics are all large. Note the Rhat for log posterior lp__ is also large.
+Many divergent transitions were experienced. Rhat statistics are all large. Note the Rhat for log posterior lp__ is also large. In chains 3, 8, 9, and 11, only one of the two clustered remained, resulting in essentially single normal distribution. Once the cluster probability is zero, the mean parameter mu can take any value and give the same likelihood. This is probably the reason for the wide-spread cross appearance of the pairs plot for the mu parameters.
+
+
+I realized the prior for the cluster probability vector is Dirichlet(alpha / H). That is, in this case Dirichlet(0.5, 0.5), which gives a lot of mass to regions that collapses either one of the two clusters.
+
+```{r}
+data_frame(x = seq(from = 0, to = 1, by = 0.01),
+           y = dbeta(x = x, shape1 = 0.5, shape2 = 0.5)) %>%
+    filter(y < Inf) %>%
+ggplot(mapping = aes(x = x, y = y)) +
+    geom_path() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
 
 
 #### 2 latent cluster model (Dirichlet mass 3)
-```{r, cache = TRUE, results = 'hide'}
+```{r, results = 'hide'}
 normal_fixed_mixture_unordered_stan_fit2 <-
     rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
                 data = list(alpha = 10^(-3), beta = 10^(-3),
@@ -214,19 +230,102 @@ normal_fixed_mixture_unordered_stan_fit2 <-
                             y = data1$x,
                             dirichlet_alpha = 3,
                             H = 2,
-                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length))
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
 ```
 ```{r}
 print_relevant_pars(normal_fixed_mixture_unordered_stan_fit2)
 traceplot_all(normal_fixed_mixture_unordered_stan_fit2)
-plot_draws(normal_fixed_mixture_unordered_stan_fit2)
 pairs_plot_all(normal_fixed_mixture_unordered_stan_fit2)
+plot_draws(normal_fixed_mixture_unordered_stan_fit2)
 ```
 ```{r, eval = FALSE}
-shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit)
+shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit2)
+```
+
+I changed the prior to Dirichlet(1.5, 1.5) to encode the prior knowledge that we likely have two clusters. Only chain 12 resulted in one cluster (cluster 2 collapsed). Chain 1 assigned 1 to the cluster with mean 8 and 30%, whereas chain 11(?) assigned 2 to the cluster with mean 8 and 30%. That is, label switching. These two are effectively the same model with label permutation, thus, every chain except chain 12 have converged to the same log posterior density trajectory and the resulting density estimates have the same bimodal shape.
+
+```{r}
+data_frame(x = seq(from = 0, to = 1, by = 0.01),
+           y = dbeta(x = x, shape1 = 1.5, shape2 = 1.5)) %>%
+    filter(y < Inf) %>%
+ggplot(mapping = aes(x = x, y = y)) +
+    geom_path() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 
+#### 2 latent cluster model (Dirichlet mass 10)
+```{r, results = 'hide'}
+normal_fixed_mixture_unordered_stan_fit3 <-
+    rstan::stan(model_code = normal_fixed_mixture_unordered_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(data1),
+                            y = data1$x,
+                            dirichlet_alpha = 10,
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_unordered_stan_fit3)
+traceplot_all(normal_fixed_mixture_unordered_stan_fit3)
+pairs_plot_all(normal_fixed_mixture_unordered_stan_fit3)
+plot_draws(normal_fixed_mixture_unordered_stan_fit3)
+```
+```{r, eval = FALSE}
+shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit3)
+```
+
+We can encode a stronger brief about the existence of both clusters with Dirichlet(5,5). No divergent transitions were experienced. Rhat statistics still look large, but the one for the log posterior density is 1.00. For the cluster probability parameter Pi, we clearly see that the only problem left is the label switching. As a result, the resulting density estimates all have the same bimodal shape.
+
+```{r}
+data_frame(x = seq(from = 0, to = 1, by = 0.01),
+           y = dbeta(x = x, shape1 = 5, shape2 = 5)) %>%
+    filter(y < Inf) %>%
+ggplot(mapping = aes(x = x, y = y)) +
+    geom_path() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+
+#### 2 latent cluster model (Dirichlet mass 10, order constraint)
+```{r}
+normal_fixed_mixture_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture.stan")
+biostan::print_stan_code(normal_fixed_mixture_stan_code, section = NULL)
+```
+```{r, results = 'hide'}
+normal_fixed_mixture_ordered_stan_fit <-
+    rstan::stan(model_code = normal_fixed_mixture_stan_code,
+                data = list(alpha = 10^(-3), beta = 10^(-3),
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(data1),
+                            y = data1$x,
+                            dirichlet_alpha = 10,
+                            H = 2,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_ordered_stan_fit)
+traceplot_all(normal_fixed_mixture_ordered_stan_fit)
+pairs_plot_all(normal_fixed_mixture_ordered_stan_fit)
+plot_draws(normal_fixed_mixture_ordered_stan_fit)
+```
+```{r, eval = FALSE}
+shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_fit3)
+```
+
+If the only problem is label switching, we can solve it by ordering the prior on mu with probability 1. All Rhat statistics are 1 now and pairs plots appear better. The density estimates themselves do not change.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

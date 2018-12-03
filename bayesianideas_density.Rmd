@@ -128,21 +128,20 @@ biostan::print_stan_code(normal_stan_code, section = NULL)
 ### Fitting
 Helper functions for here and later use.
 ```{r}
-print_relevant_pars <- function(fit) {
-    print(fit, pars = c("mu","sigma_squared","Pi","sigma","lp__"))
+print_relevant_pars <- function(fit, pars = c("mu","sigma_squared","Pi","sigma","lp__")) {
+    print(fit, pars = pars)
 }
 
-traceplot_all <- function(fit) {
-    print(traceplot(fit, inc_warmup = TRUE, pars = "mu"))
-    print(traceplot(fit, inc_warmup = TRUE, pars = "sigma"))
-    print(traceplot(fit, inc_warmup = TRUE, pars = "Pi"))
-    print(traceplot(fit, inc_warmup = FALSE, pars = "lp__"))
+traceplot_all <- function(fit, pars = c("mu","sigma","Pi","lp__")) {
+    for (par in pars) {
+        print(traceplot(fit, inc_warmup = TRUE, pars = par))
+    }
 }
 
-pairs_plot_all <- function(fit) {
-    pairs(fit, pars = "mu")
-    pairs(fit, pars = "sigma_squared")
-    pairs(fit, pars = "Pi")
+pairs_plot_all <- function(fit, pars = c("mu","sigma_squared","Pi")) {
+    for (par in pars) {
+        pairs(fit, pars = par)
+    }
 }
 
 plot_draws <- function(stan_fit) {
@@ -257,6 +256,7 @@ normal_fixed_mixture_stan_fit6 <-
                 chains = 12)
 ```
 ```{r}
+check_hmc_diagnostics(normal_fixed_mixture_stan_fit6)
 print_relevant_pars(normal_fixed_mixture_stan_fit6)
 traceplot_all(normal_fixed_mixture_stan_fit6)
 pairs_plot_all(normal_fixed_mixture_stan_fit6)
@@ -430,6 +430,31 @@ print_relevant_pars(normal_fixed_mixture_ordered_Pi_stan_fit4)
 traceplot_all(normal_fixed_mixture_ordered_Pi_stan_fit4)
 pairs_plot_all(normal_fixed_mixture_ordered_Pi_stan_fit4)
 plot_draws(normal_fixed_mixture_ordered_Pi_stan_fit4)
+```
+
+#### 4 latent cluster model with half-Cauchy prior on sigma
+```{r}
+normal_fixed_mixture_half_cauchy_stan_code <- biostan::read_stan_file("./bayesianideas_density_normal_fixed_mixture_half_cauchy.stan")
+biostan::print_stan_code(normal_fixed_mixture_half_cauchy_stan_code, section = NULL)
+```
+```{r, results = 'hide'}
+normal_fixed_mixture_half_cauchy_stan_fit4 <-
+    rstan::stan(model_code = normal_fixed_mixture_half_cauchy_stan_code,
+                data = list(location = 0, scale = 2,
+                            m = 0, s_squared = 10^(3),
+                            n = nrow(galaxy),
+                            y = galaxy$k_speed,
+                            dirichlet_alpha = 4*5,
+                            H = 4,
+                            grid_max = grid_max, grid_min = grid_min, grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+check_hmc_diagnostics(normal_fixed_mixture_half_cauchy_stan_fit4)
+print_relevant_pars(normal_fixed_mixture_half_cauchy_stan_fit4)
+traceplot_all(normal_fixed_mixture_half_cauchy_stan_fit4)
+pairs_plot_all(normal_fixed_mixture_half_cauchy_stan_fit4)
+plot_draws(normal_fixed_mixture_half_cauchy_stan_fit4)
 ```
 
 

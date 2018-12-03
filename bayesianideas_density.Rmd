@@ -47,6 +47,7 @@ doParallel::registerDoParallel(cores = n_cores)
   - [Finite mixture models in Stan](http://modernstatisticalworkflow.blogspot.com/2016/10/finite-mixture-models-in-stan.html)
   - [Identifying Bayesian Mixture Models](http://mc-stan.org/users/documentation/case-studies/identifying_mixture_models.html)
   - [Taming Divergences in Stan Models](https://www.martinmodrak.cz/2018/02/19/taming-divergences-in-stan-models/)
+  - [Check HMC diagnostics after sampling](http://mc-stan.org/rstan/reference/check_hmc_diagnostics.html)
   - [Mixture models in Stan: you can use log_mix](https://andrewgelman.com/2017/08/21/mixture-models-stan-can-use-log_mix/)
   - [Identification of mixture of multivariate normal distributions](https://discourse.mc-stan.org/t/identification-of-mixture-of-multivariate-normal-distributions/4203)
 - jSoftware
@@ -354,8 +355,9 @@ traceplot_all(normal_fixed_mixture_stan_fit4)
 pairs_plot_all(normal_fixed_mixture_stan_fit4)
 plot_draws(normal_fixed_mixture_stan_fit4)
 ```
-
-Again lp__ has Rhat 1.00. This time, the actual density estimates took on the same shape for all chains.
+```{r, eval = FALSE}
+shinystan::launch_shinystan(normal_fixed_mixture_stan_fit4)
+```
 
 
 #### 5 latent cluster model
@@ -405,7 +407,6 @@ pairs_plot_all(normal_fixed_mixture_ordered_mu_stan_fit4)
 plot_draws(normal_fixed_mixture_ordered_mu_stan_fit4)
 ```
 
-The chaims look
 
 #### 4 latent cluster model with ordered prior on Pi
 ```{r}

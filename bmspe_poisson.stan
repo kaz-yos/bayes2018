@@ -3,8 +3,9 @@ data {
     real<lower=0> alpha;
     real<lower=0> beta;
 
-    /* Sample size */
+    /* Dimensions */
     int<lower=0> N;
+    int<lower=0> M;
     /* Design Matrix */
     matrix[N,M] X;
     /* Outcome (a real vector of length n) */

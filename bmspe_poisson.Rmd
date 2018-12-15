@@ -50,7 +50,10 @@ doParallel::registerDoParallel(cores = n_cores)
 ## Load packages
 ```{r}
 library(tidyverse)
-
+## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
+library(rstan)
+## To avoid recompilation of unchanged Stan programs, we recommend calling
+rstan_options(auto_write = TRUE)
 ```
 
 ## Load data
@@ -69,7 +72,7 @@ data1
 data1 %>%
     ggplot(mapping = aes(x = daysabs, fill = prog)) +
     geom_bar(stat = "count") +
-    facet_grid(prog ~ ., margin = TRUE, scales = "free_y") + 
+    facet_grid(prog ~ ., margin = TRUE, scales = "free_y") +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
@@ -83,8 +86,32 @@ I will assume the DAE design matrix is sufficient for modeling covariates.
 X <- model.matrix(object = daysabs ~ math + prog, data = data1)
 head(X, n = 10)
 ```
+```{r}
+y <- data1$daysabs
+```
 
-## Poisson Model
+## Poisson model without covariates
+$$\begin{align*}
+  &\text{Prior}\\
+  \lambda | \alpha, \beta &\sim Gamma(\alpha, \beta)\\
+  \\
+  &\text{Likelihood}\\
+  y_{i} | \lambda &\overset{\text{iid}}{\sim} Poisson(\lambda)\\
+  \end{align*}
+$$
+```{r}
+stan_code_poisson <- biostan::read_stan_file("./bmspe_poisson.stan")
+biostan::print_stan_code(stan_code_poisson, section = NULL)
+stan_model_poisson <- stan(model_code = stan_code_poisson,
+                           data = list(alpha = 10^(-3), beta = 10^(-3),
+                                       N = nrow(X), M = ncol(X),
+                                       X = X,
+                                       y = y),
+                           chains = n_cores)
+stan_model_poisson
+```
+
+## Poisson model
 $$\begin{align*}
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\

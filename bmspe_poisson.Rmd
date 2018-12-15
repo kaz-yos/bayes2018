@@ -1,0 +1,111 @@
+---
+title: "Poisson Models"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- Web
+  - [(DAE) Negative Binomial Regression | R Data Analysis Examples](https://stats.idre.ucla.edu/r/dae/negative-binomial-regression/)
+  - [4.A Models for Over-Dispersed Count Data](https://data.princeton.edu/wws509/stata/overdispersion)
+  - [Models for Count Data With Overdispersion](https://data.princeton.edu/wws509/notes/c4a.pdf)
+  - [An Introduction to ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html)
+- Books
+  - [Bayesian Models: a Statistical Primer for Ecologists](https://press.princeton.edu/titles/10523.html)
+
+## Load packages
+```{r}
+library(tidyverse)
+
+```
+
+## Load data
+```{r, cache = TRUE}
+data1 <- haven::read_dta("https://stats.idre.ucla.edu/stat/stata/dae/nb_data.dta")
+```
+```{r}
+data1 <- data1 %>%
+    mutate(prog = factor(prog, levels = 1:3, labels = c("General", "Academic", "Vocational")),
+           id = factor(id))
+data1
+```
+
+## Visualize
+```{r}
+data1 %>%
+    ggplot(mapping = aes(x = daysabs, fill = prog)) +
+    geom_bar(stat = "count") +
+    facet_grid(prog ~ ., margin = TRUE, scales = "free_y") + 
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+## Design matrix
+I will assume the DAE design matrix is sufficient for modeling covariates.
+```{r}
+X <- model.matrix(object = daysabs ~ math + prog, data = data1)
+head(X, n = 10)
+```
+
+## Poisson Model
+$$\begin{align*}
+  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
+  \mu_{i} &= e^{\eta_{i}}\\
+  y_{i} &\overset{\text{ind}}{\sim} Poisson(\mu_{i})\\
+  \end{align*}
+$$
+
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

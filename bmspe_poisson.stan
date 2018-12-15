@@ -29,3 +29,10 @@ model {
         target += poisson_lpmf(y[i] | lambda);
     }
 }
+
+generated quantities {
+    int<lower=0> y_new[N];
+    for (i in 1:N) {
+        y_new[i] = poisson_rng(lambda);
+    }
+}

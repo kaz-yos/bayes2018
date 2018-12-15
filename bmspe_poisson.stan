@@ -1,7 +1,7 @@
 data {
     /* Hyperparameters*/
-    real<lower=0> alpha;
-    real<lower=0> beta;
+    real<lower=0> a;
+    real<lower=0> b;
 
     /* Dimensions */
     int<lower=0> N;
@@ -18,9 +18,9 @@ parameters {
 
 model {
     /* Prior */
-    /* lambda ~ gamma(alpha, beta); */
+    /* lambda ~ gamma(a, b); */
     /* Explicit contribution to target */
-    target += gamma_lpdf(lambda | alpha, beta);
+    target += gamma_lpdf(lambda | a, b);
 
     /* Likelihood */
     /* y ~ poisson(lambda); */

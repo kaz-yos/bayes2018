@@ -109,25 +109,21 @@ extract_post_pred <- function(stan_fit) {
         mutate(key = gsub("y_new|\\[|\\]", "", key) %>% as.integer())
 }
 ##
-plot_draws <- function(stan_fit) {
-    ## Note direct access to global variables
-    draw_data  <- extract_post_pred(stan_fit)
-
-    summary_density <- draw_data %>%
-        group_by(.chain, key) %>%
-        summarize(value = mean(value))
-
-    ggplot(data = draw_data, mapping = aes(x = x, y = value,
-           group = interaction(.chain, .iteration, .draw))) +
-    ## geom_line(size = 0.1, alpha = 1/20) +
-    geom_line(data = summary_density, mapping = aes(group = .chain), size = 0.5, color = "gray") +
-    geom_point(data = galaxy, mapping = aes(x = k_speed, group = NULL), y = 0) +
-    facet_wrap(~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws <- function(stan_fit, sample_indices) {
+    extract_post_pred(stan_fit) %>%
+        group_by(.chain, .iteration, .draw) %>%
+        count(value) %>%
+        filter(.iteration %in% sample_indices) %>%
+        ggplot(mapping = aes(x = value, y = n, group = interaction(.chain, .iteration, .draw))) +
+        geom_line(alpha = 0.5, size = 0.1) +
+        geom_line(data = data1_count, color = "gray", alpha = 0.7, size = 2,
+                  mapping = aes(x = y, group = NULL)) +
+        facet_wrap( ~ .chain) +
+        theme_bw() +
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+              legend.key = element_blank(),
+              plot.title = element_text(hjust = 0.5),
+              strip.background = element_blank())
 }
 ```
 
@@ -155,23 +151,7 @@ print(stan_model_poisson, pars = pars)
 pairs(stan_model_poisson, pars = pars)
 traceplot(stan_model_poisson, inc_warmup = TRUE, pars = pars)
 
-draw_data <- extract_post_pred(stan_model_poisson)
-sample_indices <- sample(seq_len(max(draw_data$.iteration)), size = 20)
-
-draw_data %>%
-    group_by(.chain, .iteration, .draw) %>%
-    count(value) %>%
-    filter(.iteration %in% sample_indices) %>%
-    ggplot(mapping = aes(x = value, y = n, group = interaction(.chain, .iteration, .draw))) +
-    geom_line(alpha = 0.5, size = 0.1) +
-    geom_line(data = data1_count, color = "gray", alpha = 0.7, size = 2,
-              mapping = aes(x = y, group = NULL)) +
-    facet_wrap( ~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws(stan_model_poisson, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
 ```
 
 ## Poisson model with covariates
@@ -201,23 +181,7 @@ print(stan_model_poisson_covs, pars = pars)
 pairs(stan_model_poisson_covs, pars = pars)
 traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
 
-draw_data <- extract_post_pred(stan_model_poisson_covs)
-sample_indices <- sample(seq_len(max(draw_data$.iteration)), size = 20)
-
-draw_data %>%
-    group_by(.chain, .iteration, .draw) %>%
-    count(value) %>%
-    filter(.iteration %in% sample_indices) %>%
-    ggplot(mapping = aes(x = value, y = n, group = interaction(.chain, .iteration, .draw))) +
-    geom_line(alpha = 0.5, size = 0.1) +
-    geom_line(data = data1_count, color = "gray", alpha = 0.7, size = 2,
-              mapping = aes(x = y, group = NULL)) +
-    facet_wrap( ~ .chain) +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
-          legend.key = element_blank(),
-          plot.title = element_text(hjust = 0.5),
-          strip.background = element_blank())
+plot_draws(stan_model_poisson_covs, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
 ```
 
 

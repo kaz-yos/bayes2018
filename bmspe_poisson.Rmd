@@ -193,7 +193,8 @@ stan_model_poisson_covs <- stan(model_code = stan_code_poisson_covs,
                                             N = nrow(X), M = ncol(X),
                                             X = X,
                                             y = y),
-                                chains = n_cores)
+                                chains = n_cores,
+                                include = )
 check_hmc_diagnostics(stan_model_poisson_covs)
 pars <- c("beta","lp__")
 print(stan_model_poisson_covs, pars = pars)

@@ -451,9 +451,12 @@ normal_fixed_mixture_half_cauchy_stan_fit4 <-
 ```
 ```{r}
 check_hmc_diagnostics(normal_fixed_mixture_half_cauchy_stan_fit4)
-print_relevant_pars(normal_fixed_mixture_half_cauchy_stan_fit4)
-traceplot_all(normal_fixed_mixture_half_cauchy_stan_fit4)
-pairs_plot_all(normal_fixed_mixture_half_cauchy_stan_fit4)
+print_relevant_pars(normal_fixed_mixture_half_cauchy_stan_fit4,
+                    pars = c("mu","Pi","sigma","lp__"))
+traceplot_all(normal_fixed_mixture_half_cauchy_stan_fit4,
+              pars = c("mu","Pi","sigma","lp__"))
+pairs_plot_all(normal_fixed_mixture_half_cauchy_stan_fit4,
+               pars = c("mu","Pi","sigma","lp__"))
 plot_draws(normal_fixed_mixture_half_cauchy_stan_fit4)
 ```
 

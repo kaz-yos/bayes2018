@@ -150,7 +150,6 @@ pars <- c("lambda","lp__")
 print(stan_model_poisson, pars = pars)
 pairs(stan_model_poisson, pars = pars)
 traceplot(stan_model_poisson, inc_warmup = TRUE, pars = pars)
-
 plot_draws(stan_model_poisson, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
 ```
 
@@ -173,15 +172,46 @@ stan_model_poisson_covs <- stan(model_code = stan_code_poisson_covs,
                                             N = nrow(X), M = ncol(X),
                                             X = X,
                                             y = y),
-                                chains = n_cores,
-                                include = )
+                                chains = n_cores)
 check_hmc_diagnostics(stan_model_poisson_covs)
 pars <- c("beta","lp__")
 print(stan_model_poisson_covs, pars = pars)
 pairs(stan_model_poisson_covs, pars = pars)
 traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
-
 plot_draws(stan_model_poisson_covs, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
+```
+
+
+## Poisson model with covariates and gamma random effects
+$$\begin{align*}
+  &\text{Prior}\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \gamma_{i} &\sim Gamma(a,b)\\
+  \\
+  &\text{Likelihood}\\
+  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
+  \mu_{i} &= e^{\eta_{i}}\\
+  y_{i} &\overset{\text{ind}}{\sim} Poisson(\gamma_{i} \mu_{i})\\
+  \end{align*}
+$$
+```{r}
+stan_code_poisson_covs_gamma <- biostan::read_stan_file("./bmspe_poisson_covs_gamma.stan")
+biostan::print_stan_code(stan_code_poisson_covs_gamma, section = NULL)
+stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
+                                      data = list(a = 10^(-3), b = 10^(-3),
+                                                  s = 10,
+                                                  N = nrow(X), M = ncol(X),
+                                                  X = X,
+                                                  y = y),
+                                      chains = 1)
+
+check_hmc_diagnostics(stan_model_poisson_covs_gamma)
+pars <- c("beta","lp__")
+print(stan_model_poisson_covs_gamma, pars = pars)
+pairs(stan_model_poisson_covs_gamma, pars = pars)
+traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
+
+plot_draws(stan_model_poisson_covs_gamma, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
 ```
 
 

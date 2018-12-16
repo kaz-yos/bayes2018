@@ -110,8 +110,10 @@ extract_post_pred <- function(stan_fit) {
         mutate(key = gsub("y_new|\\[|\\]", "", key) %>% as.integer())
 }
 ##
-plot_draws <- function(stan_fit, sample_indices) {
-    extract_post_pred(stan_fit) %>%
+plot_draws <- function(stan_fit, n_sample) {
+    draw_data <- extract_post_pred(stan_fit)
+    sample_indices <- sample(seq_len(max(draw_data$.iteration)), size = n_sample)
+    draw_data %>%
         group_by(.chain, .iteration, .draw) %>%
         count(value) %>%
         filter(.iteration %in% sample_indices) %>%
@@ -151,7 +153,7 @@ pars <- c("lambda","lp__")
 print(stan_model_poisson, pars = pars)
 pairs(stan_model_poisson, pars = pars)
 traceplot(stan_model_poisson, inc_warmup = TRUE, pars = pars)
-plot_draws(stan_model_poisson, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
+plot_draws(stan_model_poisson, n_sample = 20)
 ```
 
 ## Poisson model with covariates
@@ -162,7 +164,7 @@ $$\begin{align*}
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\
-  y_{i} &\overset{\text{ind}}{\sim} Poisson(\mu_{i})\\
+  y_{i} | \mu_{i} &\overset{\text{ind}}{\sim} Poisson(\mu_{i})\\
   \end{align*}
 $$
 ```{r}
@@ -179,7 +181,7 @@ pars <- c("beta","lp__")
 print(stan_model_poisson_covs, pars = pars)
 pairs(stan_model_poisson_covs, pars = pars)
 traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
-plot_draws(stan_model_poisson_covs, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
+plot_draws(stan_model_poisson_covs, n_sample = 20)
 ```
 
 
@@ -187,12 +189,13 @@ plot_draws(stan_model_poisson_covs, sample_indices = sample(seq_len(max(draw_dat
 $$\begin{align*}
   &\text{Prior}\\
   \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
-  \gamma_{i} &\sim Gamma(a,b)\\
+  a_{\gamma} &\sim Gamma(a, b)\\
   \\
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\
-  y_{i} &\overset{\text{ind}}{\sim} Poisson(\gamma_{i} \mu_{i})\\
+  \gamma_{i} | a_{\gamma} &\overset{\text{iid}}{\sim} Gamma(1/a_{\gamma},1/a_{\gamma}) ~~ E[\gamma_{i}] = 1, Var(\gamma_{i}) = a_{\gamma}\\
+  y_{i} | \gamma_{i},\mu_{i} &\overset{\text{ind}}{\sim} Poisson(\gamma_{i} \mu_{i})\\
   \end{align*}
 $$
 ```{r}
@@ -205,14 +208,12 @@ stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
                                                   X = X,
                                                   y = y),
                                       chains = n_cores)
-
 check_hmc_diagnostics(stan_model_poisson_covs_gamma)
 pars <- c("beta","aa","lp__")
 print(stan_model_poisson_covs_gamma, pars = pars)
 pairs(stan_model_poisson_covs_gamma, pars = pars)
 traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
-
-plot_draws(stan_model_poisson_covs_gamma, sample_indices = sample(seq_len(max(draw_data$.iteration)), size = 20))
+plot_draws(stan_model_poisson_covs_gamma, n_sample = 20)
 ```
 
 

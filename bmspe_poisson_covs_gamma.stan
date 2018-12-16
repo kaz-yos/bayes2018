@@ -17,7 +17,6 @@ parameters {
     vector[M] beta;
     vector<lower=0>[N] gamma;
     real<lower=0> aa;
-    real<lower=0> bb;
 }
 
 transformed parameters {
@@ -36,13 +35,12 @@ model {
     }
     /* aa ~ Gamma(a, b) */
     target += gamma_lpdf(aa | a, b);
-    /* bb ~ Gamma(a, b) */
-    target += gamma_lpdf(bb | a, b);
 
     /* Likelihood */
     for (i in 1:N) {
         /* gamma_i ~ Gamma(aa, bb) */
-        target += gamma_lpdf(gamma[i] | aa, bb);
+        /* E[gamma_i] = 1 must be met for identifiability. */
+        target += gamma_lpdf(gamma[i] | 1/aa, 1/aa);
         /* y_i ~ poisson(gamma_i * mu_i); */
         target += poisson_lpmf(y[i] | gamma[i] * mu[i]);
     }

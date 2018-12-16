@@ -40,6 +40,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - Web
+  - [Negative binomial and mixed Poisson regression](http://www.math.mcgill.ca/~dstephens/523/Papers/Lawless-1987-CJS.pdf)
   - [(DAE) Negative Binomial Regression | R Data Analysis Examples](https://stats.idre.ucla.edu/r/dae/negative-binomial-regression/)
   - [4.A Models for Over-Dispersed Count Data](https://data.princeton.edu/wws509/stata/overdispersion)
   - [Models for Count Data With Overdispersion](https://data.princeton.edu/wws509/notes/c4a.pdf)
@@ -203,10 +204,10 @@ stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
                                                   N = nrow(X), M = ncol(X),
                                                   X = X,
                                                   y = y),
-                                      chains = 1)
+                                      chains = n_cores)
 
 check_hmc_diagnostics(stan_model_poisson_covs_gamma)
-pars <- c("beta","lp__")
+pars <- c("beta","aa","lp__")
 print(stan_model_poisson_covs_gamma, pars = pars)
 pairs(stan_model_poisson_covs_gamma, pars = pars)
 traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)

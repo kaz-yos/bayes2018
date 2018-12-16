@@ -193,6 +193,38 @@ loo(stan_model_poisson_covs)
 summary(glm(formula = daysabs ~ math + prog, data = data1, family = poisson(link = "log")))
 ```
 
+## Negative binomial model with covariates
+$$\begin{align*}
+  &\text{Prior}\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \phi &\sim Gamma(a,b)\\
+  \\
+  &\text{Likelihood}\\
+  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
+  \mu_{i} &= e^{\eta_{i}}\\
+  y_{i} | \mu_{i}, \phi &\overset{\text{ind}}{\sim} NegBin(\mu_{i}, \phi)\\
+  \end{align*}
+$$
+```{r}
+## http://rstudio-pubs-static.s3.amazonaws.com/34099_2e35c3966ef548c2918d5b6c2146bfd1.html
+stan_code_negbin_covs <- biostan::read_stan_file("./bmspe_negbin_covs.stan")
+biostan::print_stan_code(stan_code_negbin_covs, section = NULL)
+stan_model_negbin_covs <- stan(model_code = stan_code_negbin_covs,
+                               data = list(a = 10^(-3), b = 10^(-3),
+                                           s = 10,
+                                           N = nrow(X), M = ncol(X),
+                                           X = X,
+                                           y = y),
+                                chains = n_cores, verbose = FALSE)
+check_hmc_diagnostics(stan_model_negbin_covs)
+pars <- c("beta","phi","lp__")
+print(stan_model_negbin_covs, pars = pars)
+pairs(stan_model_negbin_covs, pars = pars)
+traceplot(stan_model_negbin_covs, inc_warmup = TRUE, pars = pars)
+plot_draws(stan_model_negbin_covs, n_sample = 20)
+loo(stan_model_negbin_covs)
+```
+
 ## Poisson model with covariates and gamma random effects
 $$\begin{align*}
   &\text{Prior}\\
@@ -224,11 +256,18 @@ traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_gamma, n_sample = 20)
 loo(stan_model_poisson_covs_gamma)
 ```
+```{r}
+## Frequentist negative binomial fit for comparison
+summary(MASS::glm.nb(formula = daysabs ~ math + prog, data = data1))
+```
 
 
 ## Model comparison
 ```{r}
-loo(stan_model_poisson, stan_model_poisson_covs, stan_model_poisson_covs_gamma)
+## http://mc-stan.org/loo/reference/compare.html
+compare(loo(stan_model_poisson),
+        loo(stan_model_poisson_covs),
+        loo(stan_model_poisson_covs_gamma))
 ```
 
 --------------------

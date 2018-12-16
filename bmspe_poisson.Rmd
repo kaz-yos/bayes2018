@@ -188,7 +188,10 @@ traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs, n_sample = 20)
 loo(stan_model_poisson_covs)
 ```
-
+```{r}
+## Poisson fit for comparison
+summary(glm(formula = daysabs ~ math + prog, data = data1, family = poisson(link = "log")))
+```
 
 ## Poisson model with covariates and gamma random effects
 $$\begin{align*}

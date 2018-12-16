@@ -51,8 +51,9 @@ model {
 generated quantities {
     int y_new[N];
     for (i in 1:N) {
-        if (1 < 0) {
+        if (gamma[i] * mu[i] > 1e+09) {
             /* To avoid erros like the below during the warmup. */
+            /* Exception: poisson_rng: Rate parameter is 1.92222e+40, but must be less than 1.07374e+09 */
             /* Check posterior predictive. */
             y_new[i] = -1;
         } else {

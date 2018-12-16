@@ -32,7 +32,10 @@ model {
 
 generated quantities {
     int<lower=0> y_new[N];
+    vector[N] log_lik;
+    
     for (i in 1:N) {
         y_new[i] = poisson_rng(lambda);
+        log_lik[i] = poisson_lpmf(y[i] | lambda);
     }
 }

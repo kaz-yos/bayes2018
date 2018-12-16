@@ -48,6 +48,8 @@ model {
 
 generated quantities {
     int y_new[N];
+    vector[N] log_lik;
+
     for (i in 1:N) {
         if (gamma[i] * mu[i] > 1e+09) {
             /* To avoid erros like the below during the warmup. */
@@ -57,5 +59,7 @@ generated quantities {
         } else {
             y_new[i] = poisson_rng(gamma[i] * mu[i]);
         }
+
+        log_lik[i] = gamma_lpdf(gamma[i] | 1/aa, 1/aa) + poisson_lpmf(y[i] | gamma[i] * mu[i]);
     }
 }

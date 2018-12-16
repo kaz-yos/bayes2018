@@ -40,8 +40,9 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - Web
-  - [Negative binomial and mixed Poisson regression](http://www.math.mcgill.ca/~dstephens/523/Papers/Lawless-1987-CJS.pdf)
   - [(DAE) Negative Binomial Regression | R Data Analysis Examples](https://stats.idre.ucla.edu/r/dae/negative-binomial-regression/)
+  - [Negative binomial and mixed Poisson regression](http://www.math.mcgill.ca/~dstephens/523/Papers/Lawless-1987-CJS.pdf)
+  - [Writing Stan programs for use with the loo package](http://mc-stan.org/loo/articles/loo2-with-rstan.html)
   - [4.A Models for Over-Dispersed Count Data](https://data.princeton.edu/wws509/stata/overdispersion)
   - [Models for Count Data With Overdispersion](https://data.princeton.edu/wws509/notes/c4a.pdf)
   - [An Introduction to ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html)
@@ -57,6 +58,8 @@ library(rstan)
 rstan_options(auto_write = TRUE)
 ##
 library(bayesplot)
+##
+library(loo)
 ## Seed from random.org
 set.seed(673788956)
 ```
@@ -147,13 +150,14 @@ stan_model_poisson <- stan(model_code = stan_code_poisson,
                                        N = nrow(X), M = ncol(X),
                                        X = X,
                                        y = y),
-                           chains = n_cores)
+                           chains = n_cores, verbose = FALSE)
 check_hmc_diagnostics(stan_model_poisson)
 pars <- c("lambda","lp__")
 print(stan_model_poisson, pars = pars)
 pairs(stan_model_poisson, pars = pars)
 traceplot(stan_model_poisson, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson, n_sample = 20)
+loo(stan_model_poisson)
 ```
 
 ## Poisson model with covariates
@@ -175,13 +179,14 @@ stan_model_poisson_covs <- stan(model_code = stan_code_poisson_covs,
                                             N = nrow(X), M = ncol(X),
                                             X = X,
                                             y = y),
-                                chains = n_cores)
+                                chains = n_cores, verbose = FALSE)
 check_hmc_diagnostics(stan_model_poisson_covs)
 pars <- c("beta","lp__")
 print(stan_model_poisson_covs, pars = pars)
 pairs(stan_model_poisson_covs, pars = pars)
 traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs, n_sample = 20)
+loo(stan_model_poisson_covs)
 ```
 
 
@@ -207,15 +212,21 @@ stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
                                                   N = nrow(X), M = ncol(X),
                                                   X = X,
                                                   y = y),
-                                      chains = n_cores)
+                                      chains = n_cores, verbose = FALSE)
 check_hmc_diagnostics(stan_model_poisson_covs_gamma)
 pars <- c("beta","aa","lp__")
 print(stan_model_poisson_covs_gamma, pars = pars)
 pairs(stan_model_poisson_covs_gamma, pars = pars)
 traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_gamma, n_sample = 20)
+loo(stan_model_poisson_covs_gamma)
 ```
 
+
+## Model comparison
+```{r}
+loo(stan_model_poisson, stan_model_poisson_covs, stan_model_poisson_covs_gamma)
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

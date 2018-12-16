@@ -36,6 +36,8 @@ model {
 
 generated quantities {
     int<lower=0> y_new[N];
+    vector[N] log_lik;
+    
     for (i in 1:N) {
         if (eta[i] > 20) {
             /* To avoid erros like the below during the warmup. */
@@ -45,5 +47,7 @@ generated quantities {
         } else {
             y_new[i] = poisson_log_rng(eta[i]);
         }
+
+        log_lik[i] = poisson_log_lpmf(y[i] | eta[i]);
     }
 }

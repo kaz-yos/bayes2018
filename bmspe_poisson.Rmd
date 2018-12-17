@@ -163,7 +163,7 @@ loo(stan_model_poisson)
 ## Poisson model with covariates
 $$\begin{align*}
   &\text{Prior}\\
-  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
   \\
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
@@ -197,12 +197,16 @@ summary(glm(formula = daysabs ~ math + prog, data = data1, family = poisson(link
 ## Zero-inflated Poisson model with covariates
 $$\begin{align*}
   &\text{Prior}\\
-  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
+  \boldsymbol{\beta}_{\theta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
   \\
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\
-  y_{i} | \mu_{i} &\overset{\text{ind}}{\sim} Poisson(\mu_{i})\\
+  \eta_{\theta,i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}_{\theta}\\
+  \mu_{\theta,i} &= \text{expit}(\eta_{i})\\
+  z_{i} | \mu_{\theta,i} &\overset{\text{ind}}{\sim} Bernoulli(\mu_{\theta,i})\\
+  y_{i} | \mu_{i},z_{i} &\overset{\text{ind}}{\sim} (1 - z_{i}) Poisson(\mu_{i})\\
   \end{align*}
 $$
 ```{r}
@@ -227,7 +231,7 @@ loo(stan_model_poisson_covs_zip)
 ## Negative binomial model with covariates
 $$\begin{align*}
   &\text{Prior}\\
-  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
   \phi &\sim Gamma(a,b)\\
   \\
   &\text{Likelihood}\\
@@ -259,7 +263,7 @@ loo(stan_model_negbin_covs)
 ## Poisson model with covariates and gamma random effects
 $$\begin{align*}
   &\text{Prior}\\
-  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
   a_{\gamma} &\sim Gamma(a, b)\\
   \\
   &\text{Likelihood}\\

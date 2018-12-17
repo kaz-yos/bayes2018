@@ -193,6 +193,37 @@ loo(stan_model_poisson_covs)
 summary(glm(formula = daysabs ~ math + prog, data = data1, family = poisson(link = "log")))
 ```
 
+
+## Zero-inflated Poisson model with covariates
+$$\begin{align*}
+  &\text{Prior}\\
+  \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, \mathbf{I})\\
+  \\
+  &\text{Likelihood}\\
+  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
+  \mu_{i} &= e^{\eta_{i}}\\
+  y_{i} | \mu_{i} &\overset{\text{ind}}{\sim} Poisson(\mu_{i})\\
+  \end{align*}
+$$
+```{r}
+stan_code_poisson_covs_zip <- biostan::read_stan_file("./bmspe_poisson_covs_zip.stan")
+biostan::print_stan_code(stan_code_poisson_covs_zip, section = NULL)
+stan_model_poisson_covs_zip <- stan(model_code = stan_code_poisson_covs_zip,
+                                    data = list(s = 10,
+                                                N = nrow(X), M = ncol(X),
+                                                X = X,
+                                                y = y),
+                                    chains = n_cores, verbose = FALSE)
+check_hmc_diagnostics(stan_model_poisson_covs_zip)
+pars <- c("beta","beta_theta","lp__")
+print(stan_model_poisson_covs_zip, pars = pars)
+pairs(stan_model_poisson_covs_zip, pars = pars)
+traceplot(stan_model_poisson_covs_zip, inc_warmup = TRUE, pars = pars)
+plot_draws(stan_model_poisson_covs_zip, n_sample = 20)
+loo(stan_model_poisson_covs_zip)
+```
+
+
 ## Negative binomial model with covariates
 $$\begin{align*}
   &\text{Prior}\\

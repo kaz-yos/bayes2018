@@ -145,12 +145,16 @@ $$
 ```{r}
 stan_code_poisson <- biostan::read_stan_file("./bmspe_poisson.stan")
 biostan::print_stan_code(stan_code_poisson, section = NULL)
+```
+```{r, results = "hide"}
 stan_model_poisson <- stan(model_code = stan_code_poisson,
                            data = list(a = 10^(-3), b = 10^(-3),
                                        N = nrow(X), M = ncol(X),
                                        X = X,
                                        y = y),
-                           chains = n_cores, verbose = FALSE, refresh = 0)
+                           chains = n_cores)
+```
+```{r}
 check_hmc_diagnostics(stan_model_poisson)
 pars <- c("lambda","lp__")
 print(stan_model_poisson, pars = pars)
@@ -174,12 +178,16 @@ $$
 ```{r}
 stan_code_poisson_covs <- biostan::read_stan_file("./bmspe_poisson_covs.stan")
 biostan::print_stan_code(stan_code_poisson_covs, section = NULL)
+```
+```{r, results = "hide"}
 stan_model_poisson_covs <- stan(model_code = stan_code_poisson_covs,
                                 data = list(s = 10,
                                             N = nrow(X), M = ncol(X),
                                             X = X,
                                             y = y),
-                                chains = n_cores, verbose = FALSE)
+                                chains = n_cores)
+```
+```{r}
 check_hmc_diagnostics(stan_model_poisson_covs)
 pars <- c("beta","lp__")
 print(stan_model_poisson_covs, pars = pars)
@@ -213,13 +221,17 @@ $$
 ```{r}
 stan_code_poisson_covs_zip <- biostan::read_stan_file("./bmspe_poisson_covs_zip.stan")
 biostan::print_stan_code(stan_code_poisson_covs_zip, section = NULL)
+```
+```{r, results = "hide"}
 stan_model_poisson_covs_zip <- stan(model_code = stan_code_poisson_covs_zip,
                                     ## Regularize binomial part to avoid divergent iterations.
                                     data = list(s = rep(10,ncol(X)), s_theta = c(10,rep(2, ncol(X)-1)),
                                                 N = nrow(X), M = ncol(X),
                                                 X = X,
                                                 y = y),
-                                    chains = n_cores, verbose = FALSE)
+                                    chains = n_cores)
+```
+```{r}
 check_hmc_diagnostics(stan_model_poisson_covs_zip)
 pars <- c("beta","beta_theta","lp__")
 print(stan_model_poisson_covs_zip, pars = pars)
@@ -250,13 +262,17 @@ $$
 ## http://rstudio-pubs-static.s3.amazonaws.com/34099_2e35c3966ef548c2918d5b6c2146bfd1.html
 stan_code_negbin_covs <- biostan::read_stan_file("./bmspe_negbin_covs.stan")
 biostan::print_stan_code(stan_code_negbin_covs, section = NULL)
+```
+```{r, results = "hide"}
 stan_model_negbin_covs <- stan(model_code = stan_code_negbin_covs,
                                data = list(a = 10^(-3), b = 10^(-3),
                                            s = 10,
                                            N = nrow(X), M = ncol(X),
                                            X = X,
                                            y = y),
-                                chains = n_cores, verbose = FALSE)
+                                chains = n_cores)
+```
+```{r}
 check_hmc_diagnostics(stan_model_negbin_covs)
 pars <- c("beta","phi","lp__")
 print(stan_model_negbin_covs, pars = pars)
@@ -282,13 +298,17 @@ $$
 ```{r}
 stan_code_poisson_covs_gamma <- biostan::read_stan_file("./bmspe_poisson_covs_gamma.stan")
 biostan::print_stan_code(stan_code_poisson_covs_gamma, section = NULL)
+```
+```{r, results = "hide"}
 stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
                                       data = list(a = 10^(-3), b = 10^(-3),
                                                   s = 10,
                                                   N = nrow(X), M = ncol(X),
                                                   X = X,
                                                   y = y),
-                                      chains = n_cores, verbose = FALSE)
+                                      chains = n_cores)
+```
+```{r}
 check_hmc_diagnostics(stan_model_poisson_covs_gamma)
 pars <- c("beta","aa","lp__")
 print(stan_model_poisson_covs_gamma, pars = pars)
@@ -303,13 +323,13 @@ summary(MASS::glm.nb(formula = daysabs ~ math + prog, data = data1))
 ```
 
 
-## Model comparison
-```{r}
-## http://mc-stan.org/loo/reference/compare.html
-compare(loo(stan_model_poisson),
-        loo(stan_model_poisson_covs),
-        loo(stan_model_poisson_covs_gamma))
-```
+<!-- ## Model comparison -->
+<!-- ```{r} -->
+<!-- ## http://mc-stan.org/loo/reference/compare.html -->
+<!-- compare(loo(stan_model_poisson), -->
+<!--         loo(stan_model_poisson_covs), -->
+<!--         loo(stan_model_poisson_covs_gamma)) -->
+<!-- ``` -->
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

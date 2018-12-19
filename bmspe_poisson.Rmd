@@ -150,7 +150,7 @@ stan_model_poisson <- stan(model_code = stan_code_poisson,
                                        N = nrow(X), M = ncol(X),
                                        X = X,
                                        y = y),
-                           chains = n_cores, verbose = FALSE)
+                           chains = n_cores, verbose = FALSE, refresh = 0)
 check_hmc_diagnostics(stan_model_poisson)
 pars <- c("lambda","lp__")
 print(stan_model_poisson, pars = pars)
@@ -189,7 +189,7 @@ plot_draws(stan_model_poisson_covs, n_sample = 20)
 loo(stan_model_poisson_covs)
 ```
 ```{r}
-## Poisson fit for comparison
+## Frequentist Poisson fit for comparison
 summary(glm(formula = daysabs ~ math + prog, data = data1, family = poisson(link = "log")))
 ```
 
@@ -201,11 +201,12 @@ $$\begin{align*}
   \boldsymbol{\beta}_{\theta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
   \\
   &\text{Likelihood}\\
-  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
-  \mu_{i} &= e^{\eta_{i}}\\
   \eta_{\theta,i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}_{\theta}\\
   \mu_{\theta,i} &= \text{expit}(\eta_{i})\\
   z_{i} | \mu_{\theta,i} &\overset{\text{ind}}{\sim} Bernoulli(\mu_{\theta,i})\\
+  \\
+  \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
+  \mu_{i} &= e^{\eta_{i}}\\
   y_{i} | \mu_{i},z_{i} &\overset{\text{ind}}{\sim} (1 - z_{i}) Poisson(\mu_{i})\\
   \end{align*}
 $$
@@ -213,7 +214,8 @@ $$
 stan_code_poisson_covs_zip <- biostan::read_stan_file("./bmspe_poisson_covs_zip.stan")
 biostan::print_stan_code(stan_code_poisson_covs_zip, section = NULL)
 stan_model_poisson_covs_zip <- stan(model_code = stan_code_poisson_covs_zip,
-                                    data = list(s = 10,
+                                    ## Regularize binomial part to avoid divergent iterations.
+                                    data = list(s = rep(10,ncol(X)), s_theta = c(10,rep(2, ncol(X)-1)),
                                                 N = nrow(X), M = ncol(X),
                                                 X = X,
                                                 y = y),
@@ -226,7 +228,11 @@ traceplot(stan_model_poisson_covs_zip, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_zip, n_sample = 20)
 loo(stan_model_poisson_covs_zip)
 ```
-
+```{r}
+## Frequentist ZIP fit for comparison
+## https://stats.idre.ucla.edu/r/dae/zip/
+summary(pscl::zeroinfl(formula = daysabs ~ math + prog | math + prog, data = data1))
+```
 
 ## Negative binomial model with covariates
 $$\begin{align*}

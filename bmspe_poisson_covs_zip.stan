@@ -1,8 +1,5 @@
 /* https://discourse.mc-stan.org/t/learning-how-to-write-a-zero-inflated-poisson-model-with-stan/6726 */
 data {
-    /* Hyperparameters*/
-    real<lower=0> s;
-
     /* Dimensions */
     int<lower=0> N;
     int<lower=0> M;
@@ -10,6 +7,9 @@ data {
     matrix[N,M] X;
     /* Outcome */
     int<lower=0> y[N];
+    /* Hyperparameters*/
+    real<lower=0> s[M];
+    real<lower=0> s_theta[M];
 }
 
 parameters {
@@ -28,8 +28,8 @@ transformed parameters {
 model {
     /* Prior */
     for (j in 1:M) {
-        target += normal_lpdf(beta[j] | 0, s);
-        target += normal_lpdf(beta_theta[j] | 0, s);
+        target += normal_lpdf(beta[j] | 0, s[j]);
+        target += normal_lpdf(beta_theta[j] | 0, s_theta[j]);
     }
 
     /* Likelihood */

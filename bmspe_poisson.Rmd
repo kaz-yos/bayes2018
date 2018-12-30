@@ -364,12 +364,13 @@ traceplot(stan_model_negbin_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_negbin_covs, n_sample = 20)
 loo(stan_model_negbin_covs)
 ```
-We see the similarity in the posterior for $a_{\gamma}$, confirming the equivalence of these two models.
+We see the similarity in the posterior for $a_{\gamma}$ as well as the posterior predictive plots, empirically confirming the equivalence of these two models.
 
 ```{r}
 ## Frequentist negative binomial fit for comparison
 summary(MASS::glm.nb(formula = daysabs ~ math + prog, data = data1))
 ```
+Due to the vague prior, the Frequentist fit is similar.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

@@ -16,7 +16,7 @@ data {
 parameters {
     vector[M] beta;
     vector<lower=0>[N] gamma;
-    real<lower=0> aa;
+    real<lower=0> a_gamma;
 }
 
 transformed parameters {
@@ -33,14 +33,14 @@ model {
         /* beta_j ~ N(0, s) */
         target += normal_lpdf(beta[j] | 0, s);
     }
-    /* aa ~ Gamma(a, b) */
-    target += gamma_lpdf(aa | a, b);
+    /* a_gamma ~ Gamma(a, b) */
+    target += gamma_lpdf(a_gamma | a, b);
 
     /* Likelihood */
     for (i in 1:N) {
-        /* gamma_i ~ Gamma(aa, bb) */
+        /* gamma_i ~ Gamma(a_gamma, bb) */
         /* E[gamma_i] = 1 must be met for identifiability. */
-        target += gamma_lpdf(gamma[i] | 1/aa, 1/aa);
+        target += gamma_lpdf(gamma[i] | 1/a_gamma, 1/a_gamma);
         /* y_i ~ poisson(gamma_i * mu_i); */
         target += poisson_lpmf(y[i] | gamma[i] * mu[i]);
     }
@@ -60,6 +60,6 @@ generated quantities {
             y_new[i] = poisson_rng(gamma[i] * mu[i]);
         }
 
-        log_lik[i] = gamma_lpdf(gamma[i] | 1/aa, 1/aa) + poisson_lpmf(y[i] | gamma[i] * mu[i]);
+        log_lik[i] = gamma_lpdf(gamma[i] | 1/a_gamma, 1/a_gamma) + poisson_lpmf(y[i] | gamma[i] * mu[i]);
     }
 }

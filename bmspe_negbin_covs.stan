@@ -15,16 +15,15 @@ data {
 
 parameters {
     vector[M] beta;
-    /* Negative binomial dispersion parameter */
-    real<lower=0> phi;
+    real<lower=0> a_gamma;
 }
 
 transformed parameters {
     vector[N] eta;
-    real<lower=0> phi_inv;
+    real<lower=0> phi;
 
     eta = X * beta;
-    phi_inv = 1 / phi;
+    phi = 1 / a_gamma;
 }
 
 model {
@@ -32,7 +31,7 @@ model {
     for (j in 1:M) {
         target += normal_lpdf(beta[j] | 0, s);
     }
-    target += gamma_lpdf(phi | a, b);
+    target += gamma_lpdf(a_gamma | a, b);
 
     /* Likelihood */
     /* y_i ~ poisson(exp(eta_i)); */

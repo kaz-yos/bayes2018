@@ -21,8 +21,10 @@ parameters {
 
 transformed parameters {
     vector[N] eta;
+    real<lower=0> phi_inv;
 
     eta = X * beta;
+    phi_inv = 1 / phi;
 }
 
 model {

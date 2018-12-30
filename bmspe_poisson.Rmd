@@ -40,6 +40,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - Web
+  - [Stan Negative Binomial Distribution (alternative parameterization)](https://mc-stan.org/docs/2_18/functions-reference/nbalt.html)
   - [(DAE) Negative Binomial Regression | R Data Analysis Examples](https://stats.idre.ucla.edu/r/dae/negative-binomial-regression/)
   - [Negative binomial and mixed Poisson regression](http://www.math.mcgill.ca/~dstephens/523/Papers/Lawless-1987-CJS.pdf)
   - [Writing Stan programs for use with the loo package](http://mc-stan.org/loo/articles/loo2-with-rstan.html)
@@ -315,7 +316,7 @@ stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
 ```
 ```{r}
 check_hmc_diagnostics(stan_model_poisson_covs_gamma)
-pars <- c("beta","aa","lp__")
+pars <- c("beta","a_gamma","lp__")
 print(stan_model_poisson_covs_gamma, pars = pars)
 pairs(stan_model_poisson_covs_gamma, pars = pars)
 traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
@@ -324,15 +325,20 @@ loo(stan_model_poisson_covs_gamma)
 ```
 
 ## Negative binomial model with covariates
+If we marginalize over the latent individual-specific random effect $\gamma_{i}$, we obtain the negative binomial. In the following formulation, $a_{\gamma}$ should have the same interpretation as in the previous model.
 $$\begin{align*}
   &\text{Prior}\\
   \boldsymbol{\beta} &\sim MVN(\boldsymbol{0}, s\mathbf{I})\\
-  \phi &\sim Gamma(a,b)\\
+  a_{\gamma} &\sim Gamma(a, b)\\
+  \phi &= \frac{1}{a_{\gamma}}\\
   \\
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\
   y_{i} | \mu_{i}, \phi &\overset{\text{ind}}{\sim} NegBin(\mu_{i}, \phi)\\
+  \\
+  &\text{Stan definition}\\
+  \text{NegBinomial2}(y_{i} | \mu_{i}, \phi) &= \frac{\Gamma(y_{i} + \phi)}{y_{i}!\Gamma(\phi)} \left( \frac{\mu_{i}}{\mu_{i}+\phi} \right)^{y_{i}} \left( \frac{\phi}{\mu_{i}+\phi} \right)^{\phi}\\
   \end{align*}
 $$
 ```{r}
@@ -351,13 +357,15 @@ stan_model_negbin_covs <- stan(model_code = stan_code_negbin_covs,
 ```
 ```{r}
 check_hmc_diagnostics(stan_model_negbin_covs)
-pars <- c("beta","phi","lp__")
+pars <- c("beta","a_gamma","phi","lp__")
 print(stan_model_negbin_covs, pars = pars)
 pairs(stan_model_negbin_covs, pars = pars)
 traceplot(stan_model_negbin_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_negbin_covs, n_sample = 20)
 loo(stan_model_negbin_covs)
 ```
+We see the similarity in the posterior for $a_{\gamma}$, confirming the equivalence of these two models.
+
 ```{r}
 ## Frequentist negative binomial fit for comparison
 summary(MASS::glm.nb(formula = daysabs ~ math + prog, data = data1))

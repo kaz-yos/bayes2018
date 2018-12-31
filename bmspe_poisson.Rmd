@@ -400,6 +400,26 @@ both_draws %>%
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
+    geom_boxplot() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = 0, color = model)) +
+    geom_violin() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 

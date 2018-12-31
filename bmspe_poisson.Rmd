@@ -380,6 +380,7 @@ print(stan_model_poisson_covs_gamma, pars = c("beta","a_gamma"))
 cat("Negative binomial\n")
 print(stan_model_negbin_covs, pars = c("beta","a_gamma"))
 ```
+Figures may be more informative.
 ```{r}
 both_draws <- bind_rows(tidybayes::tidy_draws(stan_model_poisson_covs_gamma) %>%
                         select(.chain, .iteration, .draw, starts_with("beta"), a_gamma) %>%
@@ -412,7 +413,7 @@ both_draws %>%
           strip.background = element_blank())
 
 both_draws %>%
-    ggplot(mapping = aes(y = value, x = 0, color = model)) +
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
     geom_violin() +
     facet_wrap( ~ key, scales = "free") +
     theme_bw() +
@@ -420,8 +421,75 @@ both_draws %>%
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
-```
 
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
+    tidybayes::geom_eye() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Posterior predictive distributions can also be compared. They look somewhat more different.
+```{r}
+both_ppd <- bind_rows(extract_post_pred(stan_model_poisson_covs_gamma) %>%
+                      mutate(model = "Poisson Mixed"),
+                      extract_post_pred(stan_model_negbin_covs) %>%
+                      mutate(model = "Negative Binomial"))
+
+both_ppd %>%
+    group_by(model, .chain, .iteration, .draw) %>%
+    count(value) %>%
+    group_by(model, value) %>%
+    tidybayes::median_qi(n, .width = c(0.95, 0.80, 0.50)) %>%
+    ggplot(mapping = aes(x = value, y = n)) +
+    tidybayes::geom_interval() +
+    geom_point(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    geom_line(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    scale_color_brewer() +
+    facet_wrap( ~ model) +
+    coord_cartesian(xlim = c(0, 50)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_ppd_qi <- both_ppd %>%
+    group_by(model, .chain, .iteration, .draw) %>%
+    count(value) %>%
+    group_by(model, value) %>%
+    tidybayes::median_qi(n, .width = c(0.95, 0.80, 0.50))
+
+both_ppd_qi %>%
+    ggplot(mapping = aes(x = value, y = n)) +
+    geom_line() +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.95),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray95") +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.80),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray80") +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.50),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray50") +
+    geom_point(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    geom_line(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    facet_wrap( ~ model) +
+    coord_cartesian(xlim = c(0, 50)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

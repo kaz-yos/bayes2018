@@ -49,6 +49,7 @@ doParallel::registerDoParallel(cores = n_cores)
   - [An Introduction to ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html)
 - Books
   - [Bayesian Models: a Statistical Primer for Ecologists](https://press.princeton.edu/titles/10523.html)
+  - [A Student’s Guide to Bayesian Statistics](https://uk.sagepub.com/en-gb/eur/a-student’s-guide-to-bayesian-statistics/book245409)
 - Papers
   - Lawless (1987). [Negative binomial and mixed Poisson regression](https://pdfs.semanticscholar.org/83d9/f11d19ded0f1d3e3e4e5e66cb3ae5666189c.pdf)
 

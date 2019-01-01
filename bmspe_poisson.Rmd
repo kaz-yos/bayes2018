@@ -372,6 +372,7 @@ summary(MASS::glm.nb(formula = daysabs ~ math + prog, data = data1))
 ```
 Due to the vague prior, the Frequentist fit is similar.
 
+
 ## Comparison of Poisson with gamma random effects and negative binomial
 The corresponding posterior samples are very similar between these two models.
 ```{r}
@@ -488,8 +489,155 @@ both_ppd_qi %>%
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
-
 ```
+
+
+## Comparison of Poisson with negative binomial
+Now we compare the goodness of fit for the Poisson model and negative binomial model.
+```{r}
+cat("Poisson\n")
+print(stan_model_poisson_covs, pars = c("beta"))
+cat("Negative binomial\n")
+print(stan_model_negbin_covs, pars = c("beta","a_gamma"))
+```
+As seen here posterior means are very similar for the corresponding parameters. Again figures may be more informative.
+```{r}
+both_draws <- bind_rows(tidybayes::tidy_draws(stan_model_poisson_covs) %>%
+                        select(.chain, .iteration, .draw, starts_with("beta")) %>%
+                        gather(key = key, value = value, starts_with("beta")) %>%
+                        mutate(model = "Poisson"),
+                        ##
+                        tidybayes::tidy_draws(stan_model_negbin_covs) %>%
+                        select(.chain, .iteration, .draw, starts_with("beta"), a_gamma) %>%
+                        gather(key = key, value = value, starts_with("beta"), a_gamma) %>%
+                        mutate(model = "Negative Binomial"))
+
+both_draws %>%
+    ggplot(mapping = aes(x = value, color = model)) +
+    geom_density() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
+    geom_boxplot() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
+    geom_violin() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_draws %>%
+    ggplot(mapping = aes(y = value, x = model, color = model)) +
+    tidybayes::geom_eye() +
+    facet_wrap( ~ key, scales = "free") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Now we can better appreciate the more wide spread posteriors for the corresponding parameters.
+
+Posterior predictive distributions can also be compared.
+```{r}
+both_ppd <- bind_rows(extract_post_pred(stan_model_poisson_covs) %>%
+                      mutate(model = "Poisson"),
+                      extract_post_pred(stan_model_negbin_covs) %>%
+                      mutate(model = "Negative Binomial"))
+
+both_ppd %>%
+    group_by(model, .chain, .iteration, .draw) %>%
+    count(value) %>%
+    group_by(model, value) %>%
+    tidybayes::median_qi(n, .width = c(0.95, 0.80, 0.50)) %>%
+    ggplot(mapping = aes(x = value, y = n)) +
+    tidybayes::geom_interval() +
+    geom_point(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    geom_line(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    scale_color_brewer() +
+    facet_wrap( ~ model) +
+    coord_cartesian(xlim = c(0, 50)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+both_ppd_qi <- both_ppd %>%
+    group_by(model, .chain, .iteration, .draw) %>%
+    count(value) %>%
+    group_by(model, value) %>%
+    tidybayes::median_qi(n, .width = c(0.95, 0.80, 0.50))
+
+both_ppd_qi %>%
+    ggplot(mapping = aes(x = value, y = n)) +
+    geom_line() +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.95),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray95") +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.80),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray80") +
+    geom_ribbon(data = filter(both_ppd_qi, .width == 0.50),
+                mapping = aes(ymin = .lower, ymax = .upper),
+                fill = "gray50") +
+    geom_point(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    geom_line(data = data1_count,
+               mapping = aes(x = y, y = n)) +
+    facet_wrap( ~ model) +
+    coord_cartesian(xlim = c(0, 50)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+In this case, the Poisson model fits data apparently poorly. We can compare these models more formally using WAIC.
+```{r}
+cat("WAIC Poisson")
+waic_stan_model_poisson_covs <- loo::waic(loo::extract_log_lik(stan_model_poisson_covs))
+waic_stan_model_poisson_covs
+cat("WAIC negative binomial")
+waic_stan_model_negbin_covs <- loo::waic(loo::extract_log_lik(stan_model_negbin_covs))
+waic_stan_model_negbin_covs
+cat("WAIC comparison")
+loo::compare(waic_stan_model_poisson_covs,
+             waic_stan_model_negbin_covs)
+```
+The expected log pointwise predictive density (elpd) is higher for the negative binomial model, suggesting a better fit.
+
+We can also use loo.
+```{r}
+cat("LOO Poisson")
+loo_stan_model_poisson_covs <- loo::loo(loo::extract_log_lik(stan_model_poisson_covs))
+loo_stan_model_poisson_covs
+cat("LOO negative binomial")
+loo_stan_model_negbin_covs <- loo::loo(loo::extract_log_lik(stan_model_negbin_covs))
+loo_stan_model_negbin_covs
+cat("LOO comparison")
+loo::compare(loo_stan_model_poisson_covs,
+             loo_stan_model_negbin_covs)
+```
+The results seem similar in this case.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

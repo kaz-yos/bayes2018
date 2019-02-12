@@ -51,5 +51,10 @@ model {
 }
 
 generated quantities {
+    /* Posterior predictive */
+    real<lower=0,upper=1> y_rep[N];
 
+    for (i in 1:N) {
+        y_rep[i] = beta_rng((mu .* phi)[i], ((1-mu) .* phi)[i]);
+    }
 }

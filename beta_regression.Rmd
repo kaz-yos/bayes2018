@@ -86,10 +86,11 @@ ggplot(data = FoodExpenditure, mapping = aes(x = persons, y = p_food)) +
 ```
 
 ## Model
-We will use the mean-dispersion parametrization of the beta distribution.
+We will use the mean-precision parametrization of the beta distribution.
 
-$$
-f(y;\mu,\phi) = \frac{\Gamma(\phi)}{\Gamma(\mu\phi)\Gamma((1-\mu)\phi)}y^{\mu\phi-1}(1-y)^{(1-\mu)\phi-1}, y \in (0,1)
+$$\begin{align*}
+  f(y;\mu,\phi) &= \frac{\Gamma(\phi)}{\Gamma(\mu\phi)\Gamma((1-\mu)\phi)}y^{\mu\phi-1}(1-y)^{(1-\mu)\phi-1}, y \in (0,1)
+  \end{align*}
 $$
 
 The correspondence to the typical parametrization is: $\alpha = \mu\phi$ and $\beta = (1-\mu)\phi$. As a result the mean and variance are as follows.
@@ -100,9 +101,21 @@ $$\begin{align*}
        &= \frac{\mu\phi}{\phi}\\
        &= \mu\\
 \\
-Var(Y) &=
+Var(Y) &= \frac{\alpha\beta}{(\alpha+\beta)^{2}(\alpha+\beta+1)}\\
+       &= \frac{\mu\phi(1-\mu)\phi}{\phi^{2}(\phi+1)}\\
+       &= \frac{\mu(1-\mu)}{\phi+1}\\
   \end{align*}
 $$
+
+These mean and precision parameters can be modeled as functions of covariates.
+
+$$\begin{align*}
+  g_{1}(\mu_{i}) &= \eta_{1i} = \mathbb{x}_{1i}^{T}\boldsymbol{\beta}_{x1}\\
+  g_{2}(\phi_{i}) &= \eta_{2i} = \mathbb{x}_{2i}^{T}\boldsymbol{\beta}_{x2}\\
+  \end{align*}
+$$
+
+The sets of covariates $\mathbb{x}_{1i}$ and $\mathbb{x}_{2i}$ can differ.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

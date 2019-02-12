@@ -205,14 +205,63 @@ stan_logit_log_beta_model_fit1_ppd_qs <-
               `0.250` = quantile(value, 0.25),
               `0.750` = quantile(value, 1-0.25))
 
-FoodExpenditure %>%
+food_expenditure_pp <- FoodExpenditure %>%
                    mutate(key = seq_along(food)) %>%
-    left_join(stan_logit_log_beta_model_fit1_ppd_qs) %>%
+    left_join(stan_logit_log_beta_model_fit1_ppd_qs)
+
+food_expenditure_pp %>%
     ggplot(mapping = aes(x = key)) +
     geom_ribbon(mapping = aes(ymin = `0.025`, ymax = `0.975`), alpha = 0.1) +
     geom_ribbon(mapping = aes(ymin = `0.100`, ymax = `0.900`), alpha = 0.2) +
     geom_ribbon(mapping = aes(ymin = `0.250`, ymax = `0.750`), alpha = 0.3) +
     geom_point(mapping = aes(y = p_food)) +
+    scale_y_continuous(limits = c(0,1)) +
+    labs(title = "By ID") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+food_expenditure_pp %>%
+    ggplot(mapping = aes(x = income)) +
+    geom_ribbon(mapping = aes(ymin = `0.025`, ymax = `0.975`), alpha = 0.1) +
+    geom_ribbon(mapping = aes(ymin = `0.100`, ymax = `0.900`), alpha = 0.2) +
+    geom_ribbon(mapping = aes(ymin = `0.250`, ymax = `0.750`), alpha = 0.3) +
+    geom_point(mapping = aes(y = p_food)) +
+    scale_y_continuous(limits = c(0,1)) +
+    labs(title = "By Income") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+food_expenditure_pp %>%
+    ggplot(mapping = aes(x = persons)) +
+    geom_ribbon(mapping = aes(ymin = `0.025`, ymax = `0.975`), alpha = 0.1) +
+    geom_ribbon(mapping = aes(ymin = `0.100`, ymax = `0.900`), alpha = 0.2) +
+    geom_ribbon(mapping = aes(ymin = `0.250`, ymax = `0.750`), alpha = 0.3) +
+    geom_point(mapping = aes(y = p_food)) +
+    scale_y_continuous(limits = c(0,1)) +
+    labs(title = "By Persons") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+food_expenditure_pp %>%
+    arrange(persons, income) %>%
+    mutate(key = seq_along(key)) %>%
+    ggplot(mapping = aes(x = key)) +
+    geom_ribbon(mapping = aes(ymin = `0.025`, ymax = `0.975`), alpha = 0.1) +
+    geom_ribbon(mapping = aes(ymin = `0.100`, ymax = `0.900`), alpha = 0.2) +
+    geom_ribbon(mapping = aes(ymin = `0.250`, ymax = `0.750`), alpha = 0.3) +
+    geom_point(mapping = aes(y = p_food)) +
+    geom_text(mapping = aes(label = persons), y = 0) +
+    scale_y_continuous(limits = c(0,1)) +
+    labs(title = "Arranged by persons and income") +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),

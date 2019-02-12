@@ -46,6 +46,9 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ```{r}
 library(tidyverse)
+## https://github.com/jburos/biostan
+## devtools::install_github('jburos/biostan', build_vignettes=TRUE, dependencies=TRUE)
+library(biostan)
 library(rstan)
 ```
 
@@ -70,6 +73,7 @@ Source:
 data(FoodExpenditure, package = "betareg")
 FoodExpenditure <-
     FoodExpenditure %>%
+    as_tibble() %>%
     mutate(p_food = food / income)
 FoodExpenditure
 ```
@@ -82,10 +86,18 @@ ggplot(data = FoodExpenditure, mapping = aes(x = persons, y = p_food)) +
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
-
+ggplot(data = FoodExpenditure, mapping = aes(x = income, y = p_food)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
-## Model
+
+## Model specification
 We will use the mean-precision parametrization of the beta distribution.
 
 $$\begin{align*}
@@ -116,6 +128,47 @@ $$\begin{align*}
 $$
 
 The sets of covariates $\mathbb{x}_{1i}$ and $\mathbb{x}_{2i}$ can differ.
+
+```{r}
+stan_logit_log_beta_model_file <- "./beta_regression.stan"
+biostan::print_stan_file(stan_logit_log_beta_model_file)
+```
+
+
+## Model fit
+```{r}
+## Prepare dataset
+N <- nrow(FoodExpenditure)
+y <- FoodExpenditure$p_food
+##  Mean model part
+X1 <- model.matrix(object = ~ income + persons, data = FoodExpenditure)
+X1_dim <- ncol(X1)
+beta_x1_mean <- rep(0, X1_dim)
+beta_x1_sd <- c(10, rep(1, X1_dim-1))
+##  Precision model part
+X2 <- model.matrix(object = ~ income + persons, data = FoodExpenditure)
+X2_dim <- ncol(X2)
+beta_x2_mean <- rep(0, X2_dim)
+beta_x2_sd <- c(10, rep(1, X2_dim-1))
+```
+```{r}
+stan_logit_log_beta_model_fit1 <-
+    rstan::stan(file = stan_logit_log_beta_model_file,
+                data = list(N = N,
+                            y = y,
+                            X1 = X1,
+                            X1_dim = X1_dim,
+                            beta_x1_mean = beta_x1_mean,
+                            beta_x1_sd = beta_x1_sd,
+                            X2 = X2,
+                            X2_dim = X2_dim,
+                            beta_x2_mean = beta_x2_mean,
+                            beta_x2_sd = beta_x2_sd),
+                chains = n_cores,
+                cores = n_cores,
+                verbose = TRUE)
+```
+
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

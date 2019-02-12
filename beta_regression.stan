@@ -27,10 +27,10 @@ transformed parameters {
     vector[N] eta_x1 = X1 * beta_x1;
     vector[N] eta_x2 = X2 * beta_x2;
 
-    /* logit for mean */
-    vector[N] mu = logit(eta_x1);
-    /* log for precision */
-    vector[N] phi = log(eta_x2);
+    /* logit for mean. expit is the inverse. */
+    vector[N] mu = expit(eta_x1);
+    /* log for precision. exp is the inverse. */
+    vector[N] phi = exp(eta_x2);
 }
 
 model {

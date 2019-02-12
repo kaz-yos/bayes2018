@@ -185,6 +185,42 @@ print(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2","lp__"))
 plot(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2"))
 ```
 
+
+## Posterior predictive distribution
+```{r}
+stan_logit_log_beta_model_fit1_ppd <-
+    stan_logit_log_beta_model_fit1 %>%
+    tidybayes::tidy_draws() %>%
+    select(.chain, .iteration, .draw, starts_with("y_rep")) %>%
+    gather(key = key, value = value, starts_with("y_rep")) %>%
+    mutate(key = gsub("y_rep|\\[|\\]", "", key) %>% as.integer())
+
+stan_logit_log_beta_model_fit1_ppd_qs <-
+    stan_logit_log_beta_model_fit1_ppd %>%
+    group_by(key) %>%
+    summarize(`0.025` = quantile(value, 0.025),
+              `0.975` = quantile(value, 1-0.025),
+              `0.100` = quantile(value, 0.1),
+              `0.900` = quantile(value, 1-0.1),
+              `0.250` = quantile(value, 0.25),
+              `0.750` = quantile(value, 1-0.25))
+
+FoodExpenditure %>%
+                   mutate(key = seq_along(food)) %>%
+    left_join(stan_logit_log_beta_model_fit1_ppd_qs) %>%
+    ggplot(mapping = aes(x = key)) +
+    geom_ribbon(mapping = aes(ymin = `0.025`, ymax = `0.975`), alpha = 0.1) +
+    geom_ribbon(mapping = aes(ymin = `0.100`, ymax = `0.900`), alpha = 0.2) +
+    geom_ribbon(mapping = aes(ymin = `0.250`, ymax = `0.750`), alpha = 0.3) +
+    geom_point(mapping = aes(y = p_food)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
+
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

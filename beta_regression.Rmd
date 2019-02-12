@@ -1,0 +1,122 @@
+---
+title: "Beta Regression in Stan"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- [Extended Beta Regression in R: Shaken, Stirred, Mixed, and Partitioned](https://www.jstatsoft.org/article/view/v048i11)
+- [Beta distribution (Wikipedia)](https://en.wikipedia.org/wiki/Beta_distribution)
+
+## Load packages
+
+```{r}
+library(tidyverse)
+library(rstan)
+```
+
+## Load data
+```
+FoodExpenditure            package:betareg             R Documentation
+Proportion of Household Income Spent on Food
+Description:
+     Data on proportion of income spent on food for a random sample of
+     38 households in a large US city.
+Usage:
+     data("FoodExpenditure")
+Format:
+     A data frame containing 38 observations on 3 variables.
+     food household expenditures for food.
+     income household income.
+     persons number of persons living in household.
+Source:
+     Taken from Griffiths et al. (1993, Table 15.4).
+```
+```{r}
+data(FoodExpenditure, package = "betareg")
+FoodExpenditure <-
+    FoodExpenditure %>%
+    mutate(p_food = food / income)
+FoodExpenditure
+```
+```{r}
+ggplot(data = FoodExpenditure, mapping = aes(x = persons, y = p_food)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0,1)) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+```
+
+## Model
+We will use the mean-dispersion parametrization of the beta distribution.
+
+$$
+f(y;\mu,\phi) = \frac{\Gamma(\phi)}{\Gamma(\mu\phi)\Gamma((1-\mu)\phi)}y^{\mu\phi-1}(1-y)^{(1-\mu)\phi-1}, y \in (0,1)
+$$
+
+The correspondence to the typical parametrization is: $\alpha = \mu\phi$ and $\beta = (1-\mu)\phi$. As a result the mean and variance are as follows.
+
+$$\begin{align*}
+  E[Y] &= \frac{\alpha}{\alpha+\beta}\\
+       &= \frac{\mu\phi}{\mu\phi + (1-\mu)\phi}\\
+       &= \frac{\mu\phi}{\phi}\\
+       &= \mu\\
+\\
+Var(Y) &=
+  \end{align*}
+$$
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

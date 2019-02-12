@@ -151,7 +151,7 @@ X2_dim <- ncol(X2)
 beta_x2_mean <- rep(0, X2_dim)
 beta_x2_sd <- c(10, rep(1, X2_dim-1))
 ```
-```{r}
+```{r, results = 'hide'}
 stan_logit_log_beta_model_fit1 <-
     rstan::stan(file = stan_logit_log_beta_model_file,
                 data = list(N = N,

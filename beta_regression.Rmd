@@ -13,7 +13,7 @@ showWarning <- TRUE
 set_alias(w = "fig.width", h = "fig.height", res = "results")
 opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
                tidy = FALSE, cache = FALSE, echo = TRUE,
-               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+               fig.width = 5, fig.height = 5, dev.args = list(family = "sans"))
 ## for rgl
 ## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
 ## for animation
@@ -169,6 +169,21 @@ stan_logit_log_beta_model_fit1 <-
                 verbose = TRUE)
 ```
 
+
+## MCMC diagnostics
+```{r}
+traceplot(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2"), inc_warmup = TRUE)
+pairs(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2","lp__"))
+## More comprehensive and interactive
+## shinystan::launch_shinystan(stan_logit_log_beta_model_fit1)
+```
+
+
+## Model results
+```{r}
+print(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2","lp__"))
+plot(stan_logit_log_beta_model_fit1, pars = c("beta_x1","beta_x2"))
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

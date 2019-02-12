@@ -94,6 +94,15 @@ ggplot(data = FoodExpenditure, mapping = aes(x = income, y = p_food)) +
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+ggplot(data = FoodExpenditure, mapping = aes(x = income, y = p_food)) +
+    geom_point() +
+    scale_y_continuous(limits = c(0,1)) +
+    facet_wrap( ~ persons) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 
@@ -141,12 +150,12 @@ biostan::print_stan_file(stan_logit_log_beta_model_file)
 N <- nrow(FoodExpenditure)
 y <- FoodExpenditure$p_food
 ##  Mean model part
-X1 <- model.matrix(object = ~ income + persons, data = FoodExpenditure)
+X1 <- model.matrix(object = ~ income*persons, data = FoodExpenditure)
 X1_dim <- ncol(X1)
 beta_x1_mean <- rep(0, X1_dim)
 beta_x1_sd <- c(10, rep(1, X1_dim-1))
 ##  Precision model part
-X2 <- model.matrix(object = ~ income + persons, data = FoodExpenditure)
+X2 <- model.matrix(object = ~ income*persons, data = FoodExpenditure)
 X2_dim <- ncol(X2)
 beta_x2_mean <- rep(0, X2_dim)
 beta_x2_sd <- c(10, rep(1, X2_dim-1))

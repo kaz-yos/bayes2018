@@ -20,13 +20,14 @@ parameters {
     real beta0;
     real beta1;
     /* Error model parameter */
-    /*  phi_abc: P(X_mis = a | X_true = b, Y = c) */
-    real phi_111;
-    real phi_001;
-    real phi_110;
-    real phi_000;
+    real<lower=0,upper=1> phi[2,2];
+    /* phi[1,1] = P(X_mis = 1 | X_true = 0, Y = 0) */
+    /* phi[1,2] = P(X_mis = 1 | X_true = 0, Y = 1) */
+    /* phi[2,1] = P(X_mis = 1 | X_true = 1, Y = 0) */
+    /* phi[2,2] = P(X_mis = 1 | X_true = 1, Y = 1) */
     /* Covariate model parameter */
-    real psi;
+    /* pwi = P(X_true = 1) */
+    real<lower=0,upper=1> psi;
 }
 
 transformed parameters {
@@ -45,7 +46,10 @@ model {
             /*   count[i] to account for the sample size */
             target += bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X[i])) * count[i];
             /*  Error model */
-            target += bernoulli_lpmf(X_mis[i] | )
+            /*   count[i] to account for the sample size */
+            target += bernoulli_lpmf(X_mis[i] | phi[X_true[i]+1, Y[i]+1]) * count[i];
+            /*  Covariate model */
+            target += bernoulli_lpmf(X_true[i] | psi) * count[i];
 
         } else {
             /* Contribution for a row with unobserved X */

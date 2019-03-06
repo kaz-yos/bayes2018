@@ -149,7 +149,12 @@ biostan::print_stan_code(model1_code)
 ```{r, results = "hide"}
 model1 <- stan(model_code = model1_code,
                data = c(N = nrow(cervical),
-                        as.list(cervical)))
+                        as.list(cervical)),
+               cores = n_cores)
+```
+```{r}
+model1
+traceplot(model1, pars = names(model1))
 ```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

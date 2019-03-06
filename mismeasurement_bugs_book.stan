@@ -1,7 +1,4 @@
 data {
-    real<lower=0> alpha;
-    real<lower=0> beta;
-
     /* N: Number of rows */
     int<lower=0> N;
     int<lower=0,upper=1> Y[N];

@@ -41,7 +41,7 @@ model {
     /* Loop over rows */
     for (i in 1:N) {
         if (R_X[i] == 1) {
-            /* Contribution for a row with observed X */
+            /* Contribution for a row with OBSERVED X */
             /*  Outcome model */
             /*   count[i] to account for the sample size */
             target += bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X[i])) * count[i];
@@ -52,8 +52,17 @@ model {
             target += bernoulli_lpmf(X_true[i] | psi) * count[i];
 
         } else {
-            /* Contribution for a row with unobserved X */
-
+            /* Contribution for a row with UNOBSERVED X (marginalized over X) */
+            /*  Outcome model */
+            target += log_sum_exp(/* X_true = 1 type contribution */
+                                  log(psi)   + bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1)) * count[i],
+                                  /* X_true = 0 type contribution */
+                                  log(1-psi) + bernoulli_lpmf(Y[i] | inv_logit(beta0)) * count[i]);
+            /*  Error model */
+            target += log_sum_exp(/* X_true = 1 type contribution */
+                                  log(psi)   + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1]) * count[i],
+                                  /* X_true = 0 type contribution */
+                                  log(1-psi) + bernoulli_lpmf(X_mis[i] | phi[1, Y[i]+1]) * count[i]);
         }
     }
 

@@ -40,6 +40,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - BUGS book 9.3 Measurement Error
+- Gustafson. Measurement Error and Misclassification. Chapter 4.
 
 ## Load packages
 
@@ -75,12 +76,14 @@ cervical
 
 ## Model
 
-The model considered is a classical mismeasurement model represented in the following model DAG that also contains parameters. This type of DAGs with parameters in them are commonly seen in the Bayesian literature, in particular to describe hierarchical models.
+The model considered is a classical mismeasurement model represented in the following model DAG that also contains parameters. This type of DAGs with parameters in them are commonly seen in the Bayesian literature, in particular to describe hierarchical models. Here we also have the missing indicator assuming MCAR (validation subset is a random subsample within the sample).
 
 ```{r}
-dagify(Y ~ Xt, Xm ~ Xt, Xm ~ phi, Xt ~ psi, Y ~ beta) %>%
+dagify(Y ~ Xt, Xm ~ Xt, Xm ~ phi, Xt ~ psi, Y ~ beta, Rx ~ gamma) %>%
     ggdag()
 ```
+
+Since the missing process is ignorable, we can work on the other parts only. We partition the true exposure $X_{true}$ into the complete part and
 
 The posterior of the parameters given the observed data is the following for the complete part of the data.
 

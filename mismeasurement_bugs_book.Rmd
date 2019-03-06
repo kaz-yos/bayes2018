@@ -47,6 +47,8 @@ doParallel::registerDoParallel(cores = n_cores)
 ```{r}
 library(tidyverse)
 library(ggdag)
+library(biostan)
+library(rstan)
 ```
 
 ## Load data
@@ -72,6 +74,8 @@ cervical <- tribble(
     0, NA, 1, 535, 0
 )
 cervical
+cervical <- cervical %>%
+    mutate(X_true = if_else(is.na(X_true), -1, X_true))
 ```
 
 ## Model
@@ -135,6 +139,18 @@ $$\begin{align*}
   \end{align*}
 $$
 
+
+## Stan implementation
+
+```{r}
+model1_code <- biostan::read_stan_file("./mismeasurement_bugs_book.stan")
+biostan::print_stan_code(model1_code)
+```
+```{r, results = "hide"}
+model1 <- stan(model_code = model1_code,
+               data = c(N = nrow(cervical),
+                        as.list(cervical)))
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

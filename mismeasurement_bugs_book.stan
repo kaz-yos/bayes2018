@@ -2,7 +2,7 @@ data {
     /* N: Number of rows */
     int<lower=0> N;
     int<lower=0,upper=1> Y[N];
-    int<lower=0,upper=1> X_true[N];
+    int<lower=-1,upper=1> X_true[N];
     int<lower=0,upper=1> X_mis[N];
     int<lower=0> count[N];
     int<lower=0,upper=1> R_X[N];
@@ -41,7 +41,7 @@ model {
             /* Contribution for a row with OBSERVED X */
             /*  Outcome model */
             /*   count[i] to account for the sample size */
-            target += bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X[i])) * count[i];
+            target += bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X_true[i])) * count[i];
             /*  Error model */
             /*   count[i] to account for the sample size */
             target += bernoulli_lpmf(X_mis[i] | phi[X_true[i]+1, Y[i]+1]) * count[i];

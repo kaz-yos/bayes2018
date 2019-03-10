@@ -238,7 +238,7 @@ $$
 model1_code <- biostan::read_stan_file("./mismeasurement_bugs_book.stan")
 biostan::print_stan_code(model1_code)
 ```
-```{r, results = "hide", cache = TRUE}
+```{r, results = "hide", cache = FALSE}
 model1 <- stan(model_code = model1_code,
                data = c(N = nrow(cervical),
                         as.list(cervical)),

@@ -167,6 +167,70 @@ $$\begin{align*}
   \end{align*}
 $$
 
+Therefore, the marginalized posterior and the corresponding prior $\times$ likelihood expression are the following.
+
+$$\begin{align*}
+  p(\beta, \phi, \psi | Y, X_{mis}, X_{true}^{c})
+  &= \int p(X_{true}^{r}=x_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c}) dF(x_{true}^{r})\\
+  \\
+  &\propto p(\beta, \phi, \psi)\\
+  &~~~\times \prod^{m}_{i=1}
+    \left[
+    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
+    (1-\psi) \right.\\
+  &~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
+    (\psi) \right]\\
+  &~~~\times \prod^{n}_{j=m+1}
+    p(Y_{j} | X_{mis,j}, X_{true,j}^{c}, \beta)
+    p(X_{mis,j} | X_{true,j}^{c}, \phi)
+    p(X_{true,j}^{c} | \psi)\\
+  \end{align*}
+$$
+
+The corresponding log expression is the following.
+
+$$\begin{align*}
+  \log p(\beta, \phi, \psi | Y, X_{mis}, X_{true}^{c})
+  &\propto \log p(\beta, \phi, \psi)\\
+  &~~~+ \sum^{m}_{i=1}\log
+    \left[
+    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
+    (1-\psi) \right.\\
+  &~~~~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
+    (\psi) \right]\\
+  &~~~+ \sum^{n}_{j=m+1} \left[
+    \log p(Y_{j} | X_{mis,j}, X_{true,j}^{c}, \beta)+
+    \log p(X_{mis,j} | X_{true,j}^{c}, \phi)+
+    \log p(X_{true,j}^{c} | \psi) \right]\\
+  \end{align*}
+$$
+
+Each term in the first summation can be written safely with the log_sum_exp() function in Stan.
+
+$$\begin{align*}
+  &\log
+    \left[
+    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
+    (1-\psi) \right.\\
+  &~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+    p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
+    (\psi) \right]\\
+  &= \text{log_sum_exp}
+    \left( \right.\\
+  &~~~~~~\log p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta) +
+    \log p(X_{mis,i} | X_{true,i}^{r}=0, \phi) +
+    \log (1-\psi),\\
+  &~~~~~~\log p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta) +
+    \log p(X_{mis,i} | X_{true,i}^{r}=1, \phi) +
+    \log (\psi)\\
+  &~~~\left. \right)\\
+  \end{align*}
+$$
 
 ## Stan implementation
 

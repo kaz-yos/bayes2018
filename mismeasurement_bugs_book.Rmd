@@ -40,7 +40,9 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - BUGS book 9.3 Measurement Error
-- Gustafson. Measurement Error and Misclassification. Chapter 4.
+- http://www.openbugs.net/Examples/Cervix.html
+- https://github.com/stan-dev/example-models/tree/master/bugs_examples/vol2/cervix
+- Gustafson. Measurement Error and Misclassification. Chapter 4. p55.
 
 ## Load packages
 
@@ -87,12 +89,10 @@ dagify(Y ~ Xt, Xm ~ Xt, Xm ~ phi, Xt ~ psi, Y ~ beta, Rx ~ gamma) %>%
     ggdag()
 ```
 
-Since the missing process is ignorable, we can work on the other parts only. We partition the true exposure $X_{true}$ into the complete part and
-
-The posterior of the parameters given the observed data is the following for the complete part of the data.
+Since the missing process is ignorable, we can work on the other parts only. We partition the true exposure $X_{true}$ into the complete part $X_{true}^{c}$ and the reduced part $X_{true}^{r}$ (missing part). The posterior given the observed data is the following.
 
 $$\begin{align*}
-  p(\beta, \phi, \psi | Y, X_{mis}, X_{true})
+  p(X_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c})
   &\propto p(\beta, \phi, \psi, Y, X_{mis}, X_{true})\\
   \\
   &= p(Y, X_{mis}, X_{true} | \beta, \phi, \psi) p(\beta, \phi, \psi)\\
@@ -115,29 +115,6 @@ $$
 
 The posterior of the parameters given the observed data is the following for the incomplete part of the data.
 
-$$\begin{align*}
-  p(\beta, \phi, \psi | Y, X_{true})
-  &\propto p(\beta, \phi, \psi, Y, X_{true})\\
-  \\
-  &= \sum^{1}_{x=0} p(\beta, \phi, \psi, Y, X_{mis}, X_{true} = x)\\
-  \\
-  &= \sum^{1}_{x=0} p(Y, X_{mis}, X_{true} = x | \beta, \phi, \psi) p(\beta, \phi, \psi)\\
-  \\
-  &= \sum^{1}_{x=0}
-    p(Y | X_{mis}, X_{true} = x, \beta, \phi, \psi)
-    p(X_{mis} | X_{true} = x, \beta, \phi, \psi)
-    p(X_{true} = x | \beta, \phi, \psi)
-    p(\beta, \phi, \psi)\\
-  \\
-  &~~~~\text{Using conditional independences in the DAG}\\
-  \\
-  &= \sum^{1}_{x=0}
-    \underbrace{p(Y | X_{true} = x, \beta)}_{\text{outcome model}}
-    \underbrace{p(X_{mis} | X_{true} = x,  \phi)}_{\text{error model}}
-    \underbrace{p(X_{true} = x | \psi)}_{\text{covariate model}}
-    \underbrace{p(\beta)p(\phi)p(\psi)}_{\text{priors}}\\
-  \end{align*}
-$$
 
 
 ## Stan implementation

@@ -1,5 +1,5 @@
 ---
-title: "BUGS book Measurement Error"
+title: "BUGS Book Measurement Error"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -39,9 +39,9 @@ doParallel::registerDoParallel(cores = n_cores)
 ```
 
 ## References
-- BUGS book 9.3 Measurement Error
-- http://www.openbugs.net/Examples/Cervix.html
-- https://github.com/stan-dev/example-models/tree/master/bugs_examples/vol2/cervix
+- BUGS Book 9.3 Measurement Error
+- BUGS Book Web Version http://www.openbugs.net/Examples/Cervix.html
+- Stan Translation (Seems incorrect?) https://github.com/stan-dev/example-models/tree/master/bugs_examples/vol2/cervix
 - Gustafson. Measurement Error and Misclassification. Chapter 4. p55.
 
 ## Load packages
@@ -249,6 +249,9 @@ model1
 traceplot(model1, pars = names(model1))
 pairs(model1)
 ```
+
+The convergence looks ok. The results are consistent with the example fit in BUGS.
+
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

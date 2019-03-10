@@ -49,30 +49,31 @@ model {
     for (i in 1:N) {
         if (R_X[i] == 1) {
             /* Contribution for a row with OBSERVED X */
+            /* count[i] to account for the sample size */
             /*  Outcome model */
-            /*   count[i] to account for the sample size */
-            target += bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X_true[i])) * count[i];
+            target += count[i] * bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X_true[i]));
             /*  Error model */
-            /*   count[i] to account for the sample size */
-            target += bernoulli_lpmf(X_mis[i] | phi[X_true[i]+1, Y[i]+1]) * count[i];
+            target += count[i] * bernoulli_lpmf(X_mis[i] | phi[X_true[i]+1, Y[i]+1]);
             /*  Covariate model */
-            target += bernoulli_lpmf(X_true[i] | psi) * count[i];
+            target += count[i] * bernoulli_lpmf(X_true[i] | psi);
 
         } else {
             /* Contribution for a row with UNOBSERVED X (marginalized over X) */
-            target += log_sum_exp(/* X_true = 1 type contribution */
-                                  /* p(Yi|Xi=1,beta)p(Xi*|Xi=1,phi)p(Xi=1|psi) */
-                                  (log(psi)
-                                   /*  Outcome model */
-                                   + bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1))
-                                   /*  Error model */
-                                   + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1])) * count[i],
-                                  /* X_true = 0 type contribution */
-                                  (log(1-psi)
-                                   /*  Outcome model */
-                                   + bernoulli_lpmf(Y[i] | inv_logit(beta0))
-                                   /*  Error model */
-                                   + bernoulli_lpmf(X_mis[i] | phi[1, Y[i]+1])) * count[i]);
+            target += count[i] *
+                log_sum_exp(/* X_true = 1 type contribution */
+                            /* p(Yi|Xi=1,beta)p(Xi*|Xi=1,phi)p(Xi=1|psi) */
+                            (log(psi)
+                             /*  Outcome model */
+                             + bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1))
+                             /*  Error model */
+                             + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1])),
+                            /* X_true = 0 type contribution */
+                            /* p(Yi|Xi=0,beta)p(Xi*|Xi=0,phi)p(Xi=0|psi) */
+                            (log(1-psi)
+                             /*  Outcome model */
+                             + bernoulli_lpmf(Y[i] | inv_logit(beta0))
+                             /*  Error model */
+                             + bernoulli_lpmf(X_mis[i] | phi[1, Y[i]+1])));
         }
     }
 

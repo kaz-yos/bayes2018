@@ -23,7 +23,7 @@ parameters {
     /* phi[2,1] = P(X_mis = 1 | X_true = 1, Y = 0) */
     /* phi[2,2] = P(X_mis = 1 | X_true = 1, Y = 1) */
     /* Covariate model parameter */
-    /* pwi = P(X_true = 1) */
+    /* psi = P(X_true = 1) */
     real<lower=0,upper=1> psi;
 }
 
@@ -34,6 +34,16 @@ transformed parameters {
 model {
 
     /* Priors */
+    /*  Outcome model parameters */
+    target += normal_lpdf(beta0 | 0, 100);
+    target += normal_lpdf(beta1 | 0, 100);
+    /*  Error model parameter */
+    target += uniform_lpdf(phi[1,1] | 0, 1);
+    target += uniform_lpdf(phi[1,2] | 0, 1);
+    target += uniform_lpdf(phi[2,1] | 0, 1);
+    target += uniform_lpdf(phi[2,2] | 0, 1);
+    /*  Covariate model parameter */
+    target += uniform_lpdf(psi | 0, 1);
 
     /* Loop over rows */
     for (i in 1:N) {
@@ -50,16 +60,19 @@ model {
 
         } else {
             /* Contribution for a row with UNOBSERVED X (marginalized over X) */
-            /*  Outcome model */
             target += log_sum_exp(/* X_true = 1 type contribution */
-                                  log(psi)   + bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1)) * count[i],
+                                  /* p(Yi|Xi=1,beta)p(Xi*|Xi=1,phi)p(Xi=1|psi) */
+                                  (log(psi)
+                                   /*  Outcome model */
+                                   + bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1))
+                                   /*  Error model */
+                                   + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1])) * count[i],
                                   /* X_true = 0 type contribution */
-                                  log(1-psi) + bernoulli_lpmf(Y[i] | inv_logit(beta0)) * count[i]);
-            /*  Error model */
-            target += log_sum_exp(/* X_true = 1 type contribution */
-                                  log(psi)   + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1]) * count[i],
-                                  /* X_true = 0 type contribution */
-                                  log(1-psi) + bernoulli_lpmf(X_mis[i] | phi[1, Y[i]+1]) * count[i]);
+                                  (log(1-psi)
+                                   /*  Outcome model */
+                                   + bernoulli_lpmf(Y[i] | inv_logit(beta0))
+                                   /*  Error model */
+                                   + bernoulli_lpmf(X_mis[i] | phi[1, Y[i]+1])) * count[i]);
         }
     }
 

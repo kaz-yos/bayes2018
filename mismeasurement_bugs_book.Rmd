@@ -42,6 +42,7 @@ doParallel::registerDoParallel(cores = n_cores)
 - BUGS Book 9.3 Measurement Error
 - BUGS Book Web Version http://www.openbugs.net/Examples/Cervix.html
 - Stan Translation (Seems incorrect?) https://github.com/stan-dev/example-models/tree/master/bugs_examples/vol2/cervix
+- Lambert. A Student's Guide to Bayesian Statistics. Chapter 16. p401.
 - Gustafson. Measurement Error and Misclassification. Chapter 4. p55.
 
 ## Load packages

@@ -111,11 +111,11 @@ $$\begin{align*}
   &~~~~\text{Factor likelihood following DAG}\\
   &= p(\beta, \phi, \psi)\\
   &~~~\times \prod^{m}_{i=1}
-    \underbrace{p(Y_{i} | X_{mis,i}, X_{true,i}^{r}, \beta)}_{\text{outcome model}}
+    \underbrace{p(Y_{i} | X_{true,i}^{r}, \beta)}_{\text{outcome model}}
     \underbrace{p(X_{mis,i} | X_{true,i}^{r}, \phi)}_{\text{error model}}
     \underbrace{p(X_{true,i}^{r} | \psi)}_{\text{covariate model}}\\
   &~~~\times \prod^{n}_{j=m+1}
-    \underbrace{p(Y_{j} | X_{mis,j}, X_{true,j}^{c}, \beta)}_{\text{outcome model}}
+    \underbrace{p(Y_{j} | X_{true,j}^{c}, \beta)}_{\text{outcome model}}
     \underbrace{p(X_{mis,j} | X_{true,j}^{c}, \phi)}_{\text{error model}}
     \underbrace{p(X_{true,j}^{c} | \psi)}_{\text{covariate model}}\\
   \end{align*}
@@ -133,7 +133,7 @@ The only part that depends on $X_{true}^{r}$ in the prior $\times$ likelihood ex
 
 $$\begin{align*}
   \prod^{m}_{i=1}
-    \underbrace{p(Y_{i} | X_{mis,i}, X_{true,i}^{r}, \beta)}_{\text{outcome model}}
+    \underbrace{p(Y_{i} | X_{true,i}^{r}, \beta)}_{\text{outcome model}}
     \underbrace{p(X_{mis,i} | X_{true,i}^{r}, \phi)}_{\text{error model}}
     \underbrace{p(X_{true,i}^{r} | \psi)}_{\text{covariate model}}\\
   \end{align*}
@@ -144,24 +144,24 @@ Conditioning on the parameters, $X_{true,i}^{r}$ are independent from each other
 $$\begin{align*}
   &\prod^{m}_{i=1}
   \sum^{1}_{x=0}
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=x, \beta)
+    p(Y_{i} | X_{true,i}^{r}=x, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=x, \phi)
     p(X_{true,i}^{r}=x | \psi)\\
   &= \prod^{m}_{i=1}
     \left[
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(Y_{i} | X_{true,i}^{r}=0, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
     p(X_{true,i}^{r}=0 | \psi) \right.\\
-  &~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+  &~~~~~~~~~~~\left. + p(Y_{i} | X_{true,i}^{r}=1, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
     p(X_{true,i}^{r}=1 | \psi) \right]\\
   \\
   &= \prod^{m}_{i=1}
     \left[
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(Y_{i} | X_{true,i}^{r}=0, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
     (1-\psi) \right.\\
-  &~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+  &~~~~~~~~~~~\left. + p(Y_{i} | X_{true,i}^{r}=1, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
     (\psi) \right]\\
   \end{align*}
@@ -176,14 +176,14 @@ $$\begin{align*}
   &\propto p(\beta, \phi, \psi)\\
   &~~~\times \prod^{m}_{i=1}
     \left[
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(Y_{i} | X_{true,i}^{r}=0, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
     (1-\psi) \right.\\
-  &~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+  &~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{true,i}^{r}=1, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
     (\psi) \right]\\
   &~~~\times \prod^{n}_{j=m+1}
-    p(Y_{j} | X_{mis,j}, X_{true,j}^{c}, \beta)
+    p(Y_{j} | X_{true,j}^{c}, \beta)
     p(X_{mis,j} | X_{true,j}^{c}, \phi)
     p(X_{true,j}^{c} | \psi)\\
   \end{align*}
@@ -196,14 +196,14 @@ $$\begin{align*}
   &\propto \log p(\beta, \phi, \psi)\\
   &~~~+ \sum^{m}_{i=1}\log
     \left[
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(Y_{i} | X_{true,i}^{r}=0, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
     (1-\psi) \right.\\
-  &~~~~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+  &~~~~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{true,i}^{r}=1, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
     (\psi) \right]\\
   &~~~+ \sum^{n}_{j=m+1} \left[
-    \log p(Y_{j} | X_{mis,j}, X_{true,j}^{c}, \beta)+
+    \log p(Y_{j} | X_{true,j}^{c}, \beta)+
     \log p(X_{mis,j} | X_{true,j}^{c}, \phi)+
     \log p(X_{true,j}^{c} | \psi) \right]\\
   \end{align*}
@@ -214,18 +214,18 @@ Each term in the first summation can be written safely with the log_sum_exp() fu
 $$\begin{align*}
   &\log
     \left[
-    p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta)
+    p(Y_{i} | X_{true,i}^{r}=0, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=0, \phi)
     (1-\psi) \right.\\
-  &~~~~~~~~~~~~~~\left. + p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta)
+  &~~~~~~\left. + p(Y_{i} | X_{true,i}^{r}=1, \beta)
     p(X_{mis,i} | X_{true,i}^{r}=1, \phi)
     (\psi) \right]\\
   &= \text{log_sum_exp}
     \left( \right.\\
-  &~~~~~~\log p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=0, \beta) +
+  &~~~~~~\log p(Y_{i} | X_{true,i}^{r}=0, \beta) +
     \log p(X_{mis,i} | X_{true,i}^{r}=0, \phi) +
     \log (1-\psi),\\
-  &~~~~~~\log p(Y_{i} | X_{mis,i}, X_{true,i}^{r}=1, \beta) +
+  &~~~~~~\log p(Y_{i} | X_{true,i}^{r}=1, \beta) +
     \log p(X_{mis,i} | X_{true,i}^{r}=1, \phi) +
     \log (\psi)\\
   &~~~\left. \right)\\

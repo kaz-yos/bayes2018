@@ -77,6 +77,7 @@ cervical <- tribble(
     0, NA, 1, 535, 0
 )
 cervical
+## Stan does not take NAs.
 cervical <- cervical %>%
     mutate(X_true = if_else(is.na(X_true), -1, X_true))
 ```
@@ -232,6 +233,22 @@ $$\begin{align*}
   &~~~\left. \right)\\
   \end{align*}
 $$
+
+For an individual without the gold standard measurement, $p(X_{true,i}^{r} = 1 | \psi) = \psi$ before data. Conditioning on the observed data ($X_{mis,i}$ and $Y_{i}$) and parameters, the distribution of the unobserved $X_{true,i}$ is the following.
+
+$$\begin{align*}
+  p(X_{true,i}^{r} = 1 | X_{mis,i}, Y_{i}, \beta, \phi, \psi)
+  &= \frac{p(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi)}{\sum^{1}_{x=0} p(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi)}\\
+  &~~~~\text{Using $q$ for unnormalized density}\\
+  &= \frac{q(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi)}{\sum^{1}_{x=0} q(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi)}\\
+  \\
+  &~~~~\text{Also}\\
+  \log p(X_{true,i}^{r} = 1 | X_{mis,i}, Y_{i}, \beta, \phi, \psi)
+  &= \log q(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi) - \log \left[ \sum^{1}_{x=0} q(X_{true,i}^{r} = 1, X_{mis,i}, Y_{i}, \beta, \phi, \psi) \right]\\
+  \end{align*}
+$$
+
+Thus, we can reuse the log_sum_exp values for normalization to obtain $p(X_{true,i}^{r} = 1 | X_{mis,i}, Y_{i}, \beta, \phi, \psi)$.
 
 ## Stan implementation
 

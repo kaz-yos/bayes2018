@@ -36,6 +36,7 @@ transformed parameters {
     /* Loop over rows */
     /* This is really a part of the model. */
     /* Done here to carry over lp for generated quantities. */
+    /* p403 in Lambart 2018. */
     for (i in 1:N) {
         if (R_X[i] == 1) {
             /* Assigned to column for observed X_true */

@@ -28,36 +28,23 @@ parameters {
 }
 
 transformed parameters {
-
-}
-
-model {
     /* individual-level lp at X_true = 0 and X_true = 1 */
     matrix[N,2] lp;
-
-    /* Priors */
-    /*  Outcome model parameters */
-    target += normal_lpdf(beta0 | 0, 100);
-    target += normal_lpdf(beta1 | 0, 100);
-    /*  Error model parameter */
-    target += uniform_lpdf(phi[1,1] | 0, 1);
-    target += uniform_lpdf(phi[1,2] | 0, 1);
-    target += uniform_lpdf(phi[2,1] | 0, 1);
-    target += uniform_lpdf(phi[2,2] | 0, 1);
-    /*  Covariate model parameter */
-    target += uniform_lpdf(psi | 0, 1);
+    /* https://mc-stan.org/docs/2_18/functions-reference/matrix-broadcast.html */
+    lp = rep_matrix(0, N, 2);
 
     /* Loop over rows */
+    /* This is really a part of the model. */
+    /* Done here to carry over lp for generated quantities. */
     for (i in 1:N) {
         if (R_X[i] == 1) {
-            /* Contribution for a row with OBSERVED X */
-            /* count[i] to account for the sample size */
-            target += count[i] *
-                (/*  Outcome model */
+            /* Assigned to column for observed X_true */
+            lp[i,X_true[i]+1] =
+                (/* Outcome model */
                  bernoulli_lpmf(Y[i] | inv_logit(beta0 + beta1 * X_true[i]))
-                 /*  Error model */
+                 /* Error model */
                  + bernoulli_lpmf(X_mis[i] | phi[X_true[i]+1, Y[i]+1])
-                 /*  Covariate model */
+                 /* Covariate model */
                  + bernoulli_lpmf(X_true[i] | psi));
 
         } else {
@@ -80,7 +67,32 @@ model {
                        + bernoulli_lpmf(X_mis[i] | phi[2, Y[i]+1])
                        /* Covariate model */
                        + log(psi));
+        }
+    }
+}
 
+model {
+
+    /* Priors */
+    /*  Outcome model parameters */
+    target += normal_lpdf(beta0 | 0, 100);
+    target += normal_lpdf(beta1 | 0, 100);
+    /*  Error model parameter */
+    target += uniform_lpdf(phi[1,1] | 0, 1);
+    target += uniform_lpdf(phi[1,2] | 0, 1);
+    target += uniform_lpdf(phi[2,1] | 0, 1);
+    target += uniform_lpdf(phi[2,2] | 0, 1);
+    /*  Covariate model parameter */
+    target += uniform_lpdf(psi | 0, 1);
+
+    /* Loop over rows */
+    for (i in 1:N) {
+        if (R_X[i] == 1) {
+            /* Contribution for a row with OBSERVED X */
+            /* count[i] to account for the sample size */
+            target += count[i] * lp[i,X_true[i]+1];
+
+        } else {
             /* Sum up using log_sum_exp to marginalize over X_true */
             /* count[i] to account for the sample size */
             target += count[i] * log_sum_exp(lp[i]);
@@ -90,6 +102,7 @@ model {
 }
 
 generated quantities {
+    /* p(X_true = 1 | X_mis, Y, params) */
     real p_X[N];
 
     for (i in 1:N) {
@@ -97,7 +110,7 @@ generated quantities {
             /* Observed X_true if available */
             p_X[i] = X_true[i];
         } else {
-            p_X[i] = exp(lp[i,1] - log_sum_exp(lp[i]));
+            p_X[i] = exp(lp[i,2] - log_sum_exp(lp[i]));
         }
     }
 }

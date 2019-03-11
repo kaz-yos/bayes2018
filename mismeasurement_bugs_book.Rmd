@@ -253,22 +253,31 @@ Thus, we can reuse the log_sum_exp values for normalization to obtain $p(X_{true
 ## Stan implementation
 
 ```{r}
+## Load model
 model1_code <- biostan::read_stan_file("./mismeasurement_bugs_book.stan")
 biostan::print_stan_code(model1_code)
 ```
 ```{r, results = "hide", cache = FALSE}
+## Model fit
 model1 <- stan(model_code = model1_code,
                data = c(N = nrow(cervical),
                         as.list(cervical)),
                cores = n_cores)
 ```
 ```{r}
-model1
-traceplot(model1, pars = names(model1))
-pairs(model1)
+## Model check
+pars <- c("beta0","beta1","phi","psi","lp__")
+print(model1, pars = pars)
+traceplot(model1, pars = pars)
+pairs(model1, pars = pars)
 ```
-
-The convergence looks ok. The results are consistent with the example fit in BUGS.
+The convergence looks ok. The results are consistent with the example fit in BUGS. The predicted probabilities of $X_{true,i} = 1$ given observed data are following. Only the last four rows are meaningful.
+```{r}
+## Data
+cervical
+## Prediction
+print(model1, pars = "p_X")
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

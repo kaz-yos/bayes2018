@@ -78,9 +78,32 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 - The Expectation-Maximization (EM) algorithm enables parameter estimation in probabilistic models with incomplete data.
 
 ** Incomplete data
-- Incomplete data encompass
+- Incomplete data encompass:
   - Missing data
   - Latent class (unobserved class assignment)
+
+* Experiment Setup
+** A Coin-Flipping Experiment
+- Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
+- Repeat 5 times
+  1. Randomly pick either coin
+  2. Toss 10 times and record the number of heads
+#+ATTR_LATEX: :height 0.5\textheight :options page=1,keepaspectratio :center t
+[[./source/experiment_data.png]]
+
+** A Coin-Flipping Experiment (More Formal)
+- Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
+- For $i = 1, \dots, 5$
+  1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5)$
+  2. Draw $X_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}})$
+| $i$ | $Z_{i}$ | $X_{i}$ |
+|-----+---------+---------|
+|   1 |       1 |       5 |
+|   2 |       0 |       9 |
+|   3 |       0 |       8 |
+|   4 |       1 |       4 |
+|   5 |       0 |       7 |
+- Note that you only need the number of heads ([[https://www.statisticshowto.datasciencecentral.com/sufficient-statistic/][sufficient statistic]]), not the entire sequence.
 
 * Appendix
 \appendix

@@ -94,8 +94,8 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 ** A Coin-Flipping Experiment (More Formal)
 - Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
 - For $i = 1, \dots, 5$
-  1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5)$
-  2. Draw $X_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}})$
+  1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$
+  2. Draw $X_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
 | $i$ | $Z_{i}$ | $X_{i}$ |
 |-----+---------+---------|
 |   1 |       1 |       5 |
@@ -104,6 +104,49 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |   4 |       1 |       4 |
 |   5 |       0 |       7 |
 - Note that you only need the number of heads ([[https://www.statisticshowto.datasciencecentral.com/sufficient-statistic/][sufficient statistic]]), not the entire sequence.
+
+* Complete-Data Case
+** Complete-Data Maximum Likelihood
+- a
+
+* Experiment Setup (Incomplete Data)
+** Incomplete-Data
+- Two identical-looking coins with unknown head probabilities
+- Repeat 5 times
+  1. You are randomly given either coin, but you do not know which.
+  2. You toss 10 times, record the number of heads, and return the coin.
+| $i$ | $Z_{i}$ | $X_{i}$ |
+|-----+---------+---------|
+|   1 |       ? |       5 |
+|   2 |       ? |       9 |
+|   3 |       ? |       8 |
+|   4 |       ? |       4 |
+|   5 |       ? |       7 |
+
+* EM Algorithm
+** Parameter Initialization
+- Randomly initialize the parameters
+- $\thetahat_{0} := 0.6$
+- $\thetahat_{1} := 0.5$
+
+** E-Step 1
+- Calculate relative likelihood of coin identity given $\bthetahat^{(0)}$.
+\scriptsize
+#+BEGIN_SRC R
+## Relative likelihood for Z = 1
+rel_lik <- function(X, theta0, theta1) {
+  dbinom(x = X, size = 10, prob = theta1) /
+    (dbinom(x = X, size = 10, prob = theta0) +
+     dbinom(x = X, size = 10, prob = theta1))
+}
+round(rel_lik(X = 5, theta0 = 0.6, theta1 = 0.5), 2)
+round(rel_lik(X = 9, theta0 = 0.6, theta1 = 0.5), 2)
+round(rel_lik(X = 8, theta0 = 0.6, theta1 = 0.5), 2)
+round(rel_lik(X = 4, theta0 = 0.6, theta1 = 0.5), 2)
+round(rel_lik(X = 7, theta0 = 0.6, theta1 = 0.5), 2)
+#+END_SRC
+\normalsize
+
 
 * Appendix
 \appendix

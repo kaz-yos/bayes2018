@@ -19,7 +19,7 @@
   #+STARTUP: beamer
   #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
   #+LATEX_CLASS: beamer
-  #+LATEX_CLASS_OPTIONS: [dvipdfmx,bigger,aspectratio=43]
+  #+LATEX_CLASS_OPTIONS: [dvipdfmx,bigger,aspectratio=169]
   #+LATEX_HEADER: %% No navigation bar
   #+LATEX_HEADER: \setbeamertemplate{navigation symbols}{}
   #+LATEX_HEADER: %% Page number with current/total format
@@ -66,8 +66,21 @@
   #+LATEX_HEADER: \input{\string~/.emacs.d/misc/GrandMacros}
 
 * Introduction
+** Article Covered
+- Do and Batzoglou. "What is the expectation maximization algorith?" Nat. Biotechnol. 2008;26:897. cite:doWhatExpectationMaximization2008
+
+\footnotesize
+Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioinformatics.bwh.harvard.edu][BWH/HMS Bioinformatics Club]]
+
 ** Introduction
-- What is
+- Probabilistic models, such as hidden Markov models and Bayesian networks, are commonly used to model biological data.
+
+- The Expectation-Maximization (EM) algorithm enables parameter estimation in probabilistic models with incomplete data.
+
+** Incomplete data
+- Incomplete data encompass
+  - Missing data
+  - Latent class (unobserved class assignment)
 
 * Appendix
 \appendix

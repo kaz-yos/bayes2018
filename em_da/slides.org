@@ -1,0 +1,83 @@
+* Meta-data :noexport:
+  # http://orgmode.org/worg/exporters/beamer/tutorial.html
+  #+TITLE: What is the @@latex:\\@@
+  #+TITLE: Expectation Maximization @@latex:\\@@
+  #+TITLE: (EM) Algorithm? @@latex:\\@@
+  #+AUTHOR: Kazuki Yoshida @@latex:\\@@
+  #+AUTHOR: @@latex:\\@@
+  #+AUTHOR: Division of Rheumatology, Immunology and Allergy @@latex:\\@@
+  #+AUTHOR: Brigham and Women's Hospital & Harvard Medical School @@latex:\\@@
+  #+AUTHOR: \faTwitter @kaz_yos \faGithub kaz-yos \faEnvelope kazukiyoshida@mail.harvard.edu
+  #+DATE: 2019-05-20@@latex:\\@@
+  #+DATE: Mini-Statistics Camp Series @@latex:\\@@
+  #+DATE: BWH Bioinformatics Club @@latex:\\@@
+  #+DESCRIPTION:
+  #+KEYWORDS:
+  #+OPTIONS: toc:nil
+  #+OPTIONS: H:2
+  #+OPTIONS: ^:{}
+  #+STARTUP: beamer
+  #+COLUMNS: %40ITEM %10BEAMER_env(Env) %9BEAMER_envargs(Env Args) %4BEAMER_col(Col) %10BEAMER_extra(Extra)
+  #+LATEX_CLASS: beamer
+  #+LATEX_CLASS_OPTIONS: [dvipdfmx,bigger,aspectratio=43]
+  #+LATEX_HEADER: %% No navigation bar
+  #+LATEX_HEADER: \setbeamertemplate{navigation symbols}{}
+  #+LATEX_HEADER: %% Page number with current/total format
+  #+LATEX_HEADER: \setbeamerfont{page number in head/foot}{size=\scriptsize}
+  #+LATEX_HEADER: \setbeamertemplate{footline}[frame number]
+  #+LATEX_HEADER: \setbeamertemplate{frametitle}[default][center]
+  #+LATEX_HEADER: %% With item labels
+  #+LATEX_HEADER: \setbeamertemplate{bibliography item}{\insertbiblabel}
+  #+LATEX_HEADER: %% Without item labels
+  #+LATEX_HEADER: %% \setbeamertemplate{bibliography item}{}
+  #+LATEX_HEADER:
+  #+LATEX_HEADER: %% Math
+  #+LATEX_HEADER: \usepackage{amsmath}
+  #+LATEX_HEADER: \usepackage{amssymb}
+  #+LATEX_HEADER: \usepackage{wasysym}
+  #+LATEX_HEADER: %% Allow new page within align
+  #+LATEX_HEADER: \allowdisplaybreaks
+  #+LATEX_HEADER: \usepackage{cancel}
+  #+LATEX_HEADER: %% Code
+  #+LATEX_HEADER: \usepackage{listings}
+  #+LATEX_HEADER: \usepackage{courier}
+  #+LATEX_HEADER: \lstset{basicstyle=\footnotesize\ttfamily, breaklines=true, frame=single}
+  #+LATEX_HEADER: \usepackage[cache=false]{minted}
+  #+LATEX_HEADER: \usemintedstyle{vs}
+  #+LATEX_HEADER: %% Graphics
+  #+LATEX_HEADER: \usepackage{graphicx}
+  #+LATEX_HEADER: \usepackage{grffile}
+  #+LATEX_HEADER: %% DAG
+  #+LATEX_HEADER: \usepackage{tikz}
+  #+LATEX_HEADER: \usetikzlibrary{positioning,shapes.geometric}
+  #+LATEX_HEADER: %% Allow URL embedding
+  #+LATEX_HEADER: \usepackage{url}
+  #+LATEX_HEADER: %% Do not count backup slides.
+  #+LATEX_HEADER: %% https://tex.stackexchange.com/questions/70448/dont-count-backup-slides
+  #+LATEX_HEADER: \usepackage{appendixnumberbeamer}
+  #+LATEX_HEADER: %% https://www.sharelatex.com/learn/Hyperlinks
+  #+LATEX_HEADER: \usepackage{hyperref}
+  #+LATEX_HEADER: \hypersetup{
+  #+LATEX_HEADER:     colorlinks = true,
+  #+LATEX_HEADER:     linkcolor= blue
+  #+LATEX_HEADER: }
+  #+LATEX_HEADER: \usepackage{fontawesome}
+  #+LATEX_HEADER: %% Include convenient commands.
+  #+LATEX_HEADER: \input{\string~/.emacs.d/misc/GrandMacros}
+
+* Introduction
+** Introduction
+- What is
+
+* Appendix
+\appendix
+** Bibliography
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+\tiny
+# To remove "References" section header
+\renewcommand{\section}[2]{}
+# Following lines must be left-aligned without preceding spaces.
+bibliographystyle:apalike
+bibliography:~/.emacs.d/misc/zotero.bib

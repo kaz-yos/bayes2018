@@ -117,11 +117,11 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 | $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert Z_{i},X_{i}]$ | $E[Z_{i}\vert Z_{i},X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert Z_{i},X_{i}]$ | $E[Z_{i} X_{i} \vert Z_{i},X_{i}]$ |
 |--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
 | /      | <>      |                               < |                           > |         | <                                      | >                                  |
-| 1      | 1 (B)   |                               0 |                           1 |       5 | (0)5                                   | (1)5                               |
-| 2      | 0 (A)   |                               1 |                           0 |       9 | (1)9                                   | (0)9                               |
-| 3      | 0 (A)   |                               1 |                           0 |       8 | (1)8                                   | (0)8                               |
-| 4      | 1 (B)   |                               0 |                           1 |       4 | (0)4                                   | (1)4                               |
-| 5      | 0 (A)   |                               1 |                           0 |       7 | (1)7                                   | (0)7                               |
+| 1      | 1 (B)   |                               0 |                           1 |       5 | 0 \times 5                             | 1 \times 5                         |
+| 2      | 0 (A)   |                               1 |                           0 |       9 | 1 \times 9                             | 0 \times 9                         |
+| 3      | 0 (A)   |                               1 |                           0 |       8 | 1 \times 8                             | 0 \times 8                         |
+| 4      | 1 (B)   |                               0 |                           1 |       4 | 0 \times 4                             | 1 \times 4                         |
+| 5      | 0 (A)   |                               1 |                           0 |       7 | 1 \times 7                             | 0 \times 7                         |
 |--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
 | Heads  |         |                                 |                             |         | 24                                     | 9                                  |
 | Tosses |         |                10 \times 3 = 30 |            10 \times 2 = 20 |         | 30                                     | 20                                 |
@@ -129,7 +129,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 
 
 * Experiment Setup (Incomplete Data)
-** A Different Coin-Flipping Experiment
+** A Contrived Coin-Flipping Experiment
 - Two identical-looking coins with unknown head probabilities
 - Repeat 5 times
   1. You are randomly given either coin, but you do not know which.
@@ -144,7 +144,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |     5 | ?       |       7 |
 - Can we still estimate the two unknown head probabilities?
 
-** A Different Coin-Flipping Experiment (More Formal)
+** A Contrived Coin-Flipping Experiment (More Formal)
 - Two identical-looking coins with unknown head probabilities $(\theta_{0},\theta_{1})$ (index arbitrary)
 - For $i = 1, \dots, 5$
   1. Draw /latent/ $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$

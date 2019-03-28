@@ -230,8 +230,45 @@ bind_rows(rel_dbinom(5, 0.6, 0.5),
           rel_dbinom(9, 0.6, 0.5),
           rel_dbinom(8, 0.6, 0.5),
           rel_dbinom(4, 0.6, 0.5),
-          rel_dbinom(7, 0.6, 0.5))
+          rel_dbinom(7, 0.6, 0.5)) %>%
+  round(2) %>% print.data.frame()
 #+END_SRC
+\normalsize
+
+\newpage
+- Now we have the probabilities of coin identities.
+\footnotesize
+| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
+| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+| /      | <>      |                         < |                     > |         | <                                | >                            |
+| 1      | ?       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
+| 2      | ?       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
+| 3      | ?       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
+| 4      | ?       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
+| 5      | ?       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
+|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+| Heads  |         |                           |                       |         | ?                                | ?                            |
+| Tosses |         |          10 \times ? = 30 |      10 \times ? = 20 |         | ?                                | ?                            |
+| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
+\normalsize
+
+\newpage
+- Now we have the probabilities of coin identities.
+\footnotesize
+| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
+| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+| /      | <>      |                         < |                     > |         | <                                | >                            |
+| 1      | ?       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
+| 2      | ?       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
+| 3      | ?       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
+| 4      | ?       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
+| 5      | ?       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
+|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+| Heads  |         |                           |                       |         | ?                                | ?                            |
+| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | ?                                | ?                            |
+| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
 \normalsize
 
 

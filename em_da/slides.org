@@ -226,13 +226,11 @@ rel_dbinom <- function(X, theta0, theta1) {
   tibble(p_Z0_X = p_X_Z0 / (p_X_Z0 + p_X_Z1),
          p_Z1_X = p_X_Z1 / (p_X_Z0 + p_X_Z1))
 }
-bind_rows(
-  rel_dbinom(X = 5, theta0 = 0.6, theta1 = 0.5),
-  rel_dbinom(X = 9, theta0 = 0.6, theta1 = 0.5),
-  rel_dbinom(X = 8, theta0 = 0.6, theta1 = 0.5),
-  rel_dbinom(X = 4, theta0 = 0.6, theta1 = 0.5),
-  rel_dbinom(X = 7, theta0 = 0.6, theta1 = 0.5)
-)
+bind_rows(rel_dbinom(5, 0.6, 0.5),
+          rel_dbinom(9, 0.6, 0.5),
+          rel_dbinom(8, 0.6, 0.5),
+          rel_dbinom(4, 0.6, 0.5),
+          rel_dbinom(7, 0.6, 0.5))
 #+END_SRC
 \normalsize
 

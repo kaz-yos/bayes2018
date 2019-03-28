@@ -26,6 +26,7 @@
   #+LATEX_HEADER: \setbeamerfont{page number in head/foot}{size=\scriptsize}
   #+LATEX_HEADER: \setbeamertemplate{footline}[frame number]
   #+LATEX_HEADER: \setbeamertemplate{frametitle}[default][center]
+  #+LATEX_HEADER: \setbeamersize{text margin left=5mm,text margin right=5mm}
   #+LATEX_HEADER: %% With item labels
   #+LATEX_HEADER: \setbeamertemplate{bibliography item}{\insertbiblabel}
   #+LATEX_HEADER: %% Without item labels
@@ -68,7 +69,8 @@
 * Introduction
 ** Article Covered
 - Do and Batzoglou. "What is the expectation maximization algorith?" Nat. Biotechnol. 2008;26:897. cite:doWhatExpectationMaximization2008
-
+#+ATTR_LATEX: :width 0.8\textwidth :options page=1,keepaspectratio :center t
+[[./source/em_algo.png]]
 \footnotesize
 Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioinformatics.bwh.harvard.edu][BWH/HMS Bioinformatics Club]]
 
@@ -95,7 +97,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 - Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
 - For $i = 1, \dots, 5$
   1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$
-  2. Draw $X_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
+  2. Draw $X_{i} | Z_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
 | Index |    Coin |   Heads |
 |   $i$ | $Z_{i}$ | $X_{i}$ |
 |-------+---------+---------|
@@ -109,37 +111,58 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 * Complete-Data Case
 ** Complete-Data Maximum Likelihood
 - If we observe both the coin identity $Z_{i}$ and heads $X_{i}$, the MLE is the total heads / total tosses for each coin.
+- Here we introduce a very redundant expanded table for later reuse.
 \footnotesize
-| Index  |    Coin |             Prob. Coin A |             Prob. Coin B |   Heads | Heads for Coin A       | Heads for Coin B       |
-| $i$    | $Z_{i}$ | $P[ Z_{i}=0\vert X_{i}]$ | $P[ Z_{i}=1\vert X_{i}]$ | $X_{i}$ | $X_{i} \vert Z_{i}=0$  | $X_{i} \vert Z_{i}=1$  |
-|--------+---------+--------------------------+--------------------------+---------+------------------------+------------------------|
-| /      |      <> |                        < |                        > |         | <                      | >                      |
-| 1      |       1 |                        0 |                        1 |       5 | (0)5                   | (1)5                   |
-| 2      |       0 |                        1 |                        0 |       9 | (1)9                   | (0)9                   |
-| 3      |       0 |                        1 |                        0 |       8 | (1)8                   | (0)8                   |
-| 4      |       1 |                        0 |                        1 |       4 | (0)4                   | (1)4                   |
-| 5      |       0 |                        1 |                        0 |       7 | (1)7                   | (0)7                   |
-|--------+---------+--------------------------+--------------------------+---------+------------------------+------------------------|
-| Heads  |         |                          |                          |         | 24                     | 9                      |
-| Tosses |         |                          |                          |         | 30                     | 20                     |
-| MLE    |         |                          |                          |         | $\thetahat_{0} = 0.80$ | $\thetahat_{1} = 0.45$ |
+| Index  | Coin    |                    Prob. Coin A |                Prob. Coin B |   Heads | Heads for Coin A                       | Heads for Coin B                   |
+| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert Z_{i},X_{i}]$ | $E[Z_{i}\vert Z_{i},X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert Z_{i},X_{i}]$ | $E[Z_{i} X_{i} \vert Z_{i},X_{i}]$ |
+|--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+| /      | <>      |                               < |                           > |         | <                                      | >                                  |
+| 1      | 1 (B)   |                               0 |                           1 |       5 | (0)5                                   | (1)5                               |
+| 2      | 0 (A)   |                               1 |                           0 |       9 | (1)9                                   | (0)9                               |
+| 3      | 0 (A)   |                               1 |                           0 |       8 | (1)8                                   | (0)8                               |
+| 4      | 1 (B)   |                               0 |                           1 |       4 | (0)4                                   | (1)4                               |
+| 5      | 0 (A)   |                               1 |                           0 |       7 | (1)7                                   | (0)7                               |
+|--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+| Heads  |         |                                 |                             |         | 24                                     | 9                                  |
+| Tosses |         |                10 \times 3 = 30 |            10 \times 2 = 20 |         | 30                                     | 20                                 |
+| MLE    |         |                                 |                             |         | $\thetahat_{0} = 0.80$                 | $\thetahat_{1} = 0.45$             |
 
 
 * Experiment Setup (Incomplete Data)
-** Incomplete-Data
+** A Different Coin-Flipping Experiment
 - Two identical-looking coins with unknown head probabilities
 - Repeat 5 times
   1. You are randomly given either coin, but you do not know which.
   2. You toss 10 times, record the number of heads, and return the coin.
-| $i$ | $Z_{i}$ | $X_{i}$ |
-|-----+---------+---------|
-|   1 |       ? |       5 |
-|   2 |       ? |       9 |
-|   3 |       ? |       8 |
-|   4 |       ? |       4 |
-|   5 |       ? |       7 |
+| Index | Coin    |   Heads |
+|   $i$ | $Z_{i}$ | $X_{i}$ |
+|-------+---------+---------|
+|     1 | ?       |       5 |
+|     2 | ?       |       9 |
+|     3 | ?       |       8 |
+|     4 | ?       |       4 |
+|     5 | ?       |       7 |
+- Can we still estimate the two unknown head probabilities?
+
+** A Different Coin-Flipping Experiment (More Formal)
+- Two identical-looking coins with unknown head probabilities $(\theta_{0},\theta_{1})$ (index arbitrary)
+- For $i = 1, \dots, 5$
+  1. Draw /latent/ $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$
+  2. Draw $X_{i} | Z_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
+| Index | Coin    |   Heads |
+|   $i$ | $Z_{i}$ | $X_{i}$ |
+|-------+---------+---------|
+|     1 | ?       |       5 |
+|     2 | ?       |       9 |
+|     3 | ?       |       8 |
+|     4 | ?       |       4 |
+|     5 | ?       |       7 |
+
 
 * EM Algorithm
+** EM Algorithm to the Rescue
+- The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977
+
 ** Parameter Initialization
 - Randomly initialize the parameters
 - $\thetahat_{0} := 0.6$

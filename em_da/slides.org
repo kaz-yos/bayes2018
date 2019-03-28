@@ -162,11 +162,18 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 * EM Algorithm
 ** EM Algorithm to the Rescue
 - The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977
+- After random initialization of parameters, two steps alternates until convergence.
+- Steps repeated
+  1. E-Step:
+     - Estimate probabilities of latent states given current parameters
+     - Obtain expected sufficient statistics
+  2. M-Step:
+     - Obtain MLE of parameters given expected sufficient statistics
 
 ** Parameter Initialization
 - Randomly initialize the parameters
-- $\thetahat_{0} := 0.6$
-- $\thetahat_{1} := 0.5$
+  - $\thetahat_{0}^{(0)} := 0.6$
+  - $\thetahat_{1}^{(0)} := 0.5$
 
 ** E-Step 1
 - Calculate relative likelihood of coin identity given $\bthetahat^{(0)}$.

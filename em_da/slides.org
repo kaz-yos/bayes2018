@@ -373,6 +373,31 @@ em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
 #+END_SRC
 \normalsize
 
+** Iterative Version
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+em_iter <- function(theta, tolerance = 10^(-3)) {
+  thetas <- tibble(theta0 = theta[1], theta1 = theta[2])
+  theta_prev <- theta
+  theta_curr <- em_step(theta)$M
+  while (sqrt(sum((theta_curr - theta_prev)^2)) > tolerance) {
+    theta_prev <- theta_curr
+    thetas <- bind_rows(thetas, tibble(theta0 = theta_prev[1], theta1 = theta_prev[2]))
+    theta_curr <- em_step(theta_prev)$M
+  }
+  thetas <- bind_rows(thetas, tibble(theta0 = theta_curr[1], theta1 = theta_curr[2]))
+  return(thetas)
+}
+#+END_SRC
+\normalsize
+
+\newpage
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
+#+END_SRC
+\normalsize
+
 
 * Appendix
 \appendix

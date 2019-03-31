@@ -303,6 +303,7 @@ B / (A + B)
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
 - Current parameters: $\thetahat_{0}^{(1)} = 0.71, \thetahat_{1}^{(1)} = 0.58$
+- Calculate the probabilities again and update the expected tosses and heads.
 \footnotesize
 | Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
 |   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
@@ -421,7 +422,7 @@ em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
 #+END_SRC
 \normalsize
 
-** Initialization
+** Visual Representation of Iteration
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -435,7 +436,46 @@ em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
     :END:
 \scriptsize
 #+HEADER: :width 5 :height 5
-#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/em_figure.pdf :exports results
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/em_figure1.pdf :exports results
+crossing(init0 = 0.60,
+         init1 = 0.50) %>%
+  mutate(data = map2(init0, init1, function(init0, init1) {
+    em_iter(theta = c(init0, init1), tolerance = 10^(-3))
+  })) %>%
+  unnest() %>%
+  ggplot(mapping = aes(x = theta0, y = theta1,
+                       group = interaction(init0,init1))) +
+  geom_path(size = 1, arrow = arrow(angle = 15, ends = "last", type = "closed")) +
+  scale_x_continuous(limits = 0:1) +
+  scale_y_continuous(limits = 0:1) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5),
+        legend.key = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        strip.background = element_blank())
+#+END_SRC
+
+#+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
+#+RESULTS:
+[[file:./source/em_figure1.pdf]]
+\normalsize
+
+
+** Initialization and Label Switching
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Initialization point matters.
+- Need to break the symmetry
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/em_figure2.pdf :exports results
 init <- seq(from = 0.05, to = 0.95, by = 0.05)
 crossing(init0 = init,
          init1 = init) %>%
@@ -457,7 +497,7 @@ crossing(init0 = init,
 
 #+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
 #+RESULTS:
-[[file:./source/em_figure.pdf]]
+[[file:./source/em_figure2.pdf]]
 \normalsize
 
 

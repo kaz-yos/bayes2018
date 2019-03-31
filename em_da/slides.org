@@ -191,10 +191,11 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
 |   Sum |         | ?                         | ?                     |      33 | ?                                | ?                            |
 \normalsize
-- First we need coin probabilities for each $i$ given the current parameter values $\bthetahat^{(0)}$.
+- First, we need coin probabilities for each $i$ given the current parameter values $\bthetahat^{(0)}$.
+- We will focus on $E_{\bthetahat^{(0)}}[Z_{i} | X_{i} = x_{i}]$, the probability of Coin B given the number of heads observed and current parameters.
 
 \newpage
-- Probability of coin B given the number of heads observed and current parameters:
+- Probability of Coin B given the number of heads observed and current parameters:
 \footnotesize
 \begin{align*}
   E_{\bthetahat^{(0)}}[Z_{i} | X_{i} = x_{i}] &= P_{\bthetahat^{(0)}}[Z_{i} = 1 | X_{i} = x_{i}]\\
@@ -207,6 +208,24 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
   &= \frac{P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
           {P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 0] + P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
 \end{align*}
+\normalsize
+
+\newpage
+\footnotesize
+\begin{align*}
+  E_{\bthetahat^{(0)}}[Z_{i} | X_{i} = x_{i}]
+  &= \frac{P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
+          {P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 0] + P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
+\end{align*}
+\normalsize
+- $P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = z]$ is the probability mass (=dbinom=) of the observed $X_{i}$ assuming coin identity $z$ and current parameters.
+- Thus, this quantity, the probability of Coin B given the the observed $X_{i}$ and the current parameters, can be calculated as follows for the first row (5 heads).
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+A <- dbinom(x = 5, size = 10, prob = 0.60)
+B <- dbinom(x = 5, size = 10, prob = 0.50)
+B / (A + B)
+#+END_SRC
 \normalsize
 
 \newpage
@@ -256,6 +275,8 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
 |   Sum |         |                      2.99 |                  2.01 |         | 21.3                             | 11.7                         |
 \normalsize
+- In expectation, Coin A was chosen 2.99 times, resulting in 29.9 expected tosses, whereas Coin B was chosen 2.01 times, resulting in 20.1 expected tosses.
+- The observed heads are distributed across coins. The sums indicate 21.3 expected heads for Coin A and 11.7 expected heads for Coin B.
 
 ** M-Step (1)
    :PROPERTIES:
@@ -320,7 +341,6 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-- $P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = z]$ is the probability mass (=dbinom=) of observed $X_{i}$ assuming coin identity $z$ and current parameter values.
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
@@ -374,6 +394,9 @@ em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
 \normalsize
 
 ** Iterative Version
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 em_iter <- function(theta, tolerance = 10^(-3)) {

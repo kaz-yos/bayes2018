@@ -113,20 +113,18 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 - If we observe both the coin identity $Z_{i}$ and heads $X_{i}$, the MLE is the total heads / total tosses for each coin.
 - Here we introduce a very redundant expanded table for later reuse.
 \footnotesize
-| Index  | Coin    |                    Prob. Coin A |                Prob. Coin B |   Heads | Heads for Coin A                       | Heads for Coin B                   |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert Z_{i},X_{i}]$ | $E[Z_{i}\vert Z_{i},X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert Z_{i},X_{i}]$ | $E[Z_{i} X_{i} \vert Z_{i},X_{i}]$ |
-|--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
-| /      | <>      |                               < |                           > |         | <                                      | >                                  |
-| 1      | 1 (B)   |                               0 |                           1 |       5 | 0 \times 5                             | 1 \times 5                         |
-| 2      | 0 (A)   |                               1 |                           0 |       9 | 1 \times 9                             | 0 \times 9                         |
-| 3      | 0 (A)   |                               1 |                           0 |       8 | 1 \times 8                             | 0 \times 8                         |
-| 4      | 1 (B)   |                               0 |                           1 |       4 | 0 \times 4                             | 1 \times 4                         |
-| 5      | 0 (A)   |                               1 |                           0 |       7 | 1 \times 7                             | 0 \times 7                         |
-|--------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
-| Heads  |         |                                 |                             |         | 24                                     | 9                                  |
-| Tosses |         |                10 \times 3 = 30 |            10 \times 2 = 20 |         | 30                                     | 20                                 |
-| MLE    |         |                                 |                             |         | $\thetahat_{0} = 0.80$                 | $\thetahat_{1} = 0.45$             |
-
+| Index | Coin    |                    Prob. Coin A |                Prob. Coin B |   Heads | Heads Coin A                           | Heads Coin B                       |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert Z_{i},X_{i}]$ | $E[Z_{i}\vert Z_{i},X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert Z_{i},X_{i}]$ | $E[Z_{i} X_{i} \vert Z_{i},X_{i}]$ |
+|-------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+|     / | <>      |                               < |                           > |         | <                                      | >                                  |
+|     1 | 1 (B)   |                               0 |                           1 |       5 | 0 \times 5                             | 1 \times 5                         |
+|     2 | 0 (A)   |                               1 |                           0 |       9 | 1 \times 9                             | 0 \times 9                         |
+|     3 | 0 (A)   |                               1 |                           0 |       8 | 1 \times 8                             | 0 \times 8                         |
+|     4 | 1 (B)   |                               0 |                           1 |       4 | 0 \times 4                             | 1 \times 4                         |
+|     5 | 0 (A)   |                               1 |                           0 |       7 | 1 \times 7                             | 0 \times 7                         |
+|-------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+|   Sum |         |                               3 |                           2 |      33 | 24                                     | 9                                  |
+- MLE: $\thetahat_{0} = 24 / (3 \times 10) = 0.80$; $\thetahat_{1} = 9 / (2 \times 10) = 0.45$
 
 * Experiment Setup (Incomplete Data)
 ** A Contrived Coin-Flipping Experiment
@@ -181,24 +179,22 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
    :END:
 - Current parameters: $\thetahat_{0}^{(0)} = 0.6, \thetahat_{1}^{(0)} = 0.5$
 \footnotesize
-| Index  | Coin    | Prob. Coin A              | Prob. Coin B          |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      | <                         | >                     |         | <                                | >                            |
-| 1      | ?       | ?                         | ?                     |       5 | ? \times 5                       | ? \times 5                   |
-| 2      | ?       | ?                         | ?                     |       9 | ? \times 9                       | ? \times 9                   |
-| 3      | ?       | ?                         | ?                     |       8 | ? \times 8                       | ? \times 8                   |
-| 4      | ?       | ?                         | ?                     |       4 | ? \times 4                       | ? \times 4                   |
-| 5      | ?       | ?                         | ?                     |       7 | ? \times 7                       | ? \times 7                   |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | ?                                | ?                            |
-| Tosses |         | 10 \times ? = 30          | 10 \times ? = 20      |         | ?                                | ?                            |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
+| Index | Coin    | Prob. Coin A              | Prob. Coin B          |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      | <                         | >                     |         | <                                | >                            |
+|     1 | ?       | ?                         | ?                     |       5 | ? \times 5                       | ? \times 5                   |
+|     2 | ?       | ?                         | ?                     |       9 | ? \times 9                       | ? \times 9                   |
+|     3 | ?       | ?                         | ?                     |       8 | ? \times 8                       | ? \times 8                   |
+|     4 | ?       | ?                         | ?                     |       4 | ? \times 4                       | ? \times 4                   |
+|     5 | ?       | ?                         | ?                     |       7 | ? \times 7                       | ? \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         | ?                         | ?                     |      33 | ?                                | ?                            |
 \normalsize
 - First we need coin probabilities for each $i$ given the current parameter values $\bthetahat^{(0)}$.
 
 \newpage
-- Since they are complements, we only need the probability of coin B given the number of heads observed and current parameter values.
+- Probability of coin B given the number of heads observed and current parameters:
 \footnotesize
 \begin{align*}
   E_{\bthetahat^{(0)}}[Z_{i} | X_{i} = x_{i}] &= P_{\bthetahat^{(0)}}[Z_{i} = 1 | X_{i} = x_{i}]\\
@@ -209,16 +205,125 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
   &= \frac{P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1] (0.5)}
           {\sum\limits^{1}_{z=0} P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = z] (0.5)}\\
   &= \frac{P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
-          {P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 0] + P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}\\
+          {P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 0] + P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = 1]}
 \end{align*}
 \normalsize
 
 \newpage
+- Now we have the probabilities of coin identities.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
+|     2 | ?       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
+|     3 | ?       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
+|     4 | ?       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
+|     5 | ?       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.99 |                  2.01 |         | ?                                | ?                            |
+\normalsize
+
+\newpage
+- Now we weight the contribution of sufficient statistics accordingly.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
+|     2 | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
+|     3 | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
+|     4 | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
+|     5 | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.99 |                  2.01 |         | ?                                | ?                            |
+\normalsize
+
+\newpage
+- Calculate the expected heads and consider expected tosses.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
+|     2 | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
+|     3 | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
+|     4 | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
+|     5 | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.99 |                  2.01 |         | 21.3                             | 11.7                         |
+\normalsize
+
+** M-Step (1)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Now using the current expected heads and tosses for each coin, recalculate the MLE.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
+|     2 | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
+|     3 | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
+|     4 | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
+|     5 | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.99 |                  2.01 |         | 21.3                             | 11.7                         |
+\normalsize
+- MLE: $\thetahat_{0}^{(1)} = 21.3 / (2.99 \times 10) = 0.71$; $\thetahat_{1}^{(1)} = 11.7 / (2.01 \times 10) = 0.58$
+
+** E-Step (2)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Current parameters: $\thetahat_{0}^{(1)} = 0.71, \thetahat_{1}^{(1)} = 0.58$
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.30 |                  0.70 |       5 | 0.30 \times 5                    | 0.70 \times 5                |
+|     2 | ?       |                      0.81 |                  0.19 |       9 | 0.81 \times 9                    | 0.19 \times 9                |
+|     3 | ?       |                      0.71 |                  0.29 |       8 | 0.71 \times 8                    | 0.29 \times 8                |
+|     4 | ?       |                      0.19 |                  0.81 |       4 | 0.19 \times 4                    | 0.81 \times 4                |
+|     5 | ?       |                      0.57 |                  0.43 |       7 | 0.57 \times 7                    | 0.43 \times 7                |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.58 |                  2.42 |      33 | 19.21                            | 13.79                        |
+\normalsize
+
+** M-Step (2)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Now using the current expected heads and tosses for each coin, recalculate the MLE.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.30 |                  0.70 |       5 | 0.30 \times 5                    | 0.70 \times 5                |
+|     2 | ?       |                      0.81 |                  0.19 |       9 | 0.81 \times 9                    | 0.19 \times 9                |
+|     3 | ?       |                      0.71 |                  0.29 |       8 | 0.71 \times 8                    | 0.29 \times 8                |
+|     4 | ?       |                      0.19 |                  0.81 |       4 | 0.19 \times 4                    | 0.81 \times 4                |
+|     5 | ?       |                      0.57 |                  0.43 |       7 | 0.57 \times 7                    | 0.43 \times 7                |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                      2.58 |                  2.42 |      33 | 19.21                            | 13.79                        |
+\normalsize
+- MLE: $\thetahat_{0}^{(2)} = 19.21 / (2.58 \times 10) = 0.75$; $\thetahat_{1}^{(2)} = 13.79 / (2.42 \times 10) = 0.57$
+
+** Automated Version
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
 - $P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = z]$ is the probability mass (=dbinom=) of observed $X_{i}$ assuming coin identity $z$ and current parameter values.
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-suppressMessages(library(tidyverse))
-options(crayon.enabled = FALSE)
+suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
 rel_dbinom <- function(X, theta) {
   p_X_Z0 <- dbinom(x = X, size = 10, prob = theta[1])
   p_X_Z1 <- dbinom(x = X, size = 10, prob = theta[2])
@@ -241,187 +346,31 @@ em_step <- function(theta) {
   M <- as.numeric(colSums(exp_head) / (colSums(exp_choice) * 10))
   list(E = E, M = M)
 }
+#+END_SRC
+\normalsize
+
+** EM Step 1
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
 em_step(theta = c(0.6, 0.5))
 #+END_SRC
 \normalsize
 
-\newpage
-- Now we have the probabilities of coin identities.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | ?                                | ?                            |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | ?                                | ?                            |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-\normalsize
-
-\newpage
-- Now we weight the contribution of sufficient statistics accordingly.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | ?                                | ?                            |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | ?                                | ?                            |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-\normalsize
-
+** EM Step 2
 \scriptsize
-#+BEGIN_SRC R :session *R-org* :results output latex :exports both
-sweep(p_Z_X, MARGIN = 1, c(5,9,8,4,7), FUN = "*") %>%
-  colSums() %>% round(2)
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
+  em_step()
 #+END_SRC
 \normalsize
 
-\newpage
-- Calculate the expected heads and consider expected tosses.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | 21.3                             | 11.7                         |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | 29.9                             | 20.1                         |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-\normalsize
-
-** M-Step (1)
-   :PROPERTIES:
-   :BEAMER_opt: allowframebreaks,label=,t
-   :END:
-- Now using the current expected heads and tosses for each coin, recalculate the MLE.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | 21.3                             | 11.7                         |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | 29.9                             | 20.1                         |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = 0.71$           | $\thetahat_{1} = 0.58$       |
-\normalsize
-
-** E-Step (2)
-   :PROPERTIES:
-   :BEAMER_opt: allowframebreaks,label=,t
-   :END:
-- Current parameters: $\thetahat_{0}^{(1)} = 0.71, \thetahat_{1}^{(1)} = 0.58$
-\footnotesize
-| Index  | Coin    | Prob. Coin A              | Prob. Coin B          |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      | <                         | >                     |         | <                                | >                            |
-| 1      | ?       | ?                         | ?                     |       5 | ? \times 5                       | ? \times 5                   |
-| 2      | ?       | ?                         | ?                     |       9 | ? \times 9                       | ? \times 9                   |
-| 3      | ?       | ?                         | ?                     |       8 | ? \times 8                       | ? \times 8                   |
-| 4      | ?       | ?                         | ?                     |       4 | ? \times 4                       | ? \times 4                   |
-| 5      | ?       | ?                         | ?                     |       7 | ? \times 7                       | ? \times 7                   |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | ?                                | ?                            |
-| Tosses |         | 10 \times ? = 30          | 10 \times ? = 20      |         | ?                                | ?                            |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-
-\newpage
-- $P_{\bthetahat^{(0)}}[X_{i} = x_{i} | Z_{i} = z]$ is the probability mass (=dbinom=) of observed $X_{i}$ assuming coin identity $z$ and current parameter values.
+** EM Step 3
 \scriptsize
-#+BEGIN_SRC R :session *R-org* :results output latex :exports both
-p_Z_X <- bind_rows(rel_dbinom(5, 0.71, 0.58),
-                   rel_dbinom(9, 0.71, 0.58),
-                   rel_dbinom(8, 0.71, 0.58),
-                   rel_dbinom(4, 0.71, 0.58),
-                   rel_dbinom(7, 0.71, 0.58))
-xtable::xtable(p_Z_X)
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
+  em_step() %>% magrittr::extract2("M") %>%
+  em_step()
 #+END_SRC
-\normalsize
-
-\newpage
-- Now we weight the contribution of sufficient statistics accordingly.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.30 |                  0.70 |       5 | 0.30 \times 5                    | 0.70 \times 5                |
-| 2      | ?       |                      0.81 |                  0.19 |       9 | 0.81 \times 9                    | 0.19 \times 9                |
-| 3      | ?       |                      0.71 |                  0.29 |       8 | 0.71 \times 8                    | 0.29 \times 8                |
-| 4      | ?       |                      0.20 |                  0.80 |       4 | 0.20 \times 4                    | 0.80 \times 4                |
-| 5      | ?       |                      0.58 |                  0.42 |       7 | 0.58 \times 7                    | 0.42 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | ?                                | ?                            |
-| Tosses |         |     10 \times 2.59 = 25.9 | 10 \times 2.41 = 24.1 |         | 25.9                             | 24.1                         |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-\normalsize
-
-\scriptsize
-#+BEGIN_SRC R :session *R-org* :results output latex :exports both
-sweep(p_Z_X, MARGIN = 1, c(5,9,8,4,7), FUN = "*") %>%
-  colSums() %>% round(2)
-#+END_SRC
-\normalsize
-
-\newpage
-- Calculate the expected heads and consider expected tosses.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | 21.3                             | 11.7                         |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | 29.9                             | 20.1                         |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = ?$              | $\thetahat_{1} = ?$          |
-\normalsize
-
-** M-Step (2)
-   :PROPERTIES:
-   :BEAMER_opt: allowframebreaks,label=,t
-   :END:
-- Now using the current expected heads and tosses for each coin, recalculate the MLE.
-\footnotesize
-| Index  | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads for Coin A                 | Heads for Coin B             |
-| $i$    | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| /      | <>      |                         < |                     > |         | <                                | >                            |
-| 1      | ?       |                      0.45 |                  0.55 |       5 | 0.45 \times 5                    | 0.55 \times 5                |
-| 2      | ?       |                      0.80 |                  0.20 |       9 | 0.80 \times 9                    | 0.20 \times 9                |
-| 3      | ?       |                      0.73 |                  0.27 |       8 | 0.73 \times 8                    | 0.27 \times 8                |
-| 4      | ?       |                      0.35 |                  0.65 |       4 | 0.35 \times 4                    | 0.65 \times 4                |
-| 5      | ?       |                      0.65 |                  0.35 |       7 | 0.65 \times 7                    | 0.35 \times 7                |
-|--------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
-| Heads  |         |                           |                       |         | 21.3                             | 11.7                         |
-| Tosses |         |     10 \times 2.99 = 29.9 | 10 \times 2.01 = 20.1 |         | 29.9                             | 20.1                         |
-| MLE    |         |                           |                       |         | $\thetahat_{0} = 0.71$           | $\thetahat_{1} = 0.58$       |
 \normalsize
 
 

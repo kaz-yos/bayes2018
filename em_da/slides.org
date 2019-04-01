@@ -66,6 +66,17 @@
   #+LATEX_HEADER: %% Include convenient commands.
   #+LATEX_HEADER: \input{\string~/.emacs.d/misc/GrandMacros}
 
+* Opening
+** Personal Background
+- 2005 /Igakushi/ degree (\approx MD) in Japan.
+- -2012 Trained clinically as a rheumatologist/internist.
+- 2014 Master of Public Health (MPH) at Harvard T.H. Chan School of Public Health and research fellowship at Brigham and Women's Hospital.
+
+
+- 9/2018 Doctor of Science (ScD) in Epidemiology and Biostatistics (Committee: Drs. Sonia Hernandez-Diaz, Robert J Glynn, Daniel H Solomon, Sebastien Haneuse) at \includegraphics[height=0.7cm]{./source/HarvardChan_logo_hrz_alt_RGB_Large.png}
+- 11/2018- Associate Epidemiologist/Instructor in Medicine at \includegraphics[height=0.7cm]{./source/bwh.png}
+
+
 * Introduction
 ** Article Covered
 - Do and Batzoglou. "What is the expectation maximization algorith?" Nat. Biotechnol. 2008;26:897. cite:doWhatExpectationMaximization2008

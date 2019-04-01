@@ -511,6 +511,37 @@ crossing(init0 = init,
 [[file:./source/em_figure2.pdf]]
 \normalsize
 
+* DA Method
+** From EM to DA
+- A related Bayesian computation method is the /Data Augmentation/ method. cite:schaferAnalysisIncompleteMultivariate1999
+- We will examine its similarities to and differences from the EM algorithm.
+
+** Model Configuration
+- To set up a Bayesian computation, we need probability models for the data (likelihood) as well as the parameters (prior).
+- Likelihood
+\begin{align*}
+  Z_{i} &\sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}\\
+  X_{i} | Z_{i}, \btheta &\sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}
+\end{align*}
+- Prior
+\begin{align*}
+  \theta_{0} &\sim \text{Beta}(a_{0},b_{0})\\
+  \theta_{1} &\sim \text{Beta}(a_{1},b_{1})
+\end{align*}
+
+** Posterior
+- We are interested in the posterior distribution of the parameters given the observed data.
+- Posterior
+\begin{align*}
+  p(\btheta | \bX) &= \sum_{\bz} p(\btheta, \bz | \bX)\\
+  &\propto \sum_{\bz} p(\btheta, \bz, \bX)\\
+  &= \sum_{\bz} p(\bX | \bz, \btheta) p(\bz) p(\btheta)\\
+  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) p(z)\\
+  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) (0.5)\\
+  &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta)\\
+\end{align*}
+
+
 
 * Appendix
 \appendix

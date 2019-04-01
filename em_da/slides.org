@@ -530,17 +530,28 @@ crossing(init0 = init,
 \end{align*}
 
 ** Posterior
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
 - We are interested in the posterior distribution of the parameters given the observed data.
 - Posterior
 \begin{align*}
-  p(\btheta | \bX) &= \sum_{\bz} p(\btheta, \bz | \bX)\\
+  p(\btheta | \bX)
+  &= \sum_{\bz} p(\btheta, \bz | \bX)\\
+  &= \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} p(\btheta, z_{1},\dots,z_{5} | \bX_{1},\dots,\bX_{5})\\
+  &\propto \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} p(\btheta, z_{1},\dots,z_{5}, \bX_{1},\dots,\bX_{5})\\
+  &= \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} \prod^{5}_{i=1}p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
+  % https://math.stackexchange.com/questions/705945/how-to-interchange-a-sum-and-a-product
+  &= \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
+  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i})\\
+  \\
+  &\text{old}\\
   &\propto \sum_{\bz} p(\btheta, \bz, \bX)\\
   &= \sum_{\bz} p(\bX | \bz, \btheta) p(\bz) p(\btheta)\\
   &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) p(z)\\
   &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) (0.5)\\
   &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta)\\
 \end{align*}
-
 
 
 * Appendix

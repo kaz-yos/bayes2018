@@ -550,6 +550,180 @@ crossing(init0 = init,
   \theta_{0} &\sim \text{Beta}(a_{0},b_{0})\\
   \theta_{1} &\sim \text{Beta}(a_{1},b_{1})
 \end{align*}
+- Here we will consider uniform priors ($a_{j} = b_{j} = 1, j = 0,1$).
+
+** Parameter Initialization
+- Randomly initialize the parameters
+  - $\theta_{0}^{(0)} := 0.6$
+  - $\theta_{1}^{(0)} := 0.5$
+
+** I-Step (1)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Current parameters: $\thetahat_{0}^{(0)} = 0.6, \thetahat_{1}^{(0)} = 0.5$
+\footnotesize
+| Index | Coin    | Prob. Coin A              | Prob. Coin B          |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      | <                         | >                     |         | <                                | >                            |
+|     1 | ?       | ?                         | ?                     |       5 | ? \times 5                       | ? \times 5                   |
+|     2 | ?       | ?                         | ?                     |       9 | ? \times 9                       | ? \times 9                   |
+|     3 | ?       | ?                         | ?                     |       8 | ? \times 8                       | ? \times 8                   |
+|     4 | ?       | ?                         | ?                     |       4 | ? \times 4                       | ? \times 4                   |
+|     5 | ?       | ?                         | ?                     |       7 | ? \times 7                       | ? \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |      33 | ?                                | ?                            |
+\normalsize
+- First, we need coin probabilities for each $i$ given the current parameter values $\bthetahat^{(0)}$.
+- This calculation is the same as the EM algorithm.
+
+\newpage
+- Now we have the probabilities of coin identities.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | ?       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
+|     2 | ?       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
+|     3 | ?       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
+|     4 | ?       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
+|     5 | ?       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |      33 | ?                                | ?                            |
+\normalsize
+- We will now draw $Z_{i}^{(1)}$.
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+set.seed(737265171)
+rbinom(n = 5, size = 1, prob = c(0.55, 0.20, 0.27, 0.65, 0.35))
+#+END_SRC
+\normalsize
+
+\newpage
+- We have imputed the latent coin identities.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | 0       |                      0.45 |                  0.55 |       5 | ? \times 5                       | ? \times 5                   |
+|     2 | 0       |                      0.80 |                  0.20 |       9 | ? \times 9                       | ? \times 9                   |
+|     3 | 0       |                      0.73 |                  0.27 |       8 | ? \times 8                       | ? \times 8                   |
+|     4 | 1       |                      0.35 |                  0.65 |       4 | ? \times 4                       | ? \times 4                   |
+|     5 | 0       |                      0.65 |                  0.35 |       7 | ? \times 7                       | ? \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |      33 | ?                                | ?                            |
+\normalsize
+- We will proceed assuming these imputed latent coin identities.
+
+\newpage
+- We have imputed the latent coin identities.
+\footnotesize
+| Index |    Coin |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / |      <> |                         < |                     > |         | <                                | >                            |
+|     1 |       0 |                      0.45 |                  0.55 |       5 | 1 \times 5                       | 0 \times 5                   |
+|     2 |       0 |                      0.80 |                  0.20 |       9 | 1 \times 9                       | 0 \times 9                   |
+|     3 |       0 |                      0.73 |                  0.27 |       8 | 1 \times 8                       | 0 \times 8                   |
+|     4 |       1 |                      0.35 |                  0.65 |       4 | 0 \times 4                       | 1 \times 4                   |
+|     5 |       0 |                      0.65 |                  0.35 |       7 | 1 \times 7                       | 0 \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |      33 | 29                               | 4                            |
+\normalsize
+- We will proceed assuming these imputed latent coin identities.
+
+
+** P-Step (1)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Now using the complete data on $(\bZ,\bX)$, construct a posterior $p(\btheta | \bZ, \bX)$.
+\footnotesize
+| Index | Coin    |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / | <>      |                         < |                     > |         | <                                | >                            |
+|     1 | 0       |                      0.45 |                  0.55 |       5 | 1 \times 5                       | 0 \times 5                   |
+|     2 | 0       |                      0.80 |                  0.20 |       9 | 1 \times 9                       | 0 \times 9                   |
+|     3 | 0       |                      0.73 |                  0.27 |       8 | 1 \times 8                       | 0 \times 8                   |
+|     4 | 1       |                      0.35 |                  0.65 |       4 | 0 \times 4                       | 1 \times 4                   |
+|     5 | 0       |                      0.65 |                  0.35 |       7 | 1 \times 7                       | 0 \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |         | 29                               | 4                            |
+\normalsize
+- Using imputed coin identities, we have 29 head and 11 tails (40 tosses) for Coin A and 4 heads and 6 tails (10 tosses) for Coin B.
+
+\newpage
+- By conjugacy, we can updated the beta distributions as follows.
+\begin{align*}
+  \theta_{0} &\sim \text{Beta}(1 + 29, 1 + 11)\\
+  \theta_{1} &\sim \text{Beta}(1 + 4, 1 + 6)
+\end{align*}
+- Draw updated values.
+\scriptsize
+#+HEADER: :width 3.5 :height 3
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+tibble(thetas = c(rbeta(n = 1, shape1 = 1+29, shape2 = 1+11),
+                  rbeta(n = 1, shape1 = 1+4, shape2 = 1+6)))
+#+END_SRC
+\normalsize
+
+\newpage
+- We now have updated parameter draws.
+  - $\thetahat_{0}^{(1)} := 0.760$
+  - $\thetahat_{1}^{(1)} := 0.471$
+
+** I-Step (2)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- Current parameters: $\thetahat_{0}^{(1)} = 0.760, \thetahat_{1}^{(1)} = 0.471$
+- Calculate the probabilities again and impute the latent states.
+\footnotesize
+| Index |    Coin |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|     / |      <> |                         < |                     > |         | <                                | >                            |
+|     1 |       1 |                      0.17 |                  0.83 |       5 | 0 \times 5                       | 1 \times 5                   |
+|     2 |       0 |                      0.97 |                  0.03 |       9 | 1 \times 9                       | 0 \times 9                   |
+|     3 |       0 |                      0.90 |                  0.10 |       8 | 1 \times 8                       | 0 \times 8                   |
+|     4 |       1 |                      0.06 |                  0.94 |       4 | 0 \times 4                       | 1 \times 4                   |
+|     5 |       0 |                      0.73 |                  0.27 |       7 | 1 \times 7                       | 0 \times 7                   |
+|-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
+|   Sum |         |                           |                       |      33 | 24                               | 9                            |
+\normalsize
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+set.seed(737265171)
+rbinom(n = 5, size = 1, prob = c(0.83, 0.03, 0.10, 0.94, 0.27))
+#+END_SRC
+\normalsize
+\newpage
+- Using imputed coin identities, we have 24 head and 6 tails (30 tosses) for Coin A and 9 heads and 11 tail (20 tosses) for Coin B.
+
+** P-Step (2)
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- We have 24 head and 6 tails (30 tosses) for Coin A and 9 heads and 11 tail (20 tosses) for Coin B.
+- The posterior distributions are:
+\begin{align*}
+  \theta_{0} &\sim \text{Beta}(1 + 24, 1 + 6)\\
+  \theta_{1} &\sim \text{Beta}(1 + 9, 1 + 11)
+\end{align*}
+- Draw updated values.
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+tibble(thetas = c(rbeta(n = 1, shape1 = 1+24, shape2 = 1+6),
+                  rbeta(n = 1, shape1 = 1+9, shape2 = 1+11)))
+#+END_SRC
+\normalsize
+- We now have updated parameter draws.
+  - $\thetahat_{0}^{(2)} := 0.828$
+  - $\thetahat_{1}^{(2)} := 0.495$
 
 ** Posterior
    :PROPERTIES:

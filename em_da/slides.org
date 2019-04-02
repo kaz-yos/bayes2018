@@ -169,6 +169,14 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 
 
 * EM Algorithm
+** Title EM
+   :PROPERTIES:
+   :BEAMER_ENV: fullframe
+   :END:
+#+BEGIN_CENTER
+\resizebox{\linewidth}{!}{Expectation-Maximization Algorithm}
+#+END_CENTER
+
 ** EM Algorithm to the Rescue
 - The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977
 - After random initialization of parameters, two steps alternates until convergence.
@@ -512,6 +520,14 @@ crossing(init0 = init,
 \normalsize
 
 * DA Method
+** Title DA
+   :PROPERTIES:
+   :BEAMER_ENV: fullframe
+   :END:
+#+BEGIN_CENTER
+\resizebox{\linewidth}{!}{Data Augmentation Method}
+#+END_CENTER
+
 ** From EM to DA
 - A related Bayesian computation method is the /Data Augmentation/ method. cite:schaferAnalysisIncompleteMultivariate1999
 - We will examine its similarities to and differences from the EM algorithm.

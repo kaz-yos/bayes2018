@@ -179,7 +179,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 
 ** EM Algorithm to the Rescue
 - The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977
-- After random initialization of parameters, two steps alternates until convergence.
+- After random initialization of parameters, two steps alternates until convergence to an MLE.
 - Steps repeated
   1. E-Step:
      - Estimate probabilities of latent states given current parameters
@@ -529,8 +529,14 @@ crossing(init0 = init,
 #+END_CENTER
 
 ** From EM to DA
-- A related Bayesian computation method is the /Data Augmentation/ method. cite:schaferAnalysisIncompleteMultivariate1999
-- We will examine its similarities to and differences from the EM algorithm.
+- A related Bayesian computation method is the /Data Augmentation/ method. cite:tannerCalculationPosteriorDistributions1987
+- After random initialization of parameters, two steps alternates until convergence to a posterior distribution.
+- Steps repeated
+  1. Imputation (I) Step:
+     - Estimate probabilities of latent states given current parameters
+     - Draw a latent state
+  2. Posterior (P) Step:
+     - Draw new parameters given data and latent state
 
 ** Model Configuration
 - To set up a Bayesian computation, we need probability models for the data (likelihood) as well as the parameters (prior).

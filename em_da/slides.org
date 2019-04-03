@@ -790,8 +790,7 @@ ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Initialization point matters.
-- Need to break the symmetry
+- Bimodal joint posterior
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -800,14 +799,9 @@ ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
 \scriptsize
 #+HEADER: :width 5 :height 5
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure1.pdf :exports results
-crossing(init0 = 0.60,
-         init1 = 0.50) %>%
-  mutate(data = map2(init0, init1, function(init0, init1) {
-    ip_iter(theta = c(init0, init1), a = c(1,1), b = c(1, 1), iter = 10^4)
-  })) %>%
-  unnest() %>%
-  ggplot(mapping = aes(x = theta0, y = theta1,
-                       group = interaction(init0,init1))) +
+ip_data <- ip_iter(theta = c(0.6, 0.5), a = c(1,1), b = c(1, 1), iter = 10^4)
+ip_data %>%
+  ggplot(mapping = aes(x = theta0, y = theta1)) +
   geom_point(size = 1, alpha = 0.5) +
   scale_x_continuous(limits = 0:1) +
   scale_y_continuous(limits = 0:1) +
@@ -821,6 +815,28 @@ crossing(init0 = 0.60,
 #+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
 #+RESULTS:
 [[file:./source/em_figure1.pdf]]
+\normalsize
+
+** Visual Representation of Iteration
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Bimodal joint posterior
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure2.pdf :exports results
+persp(MASS::kde2d(ip_data$theta0, ip_data$theta1, n = 50))
+#+END_SRC
+
+#+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
+#+RESULTS:
+[[file:./source/em_figure2.pdf]]
 \normalsize
 
 

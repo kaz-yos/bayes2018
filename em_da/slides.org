@@ -741,6 +741,42 @@ tibble(thetas = c(rbeta(n = 1, shape1 = 1+24, shape2 = 1+6),
 
 - In the limit, the draws for the missing data (I-Step) and the parameters (P-Step) are from the joint posterior distribution of the missing data and the parameters. cite:littleStatisticalAnalysisMissing2002
 
+** Automated Version
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports both
+ip_step <- function(theta, a, b) {
+  X <- c(5,9,8,4,7)
+  imp_coin <- bind_rows(rel_dbinom(X[1], theta),
+                        rel_dbinom(X[2], theta),
+                        rel_dbinom(X[3], theta),
+                        rel_dbinom(X[4], theta),
+                        rel_dbinom(X[5], theta)) %>%
+    mutate(Coin = rbinom(n = 5, size = 1,
+                         prob = `Prob. Coin B`),
+           X = X,
+           `Heads Coin A` = X * (1 - Coin),
+           `Heads Coin B` = X * Coin) %>%
+    select(Coin, `Prob. Coin A`, `Prob. Coin B`,
+           X, `Heads Coin A`, `Heads Coin B`)
+  imp_coin <- bind_cols(tibble(Index = c(as.character(1:5), "Sum")),
+                        bind_rows(imp_coin, colSums(imp_coin)))
+
+  Heads_A <- imp_coin$`Heads Coin A`[6]
+  Tails_A <- (5 - imp_coin$Coin[6]) * 10 - Heads_A
+  Heads_B <- imp_coin$`Heads Coin B`[6]
+  Tails_B <- imp_coin$Coin[6] * 10 - Heads_B
+  theta_post_draws <- c(rbeta(n = 1, shape1 = a[1] + Tails_A, shape2 = b[1] + Heads_A),
+                        rbeta(n = 1, shape1 = a[1] + Tails_B, shape2 = b[2] + Tails_B))
+
+  list(I = imp_coin, P = theta_post_draws)
+}
+#+END_SRC
+\normalsize
+
+
 ** Posterior Old
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t

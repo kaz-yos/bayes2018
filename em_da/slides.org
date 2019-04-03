@@ -768,8 +768,8 @@ ip_step <- function(theta, a, b) {
   Tails_A <- (5 - imp_coin$Coin[6]) * 10 - Heads_A
   Heads_B <- imp_coin$`Heads Coin B`[6]
   Tails_B <- imp_coin$Coin[6] * 10 - Heads_B
-  theta_post_draws <- c(rbeta(n = 1, shape1 = a[1] + Tails_A, shape2 = b[1] + Heads_A),
-                        rbeta(n = 1, shape1 = a[1] + Tails_B, shape2 = b[2] + Tails_B))
+  theta_post_draws <- c(rbeta(n = 1, shape1 = a[1] + Heads_A, shape2 = b[1] + Tails_A),
+                        rbeta(n = 1, shape1 = a[1] + Heads_B, shape2 = b[2] + Tails_B))
 
   list(I = imp_coin, P = theta_post_draws)
 }

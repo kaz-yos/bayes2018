@@ -775,19 +775,56 @@ ip_step <- function(theta, a, b) {
 }
 
 ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
-  thetas <- tibble(theta0 = theta[1], theta1 = theta[2])
-  theta_prev <- theta
-  theta_curr <- ip_step(theta, a, b)$P
+  thetas <- data.frame(theta0 = c(theta[1], rep(as.numeric(NA), iter)),
+                       theta1 = c(theta[2], rep(as.numeric(NA), iter)))
   for (i in seq_len(iter)) {
-    theta_prev <- theta_curr
-    thetas <- bind_rows(thetas, tibble(theta0 = theta_prev[1], theta1 = theta_prev[2]))
-    theta_curr <- ip_step(theta_prev, a, b)$P
+    thetas[i+1,] <- ip_step(as.numeric(thetas[i,]), a, b)$P
   }
-  thetas <- bind_rows(thetas, tibble(theta0 = theta_curr[1], theta1 = theta_curr[2]))
-  return(thetas)
+  return(as.tibble(thetas))
 }
 #+END_SRC
 \normalsize
+
+** Visual Representation of Iteration
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Initialization point matters.
+- Need to break the symmetry
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure1.pdf :exports results
+crossing(init0 = 0.60,
+         init1 = 0.50) %>%
+  mutate(data = map2(init0, init1, function(init0, init1) {
+    ip_iter(theta = c(init0, init1), a = c(1,1), b = c(1, 1), iter = 10^2)
+  })) %>%
+  unnest() %>%
+  ggplot(mapping = aes(x = theta0, y = theta1,
+                       group = interaction(init0,init1))) +
+  geom_point(size = 1, alpha = 0.1,
+            arrow = arrow(angle = 15, ends = "last", type = "closed")) +
+  scale_x_continuous(limits = 0:1) +
+  scale_y_continuous(limits = 0:1) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5),
+        legend.key = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        strip.background = element_blank())
+#+END_SRC
+
+#+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
+#+RESULTS:
+[[file:./source/em_figure1.pdf]]
+\normalsize
+
+
 
 
 ** Posterior Old

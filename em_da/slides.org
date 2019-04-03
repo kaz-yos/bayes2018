@@ -803,7 +803,7 @@ ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
 crossing(init0 = 0.60,
          init1 = 0.50) %>%
   mutate(data = map2(init0, init1, function(init0, init1) {
-    ip_iter(theta = c(init0, init1), a = c(1,1), b = c(1, 1), iter = 10^2)
+    ip_iter(theta = c(init0, init1), a = c(1,1), b = c(1, 1), iter = 10^3)
   })) %>%
   unnest() %>%
   ggplot(mapping = aes(x = theta0, y = theta1,

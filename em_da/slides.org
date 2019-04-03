@@ -773,6 +773,19 @@ ip_step <- function(theta, a, b) {
 
   list(I = imp_coin, P = theta_post_draws)
 }
+
+ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
+  thetas <- tibble(theta0 = theta[1], theta1 = theta[2])
+  theta_prev <- theta
+  theta_curr <- ip_step(theta, a, b)$P
+  for (i in seq_len(iter)) {
+    theta_prev <- theta_curr
+    thetas <- bind_rows(thetas, tibble(theta0 = theta_prev[1], theta1 = theta_prev[2]))
+    theta_curr <- ip_step(theta_prev, a, b)$P
+  }
+  thetas <- bind_rows(thetas, tibble(theta0 = theta_curr[1], theta1 = theta_curr[2]))
+  return(thetas)
+}
 #+END_SRC
 \normalsize
 

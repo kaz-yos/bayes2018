@@ -831,7 +831,10 @@ ip_data %>%
 \scriptsize
 #+HEADER: :width 5 :height 5
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure2.pdf :exports results
-persp(MASS::kde2d(ip_data$theta0, ip_data$theta1, n = 50))
+with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
+     persp(MASS::kde2d(theta0, theta1, n = 50),
+           main = "Joint Posterior",
+           xlab = "theta0", ylab = "theta1", zlab = "kernel density estimate"))
 #+END_SRC
 
 #+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t

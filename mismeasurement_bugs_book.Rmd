@@ -127,7 +127,7 @@ Since we do not observe $X_{true}^{r}$, we need integrate out (really sum out he
 
 $$\begin{align*}
   p(\beta, \phi, \psi | Y, X_{mis}, X_{true}^{c})
-  &= \int p(X_{true}^{r}=x_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c}) dF(x_{true}^{r})
+  &= \int p(X_{true}^{r}=x_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c}) d\mu(x_{true}^{r})
   \end{align*}
 $$
 
@@ -173,7 +173,7 @@ Therefore, the marginalized posterior and the corresponding prior $\times$ likel
 
 $$\begin{align*}
   p(\beta, \phi, \psi | Y, X_{mis}, X_{true}^{c})
-  &= \int p(X_{true}^{r}=x_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c}) dF(x_{true}^{r})\\
+  &= \int p(X_{true}^{r}=x_{true}^{r}, \beta, \phi, \psi | Y, X_{mis}, X_{true}^{c}) d\mu(x_{true}^{r})\\
   \\
   &\propto p(\beta, \phi, \psi)\\
   &~~~\times \prod^{m}_{i=1}

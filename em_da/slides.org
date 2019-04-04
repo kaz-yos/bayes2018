@@ -107,9 +107,9 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
     :PROPERTIES:
     :BEAMER_col: 0.45
     :END:
-#+ATTR_LATEX: :height 0.8\textheight :width \textwidth :options page=1,keepaspectratio :center t
+#+ATTR_LATEX: :height 0.75\textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/missing_patterns.png]]
-\footnotesize cite:littleStatisticalAnalysisMissing2002 \normalsize
+\scriptsize cite:littleStatisticalAnalysisMissing2002 \normalsize
 
 * Experiment Setup
 ** A Coin-Flipping Experiment
@@ -153,7 +153,10 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |   Sum |         |                               3 |                           2 |      33 | 24                                     | 9                                  |
 - MLE: $\thetahat_{0} = 24 / (3 \times 10) = 0.80$; $\thetahat_{1} = 9 / (2 \times 10) = 0.45$
 
-** MLE
+** Likelihood and Log Likelihood
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
 \begin{align*}
   L(\btheta | \bz,\bx)
   &= \prod^{5}_{i=1} p(z_{i},x_{i} | \btheta)\\
@@ -162,9 +165,39 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
   &= \prod^{5}_{i=1} p(x_{i} | z_{i}, \btheta) (0.5)\\
   &\propto \prod^{5}_{i=1}
     \left[ \theta_{0}^{x_{i}}(1-\theta_{0})^{10-x_{i}} \right]^{1-z_{i}}
-    \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]^{z_{i}}
+    \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]^{z_{i}}\\
+  \log L(\btheta | \bz,\bx)
+  &\propto \sum^{5}_{i=1}
+    \left\{  
+    (1-z_{i}) \log \left[ \theta_{0}^{x_{i}}(1-\theta_{0})^{10-x_{i}} \right] +
+    z_{i} \log \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]
+    \right\}\\
 \end{align*}
 
+\newpage
+# https://orgmode.org/manual/results.html
+# https://orgmode.org/manual/Exporting-code-blocks.html
+\scriptsize
+#+HEADER: :width 3.5 :height 3
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood.pdf :exports both
+construct_likelihood <- function(z, x) {
+  function(theta0, theta1) {
+    prod((theta0^x * (1 - theta0)^(10 - x))^(1 - z) *
+         (theta1^x * (1 - theta1)^(10 - x))^z)
+  }
+}
+likelihood <- construct_likelihood(z = c(1,0,0,1,0),
+                                   x = c(5,9,8,4,7))
+grid <- seq(from = 0.05, to = 0.95, by = 0.05)
+lik_data <- crossing(theta0 = grid,
+                     theta1 = grid) %>%
+  mutate(likelihood = likelihood(theta0, theta1)) %>%
+  spread(key = theta1, value = likelihood)
+persp(x = grid, y = grid, z = as.matrix(lik_data[,-1]))
+## with(lik_data,
+##      persp(x = grid, y = grid, z = log_likelihood))
+#+END_SRC
+\normalsize
 
 * Experiment Setup (Incomplete Data)
 ** A Contrived Coin-Flipping Experiment
@@ -180,7 +213,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |     3 | ?       |       8 |
 |     4 | ?       |       4 |
 |     5 | ?       |       7 |
-- Can we still estimate the two unknown head probabilities?
+- Can we still estimate the two unknown head probabilities given this incomplete data?
 
 ** A Contrived Coin-Flipping Experiment (More Formal)
 - Two identical-looking coins with unknown head probabilities $(\theta_{0},\theta_{1})$ (index arbitrary)

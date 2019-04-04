@@ -168,7 +168,7 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
     \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]^{z_{i}}\\
   \log L(\btheta | \bz,\bx)
   &\propto \sum^{5}_{i=1}
-    \left\{  
+    \left\{
     (1-z_{i}) \log \left[ \theta_{0}^{x_{i}}(1-\theta_{0})^{10-x_{i}} \right] +
     z_{i} \log \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]
     \right\}\\
@@ -229,6 +229,14 @@ persp(x = grid, y = grid, z = as.matrix(lik_data[,-1]))
 |     4 | ?       |       4 |
 |     5 | ?       |       7 |
 
+** How Do We Approach Incomplete Data
+- Now we cannot compute the proportion of heads among tosses for each coin.
+- However, one possible iterative scheme is:
+  - Assign some initial guess for parameters
+  - Guess coin identities given data and assuming these parameter values
+  - Perform MLE given data and assuming coin identities
+- The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977 is a refinement of this idea for MLE.
+- The Data Augmentation Method cite:tannerCalculationPosteriorDistributions1987 is another type of refinement for Bayesian estimation.
 
 * EM Algorithm
 ** Title EM

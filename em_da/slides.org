@@ -88,18 +88,34 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 ** Introduction
 - Probabilistic models, such as hidden Markov models and Bayesian networks, are commonly used to model biological data.
 
+
+- Often, the only data available for training probabilistic models are incomplete, requiring special handling.
+
+
 - The Expectation-Maximization (EM) algorithm enables parameter estimation in probabilistic models with incomplete data.
 
 ** Incomplete data
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.45
+    :END:
 - Incomplete data encompass:
-  - Missing data
-  - Latent class (unobserved class assignment)
+  - Typical missing data
+  - Latent class (entirely unobserved class assignment)
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.45
+    :END:
+#+ATTR_LATEX: :height 0.8\textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/missing_patterns.png]]
+\footnotesize cite:littleStatisticalAnalysisMissing2002 \normalsize
 
 * Experiment Setup
 ** A Coin-Flipping Experiment
 - Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
 - Repeat 5 times
-  1. Randomly pick either coin
+  1. Randomly pick either coin with equal probability and record
   2. Toss 10 times and record the number of heads
 #+ATTR_LATEX: :height 0.5\textheight :options page=1,keepaspectratio :center t
 [[./source/experiment_data.png]]
@@ -136,6 +152,19 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 |-------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
 |   Sum |         |                               3 |                           2 |      33 | 24                                     | 9                                  |
 - MLE: $\thetahat_{0} = 24 / (3 \times 10) = 0.80$; $\thetahat_{1} = 9 / (2 \times 10) = 0.45$
+
+** MLE
+\begin{align*}
+  L(\btheta | \bz,\bx)
+  &= \prod^{5}_{i=1} p(z_{i},x_{i} | \btheta)\\
+  &= \prod^{5}_{i=1} p(x_{i} | z_{i}, \btheta) p(z_{i} | \btheta)\\
+  &= \prod^{5}_{i=1} p(x_{i} | z_{i}, \btheta) p(z_{i})\\
+  &= \prod^{5}_{i=1} p(x_{i} | z_{i}, \btheta) (0.5)\\
+  &\propto \prod^{5}_{i=1}
+    \left[ \theta_{0}^{x_{i}}(1-\theta_{0})^{10-x_{i}} \right]^{1-z_{i}}
+    \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]^{z_{i}}
+\end{align*}
+
 
 * Experiment Setup (Incomplete Data)
 ** A Contrived Coin-Flipping Experiment

@@ -251,11 +251,20 @@ persp(x = grid, y = grid, z = as.matrix(lik_data[,-1]))
 - The Expectation-Maximization (EM) Algorithm cite:dempsterMaximumLikelihoodIncomplete1977
 - After random initialization of parameters, two steps alternates until convergence to an MLE.
 - Steps repeated
-  1. E-Step:
-     - Estimate probabilities of latent states given current parameters
-     - Obtain expected sufficient statistics
-  2. M-Step:
-     - Obtain MLE of parameters given expected sufficient statistics
+  1. E-Step (compute Expected sufficient statistics):
+     - Estimate probabilities of latent states given current parameters (coin identity probabilities)
+     - Obtain expected sufficient statistics (weighted head counts distributed across coins)
+  2. M-Step (Maximize expected log-likelihood):
+     - Obtain MLE of parameters given expected sufficient statistics and update parameters
+- By using weighted training data, the EM algorithm accounts for the confidence in the guessed latent state.
+
+** EM Algorithm in One Figure
+   :PROPERTIES:
+   :BEAMER_ENV: fullframe
+   :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_figure.png]]
+
 
 ** Parameter Initialization
 - Randomly initialize the parameters

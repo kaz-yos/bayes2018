@@ -559,14 +559,15 @@ crossing(init0 = 0.60,
 \normalsize
 
 
-** Initialization and Label Switching
+** Multiple Initialization and Label Indeterminancy
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Running the procedure using multiple initial starting parameters is often helpful.
-- Similarly, initializing parameters in a way that breaks symmetry in models is also important.
-- In this instance, at least three $\bthetahat$ exist: (0.80, 0.52), (0.52, 0.80), (0.66, 0.66).
+- Multiple initial starting parameters is often helpful.
+- In this instance, at least three $\bthetahat$ seem to exist: (0.80, 0.52), (0.52, 0.80), (0.66, 0.66).
+- Note $\btheta = (0.80, 0.52)$ and $\btheta = (0.52, 0.80)$ give the same models because the labeling $\theta_{0}$ and $\theta_{1}$ (which coin we call 0 or 1) is arbitrary.
+- $\btheta = (0.66, 0.66)$ corresponds to a model where we really only have one type of coins.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:

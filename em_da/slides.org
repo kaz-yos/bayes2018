@@ -525,8 +525,8 @@ em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Initialization point matters.
-- Need to break the symmetry
+- The algorithm deterministically converge to the local maximum by monotonically optimizing.
+- As with most optimization methods for 
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:

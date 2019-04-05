@@ -526,7 +526,7 @@ em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
     :BEAMER_col: 0.50
     :END:
 - The algorithm deterministically converge to the local maximum by monotonically optimizing.
-- As with most optimization methods for 
+- As with most optimization methods for nonconcave function (i.e., multiple local maxima), the EM algorithm comes with guarantees only of convergence to a local maximum.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -564,8 +564,9 @@ crossing(init0 = 0.60,
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Initialization point matters.
-- Need to break the symmetry
+- Running the procedure using multiple initial starting parameters is often helpful.
+- Similarly, initializing parameters in a way that breaks symmetry in models is also important.
+- In this instance, at least three $\bthetahat$ exist: (0.80, 0.52), (0.52, 0.80), (0.66, 0.66).
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:

@@ -172,6 +172,8 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
     (1-z_{i}) \log \left[ \theta_{0}^{x_{i}}(1-\theta_{0})^{10-x_{i}} \right] +
     z_{i} \log \left[ \theta_{1}^{x_{i}}(1-\theta_{1})^{10-x_{i}} \right]
     \right\}\\
+  &= \sum^{5}_{i=1} (1-z_{i}) \left[ x_{i}\log\theta_{0} + (10-x_{i})\log(1-\theta_{0})\right]\\
+  &~~~+\sum^{5}_{i=1} z_{i} \left[ x_{i}\log\theta_{1} + (10-x_{i})\log(1-\theta_{1})\right]
 \end{align*}
 
 \newpage

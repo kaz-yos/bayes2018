@@ -627,6 +627,50 @@ crossing(init0 = init,
 [[file:./source/em_figure2.pdf]]
 \normalsize
 
+** Incomplete-Data Likelihood
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- In this specific instance, the incomplete-data likelihood can be graphed with grid search as the parameter space is small and low dimensional ([0,1]^{2}).
+- The incomplete-data likelihood is bimodal and has a saddle point between the modes.
+- This shape explains the three solutions.
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood2.pdf :exports results
+construct_llik2 <- function(x) {
+  llik <- function(theta0, theta1) {
+    stopifnot(length(theta0) == length(theta1))
+    if (length(theta0) > 1) {
+      return((Vectorize(llik))(theta0, theta1))
+    }
+    z0_contrib <- (x * log(theta0) + (10 - x) * log(1 - theta0))
+    z1_contrib <- (x * log(theta1) + (10 - x) * log(1 - theta1))
+    return(sum(log(`+`(exp(z0_contrib), exp(z1_contrib)))))
+  }
+}
+llik2 <- construct_llik2(x = c(5,9,8,4,7))
+inc <- 0.01
+grid <- seq(from = inc, to = 1 - inc, by = inc)
+lik_data <- crossing(theta0 = grid,
+                     theta1 = grid) %>%
+  mutate(llik2 = llik2(theta0, theta1)) %>%
+  mutate(lik = exp(llik2))
+lik_data %>%
+  select(theta0, theta1, lik) %>%
+  spread(key = theta1, value = lik) %>%
+  as.matrix(.) %>% `[`(,-1) %>%
+  persp(x = grid, y = grid, z = .,
+        xlim = c(0,1), ylim = c(0,1),
+        main = "Incomplete-Data Likelihood",
+        xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
+#+END_SRC
+
 * DA Method
 ** Title DA
    :PROPERTIES:

@@ -957,10 +957,18 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
 [[file:./source/em_figure2.pdf]]
 \normalsize
 
+* Stan
+** Title Stan
+   :PROPERTIES:
+   :BEAMER_ENV: fullframe
+   :END:
+#+BEGIN_CENTER
+\resizebox{\linewidth}{!}{Stan}
+#+END_CENTER
+** Stan: Hamiltonian Monte Carlo
+- Stan is a modern Bayesian MCMC sampler.
 
-
-
-** Posterior Old
+** Posterior Derivation
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -975,13 +983,8 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
   % https://math.stackexchange.com/questions/705945/how-to-interchange-a-sum-and-a-product
   &= \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
   &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i})\\
-  \\
-  &\text{old}\\
-  &\propto \sum_{\bz} p(\btheta, \bz, \bX)\\
-  &= \sum_{\bz} p(\bX | \bz, \btheta) p(\bz) p(\btheta)\\
-  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) p(z)\\
-  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta) (0.5)\\
-  &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z=0} p(X_{i} | z, \btheta)\\
+  &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta) (0.5)\\
+  &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta)\\
 \end{align*}
 
 

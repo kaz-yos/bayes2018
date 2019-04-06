@@ -12,18 +12,18 @@
 We are often faced with the issues of incomplete data. This can include typical missing data problems and also latent variables, /i.e./ some underlying state that remains unobserved. Using an example from Do and Batzoglou cite:doWhatExpectationMaximization2008, we will review the Expectation-Maximization (EM) algorithm.
 
 * Complete-Data Example
-
 ** A Coin-Flipping Experiment
-- Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
-- Repeat 5 times
-  1. Randomly pick either coin with equal probability and record
-  2. Toss 10 times and record the number of heads
+We have two coins $A$ ($Z=0$) and $B$ ($Z=1$) with unknown head probabilities $(\theta_{0},\theta_{1})$. We will repeat the following process 5 times.
+1. Randomly pick either coin with equal probability and record
+2. Toss 10 times and record the number of heads
 
-** A Coin-Flipping Experiment (More Formal)
-- Two coins $A$ (0) and $B$ (1) with unknown head probabilities $(\theta_{0},\theta_{1})$
-- For $i = 1, \dots, 5$
-  1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$
-  2. Draw $X_{i} | Z_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
+
+More formally, the experiment can be described as follows. For $i = 1, \dots, 5$
+1. Draw $Z_{i} \sim \text{Bernoulli}(p = 0.5), Z_{i} \in \left\{ 0,1 \right\}$
+2. Draw $X_{i} | Z_{i} \sim \text{Binomial}(n = 10, p = \theta_{Z_{i}}), X_{i} \in \left\{ 0, \dots, 10 \right\}$
+
+As in the paper cite:doWhatExpectationMaximization2008, we will use the following data.
+
 | Index |    Coin |   Heads |
 |   $i$ | $Z_{i}$ | $X_{i}$ |
 |-------+---------+---------|
@@ -32,11 +32,64 @@ We are often faced with the issues of incomplete data. This can include typical 
 |     3 |       0 |       8 |
 |     4 |       1 |       4 |
 |     5 |       0 |       7 |
-- Note that you only need the number of heads ([[https://www.statisticshowto.datasciencecentral.com/sufficient-statistic/][sufficient statistic]]), not the entire sequence.
+
+Note that we only need the number of heads ([[https://www.statisticshowto.datasciencecentral.com/sufficient-statistic/][sufficient statistic]]), not the entire sequence.
+
+** Complete-Data Maximum Likelihood
+If we observe both the coin identity $Z_{i}$ and heads $X_{i}$, the MLE is the total heads / total tosses for each coin. Here we introduce a very redundant expanded table for later reuse.
+
+| Index | Coin    |                    Prob. Coin A |                Prob. Coin B |   Heads | Heads Coin A                           | Heads Coin B                       |
+|   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert Z_{i},X_{i}]$ | $E[Z_{i}\vert Z_{i},X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert Z_{i},X_{i}]$ | $E[Z_{i} X_{i} \vert Z_{i},X_{i}]$ |
+|-------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+|     / | <>      |                               < |                           > |         | <                                      | >                                  |
+|     1 | 1 (B)   |                               0 |                           1 |       5 | 0 \times 5                             | 1 \times 5                         |
+|     2 | 0 (A)   |                               1 |                           0 |       9 | 1 \times 9                             | 0 \times 9                         |
+|     3 | 0 (A)   |                               1 |                           0 |       8 | 1 \times 8                             | 0 \times 8                         |
+|     4 | 1 (B)   |                               0 |                           1 |       4 | 0 \times 4                             | 1 \times 4                         |
+|     5 | 0 (A)   |                               1 |                           0 |       7 | 1 \times 7                             | 0 \times 7                         |
+|-------+---------+---------------------------------+-----------------------------+---------+----------------------------------------+------------------------------------|
+|   Sum |         |                               3 |                           2 |      33 | 24                                     | 9                                  |
+
+- MLE: $\widehat{\theta}_{0} = 24 / (3 \times 10) = 0.80$; $\widehat{\theta}_{1} = 9 / (2 \times 10) = 0.45$
+
+#+HEADER: :width 500 :height 500
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood.png :exports results
+suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
+construct_llik <- function(z, x) {
+  stopifnot(length(z) == length(x))
+  llik <- function(theta0, theta1) {
+    stopifnot(length(theta0) == length(theta1))
+    if (length(theta0) > 1) {
+      return((Vectorize(llik))(theta0, theta1))
+    }
+    z0_contrib <- (x * log(theta0) + (10 - x) * log(1 - theta0))
+    z1_contrib <- (x * log(theta1) + (10 - x) * log(1 - theta1))
+    return(sum((1 - z) * z0_contrib) + sum(z * z1_contrib))
+  }
+}
+llik <- construct_llik(z = c(1,0,0,1,0),
+                       x = c(5,9,8,4,7))
+inc <- 0.02
+grid <- seq(from = inc, to = 1 - inc, by = inc)
+lik_data <- crossing(theta0 = grid,
+                     theta1 = grid) %>%
+  mutate(llik = llik(theta0, theta1)) %>%
+  mutate(llik_scaled = llik - max(llik, na.rm = TRUE)) %>%
+  mutate(lik_scaled = exp(llik_scaled),
+         lik = exp(llik))
+lik_data %>%
+  select(theta0, theta1, lik) %>%
+  spread(key = theta1, value = lik) %>%
+  as.matrix(.) %>% `[`(,-1) %>%
+  persp(x = grid, y = grid, z = .,
+        xlim = c(0,1), ylim = c(0,1),
+        main = "Complete-Data Likelihood",
+        xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
+#+END_SRC
+
 
 * Part 2
-
-Wyss et al. cite:WyssUsingTimeDependentPropensity2018 extensively examined the issue previously suggested cite:HernanHazardsHazardRatios2010.
+aaa
 
 * Code example
 # Only png can be handled. Do not use pdf.

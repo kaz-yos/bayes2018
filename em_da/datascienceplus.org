@@ -1,0 +1,48 @@
+#+DATE: [2019-04-06 Sat 08:31]
+#+TITLE: What is the Expectation Maximization (EM) Algorithm?
+#+AUTHOR: Kazuki Yoshida
+#+OPTIONS: toc:nil
+#+OPTIONS: ^:{}
+# ############################################################################ #
+
+# * Introduction # (Do no use a header here)
+# M-x org-html-export-to-html-citeproc to check locally.
+# M-x my-wp-directly-post-as-draft-citeproc to upload as a draft.
+
+Here we construct a template for exporting from an org-mode document to datascienceplus.com.
+
+* Part 1
+
+One of my papers cite:YoshidaEffectsanalgesicsbone2018 was based on matching weights cite:YoshidaMatchingWeightsSimultaneously2017,li_weighting_2013.
+
+** Secondary heading
+This is a secondary heading.
+
+* Part 2
+
+Wyss et al. cite:WyssUsingTimeDependentPropensity2018 extensively examined the issue previously suggested cite:HernanHazardsHazardRatios2010.
+
+* Code example
+# Only png can be handled. Do not use pdf.
+#+HEADER: :width 350 :height 300
+#+BEGIN_SRC R :session *R* :results output graphics :file ./source/figure.png :exports both
+library(ggplot2)
+ggplot(data = diamonds, mapping = aes(x = carat, y = price, color = color)) +
+    geom_point() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+#+END_SRC
+
+
+* Conclusion
+
+In conclusion, we examined a better way to export from an org-mode document to datascienceplus.com.
+
+
+* Bibliography
+# Following lines must be left-aligned without preceding spaces.
+bibliographystyle:unsrt
+bibliography:~/.emacs.d/misc/zotero.bib

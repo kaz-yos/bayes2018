@@ -1026,16 +1026,16 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
+- The marginalized posterior expression can be implemented as follows in the Stan language.
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-suppressMessages(library(rstan))
 stan_code <- readr::read_file("./coin.stan")
 cat(stan_code)
 #+END_SRC
 \normalsize
-
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports none
+suppressMessages(library(rstan))
 coin_sample <- rstan::stan(model_code = stan_code,
                            data = list(a = c(1,1),
                                        b = c(1,1),
@@ -1051,7 +1051,8 @@ coin_sample <- rstan::stan(model_code = stan_code,
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- The posterior density is the following.
+- The posterior distribution is essentially the same as the data augmentation version.
+- The same bimodality issue persists.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:

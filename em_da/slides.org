@@ -195,7 +195,7 @@ Presented as a part of the Mini Statistics Camp 2019 hosted by the [[http://bioi
     :BEAMER_col: 0.50
     :END:
 \scriptsize
-#+HEADER: :width 5 :height 5
+#+HEADER: :width 7 :height 7
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood.pdf :exports results
 suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
 construct_llik <- function(z, x) {
@@ -641,7 +641,7 @@ crossing(init0 = init,
     :BEAMER_col: 0.50
     :END:
 \scriptsize
-#+HEADER: :width 5 :height 5
+#+HEADER: :width 7 :height 7
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood2.pdf :exports results
 construct_llik2 <- function(x) {
   llik <- function(theta0, theta1) {
@@ -1019,7 +1019,7 @@ ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),] %>%
     :BEAMER_col: 0.50
     :END:
 \scriptsize
-#+HEADER: :width 5 :height 5
+#+HEADER: :width 7 :height 7
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure3.pdf :exports results
 with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
      persp(MASS::kde2d(theta0, theta1, n = 100),
@@ -1104,7 +1104,7 @@ coin_sample <- rstan::stan(model_code = stan_code,
     :BEAMER_col: 0.50
     :END:
 \scriptsize
-#+HEADER: :width 5 :height 5
+#+HEADER: :width 7 :height 7
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_stan.pdf :exports results
 tidybayes::tidy_draws(coin_sample) %>%
   select(`theta[1]`, `theta[2]`) %>%

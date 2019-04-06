@@ -180,22 +180,34 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
 \scriptsize
 #+HEADER: :width 3.5 :height 3
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood.pdf :exports both
-construct_likelihood <- function(z, x) {
-  function(theta0, theta1) {
-    prod((theta0^x * (1 - theta0)^(10 - x))^(1 - z) *
-         (theta1^x * (1 - theta1)^(10 - x))^z)
+suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
+construct_llik <- function(z, x) {
+  stopifnot(length(z) == length(x))
+  llik <- function(theta0, theta1) {
+    stopifnot(length(theta0) == length(theta1))
+    if (length(theta0) > 1) {
+      return((Vectorize(llik))(theta0, theta1))
+    }
+    z0_contrib <- (x * log(theta0) + (10 - x) * log(1 - theta0))
+    z1_contrib <- (x * log(theta1) + (10 - x) * log(1 - theta1))
+    return(sum((1 - z) * z0_contrib) + sum(z * z1_contrib))
   }
 }
-likelihood <- construct_likelihood(z = c(1,0,0,1,0),
-                                   x = c(5,9,8,4,7))
-grid <- seq(from = 0.05, to = 0.95, by = 0.05)
+llik <- construct_llik(z = c(1,0,0,1,0),
+                       x = c(5,9,8,4,7))
+grid <- seq(from = 0.01, to = 0.99, by = 0.01)
 lik_data <- crossing(theta0 = grid,
                      theta1 = grid) %>%
-  mutate(likelihood = likelihood(theta0, theta1)) %>%
-  spread(key = theta1, value = likelihood)
-persp(x = grid, y = grid, z = as.matrix(lik_data[,-1]))
-## with(lik_data,
-##      persp(x = grid, y = grid, z = log_likelihood))
+  mutate(llik = llik(theta0, theta1)) %>%
+  mutate(llik_scaled = llik - max(llik, na.rm = TRUE)) %>%
+  mutate(lik_scaled = exp(llik_scaled),
+         lik = exp(llik))
+lik_data %>%
+  select(theta0, theta1, lik) %>%
+  spread(key = theta1, value = lik) %>%
+  as.matrix(.) %>% `[`(,-1) %>%
+  persp(x = grid, y = grid, z = .,
+        xlim = c(0,1), ylim = c(0,1))
 #+END_SRC
 \normalsize
 
@@ -440,7 +452,7 @@ B / (A + B)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-\scriptsize
+\tiny
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
 rel_dbinom <- function(X, theta) {

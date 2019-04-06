@@ -658,7 +658,7 @@ crossing(init0 = init,
   \theta_{0} &\sim \text{Beta}(a_{0},b_{0})\\
   \theta_{1} &\sim \text{Beta}(a_{1},b_{1})
 \end{align*}
-- Here we will consider uniform priors ($a_{j} = b_{j} = 1, j = 0,1$).
+- Here we will consider independent uniform priors ($a_{j} = b_{j} = 1, j = 0,1$).
 
 ** Parameter Initialization
 - Randomly initialize the parameters

@@ -998,7 +998,10 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
 \resizebox{\linewidth}{!}{Sampling Using Stan}
 #+END_CENTER
 ** Stan: Hamiltonian Monte Carlo
-- Stan is a modern Bayesian MCMC sampler.
+- Traditional Bayesian posterior sampling software, such as WinBUGS cite:lunnWinBUGSBayesianModelling2000 and JAGS cite:plummerJAGSProgramAnalysis2003, are Gibbs samplers.
+- Gibbs sampling in this incomplete-data setting implements the data augmentation method.
+- Stan cite:carpenterStanProbabilisticProgramming2017 is a modern Bayesian posterior sampler, which uses more efficient Hamiltonian Monte Carlo (HMC) cite:betancourtConceptualIntroductionHamiltonian2017.
+- However, HMC cannot handle discrete parameters, so the latent state have to be integrated (summed) out of the posterior (marginalized posterior).
 
 ** Marginalized Posterior Derivation
    :PROPERTIES:
@@ -1060,7 +1063,7 @@ coin_sample <- rstan::stan(model_code = stan_code,
 tidybayes::tidy_draws(coin_sample) %>%
   select(`theta[1]`, `theta[2]`) %>%
   with(.,
-       persp(MASS::kde2d(`theta[1]`, `theta[2]`, n = 100),
+       persp(MASS::kde2d(`theta[1]`, `theta[2]`, n = 50),
              xlim = c(0,1), ylim = c(0,1),
              main = "Joint Posterior (Stan)",
              xlab = "theta0", ylab = "theta1", zlab = "kernel density estimate"))

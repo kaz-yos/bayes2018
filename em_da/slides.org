@@ -354,9 +354,9 @@ lik_data %>%
 - Thus, this quantity, the probability of Coin B given the the observed $X_{i}$ and the current parameters, can be calculated as follows for the first row (5 heads).
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-A <- dbinom(x = 5, size = 10, prob = 0.60)
-B <- dbinom(x = 5, size = 10, prob = 0.50)
-B / (A + B)
+A <- dbinom(x = 5, size = 10, prob = 0.60) # Prob. of 5 heads given Coin A
+B <- dbinom(x = 5, size = 10, prob = 0.50) # Prob. of 5 heads given Coin B
+B / (A + B)                                # Prob. of Coin B given 5 heads
 #+END_SRC
 \normalsize
 

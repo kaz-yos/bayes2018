@@ -180,15 +180,15 @@ Presented as a part of the Mini Statistics Camp 2019 hosted by the [[http://bioi
     + z_{i} \left[ x_{i}\log\theta_{1} + (10-x_{i})\log(1-\theta_{1})\right]
     \right\}
 \end{align*}
-- We can take partial derivatives with respect to $\theta_{0}$ and $\theta_{1}$ and set them to zero to solve for MLE.
+- We can take partial derivatives with respect to $\theta_{0}$ and $\theta_{1}$ and set them to zero to solve for MLE, which gives us heads/tosses for each coin.
 
 ** Complete-Data Likelihood Visualization
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- A likelihood function is convex.
-- There is a unique maximum with an analytical solution.
+- Here the complete-data likelihood function is convex.
+- There is a unique maximum with an analytical solution (coin-specific heads/tosses).
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -1007,13 +1007,15 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-- We are interested in the posterior distribution of the parameters given the observed data.
-- Posterior
+- We are interested in the posterior distribution of the parameters given the observed data only.
 \begin{align*}
+  &~~~\text{Introduce latent state}\\
   p(\btheta | \bX)
   &= \sum_{\bz} p(\btheta, \bz | \bX)\\
   &= \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} p(\btheta, z_{1},\dots,z_{5} | \bX_{1},\dots,\bX_{5})\\
+  &~~~\text{Bayes rule}\\
   &\propto \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} p(\btheta, z_{1},\dots,z_{5}, \bX_{1},\dots,\bX_{5})\\
+  &~~~\text{iid given parameter}\\
   &= \sum^{1}_{z_{1}=0}\dots\sum^{1}_{z_{5}=0} \prod^{5}_{i=1}p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
   % https://math.stackexchange.com/questions/705945/how-to-interchange-a-sum-and-a-product
   &= \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
@@ -1046,7 +1048,7 @@ coin_sample <- rstan::stan(model_code = stan_code,
 #+END_SRC
 \normalsize
 
-** Stan Posterior Sample
+** Stan Posterior Samples
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50

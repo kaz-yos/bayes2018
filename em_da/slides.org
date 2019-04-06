@@ -987,6 +987,39 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
   &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta)\\
 \end{align*}
 
+** Stan Implementation
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_stan.pdf :exports both
+suppressMessages(library(rstan))
+stan_code <- readr::read_file("./coin.stan")
+cat(stan_code)
+
+coin_sample <- rstan::stan(model_code = stan_code,
+                           data = list(a = c(1,1),
+                                       b = c(1,1),
+                                       N = 5,
+                                       X = c(5,9,8,4,7)),
+                           iter = 10^4,
+                           chains = 12)
+
+tidybayes::tidy_draws(coin_sample) %>%
+  select(`theta[1]`, `theta[2]`) %>%
+  with(.,
+       persp(MASS::kde2d(`theta[1]`, `theta[2]`, n = 100),
+             xlim = c(0,1), ylim = c(0,1),
+             main = "Joint Posterior (Stan)",
+             xlab = "theta0", ylab = "theta1", zlab = "kernel density estimate"))
+#+END_SRC
+
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+#+RESULTS:
+[[file:./source/figure_stan.pdf]]
+
+\normalsize
 
 * Appendix
 \appendix

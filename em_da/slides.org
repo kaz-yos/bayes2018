@@ -83,7 +83,7 @@
 #+ATTR_LATEX: :width 0.8\textwidth :options page=1,keepaspectratio :center t
 [[./source/em_algo.png]]
 \footnotesize
-Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioinformatics.bwh.harvard.edu][BWH/HMS Bioinformatics Club]]
+Presented as a part of the Mini Statistics Camp 2019 hosted by the [[http://bioinformatics.bwh.harvard.edu][BWH/HMS Bioinformatics Club]]
 
 ** Introduction
 - Probabilistic models, such as hidden Markov models and Bayesian networks, are commonly used to model biological data.
@@ -180,13 +180,15 @@ Presented as a part of the Mini Statistics Camp 2009 hosted by the [[http://bioi
     + z_{i} \left[ x_{i}\log\theta_{1} + (10-x_{i})\log(1-\theta_{1})\right]
     \right\}
 \end{align*}
+- We can take partial derivatives with respect to $\theta_{0}$ and $\theta_{1}$ and set them to zero to solve for MLE.
 
 ** Complete-Data Likelihood Visualization
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- A likelihood function is convex (one maximum).
+- A likelihood function is convex.
+- There is a unique maximum with an analytical solution.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -449,6 +451,8 @@ B / (A + B)                                # Prob. of Coin B given 5 heads
 |-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
 |   Sum |         |                      2.58 |                  2.42 |      33 | 19.21                            | 13.79                        |
 \normalsize
+- In expectation, Coin A was chosen 2.58 times, resulting in 25.8 expected tosses, whereas Coin B was chosen 2.42 times, resulting in 24.2 expected tosses.
+- The sums indicate 19.21 expected heads for Coin A and 13.79 expected heads for Coin B.
 
 ** M-Step (2)
    :PROPERTIES:
@@ -500,21 +504,6 @@ em_step <- function(theta) {
   M <- as.numeric(colSums(exp_head) / (colSums(exp_choice) * 10))
   list(E = E, M = M)
 }
-#+END_SRC
-\normalsize
-
-** EM Step 1
-\scriptsize
-#+BEGIN_SRC R :session *R-org* :results output :exports both
-em_step(theta = c(0.6, 0.5))
-#+END_SRC
-\normalsize
-
-** EM Step 2
-\scriptsize
-#+BEGIN_SRC R :session *R-org* :results output :exports both
-em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
-  em_step()
 #+END_SRC
 \normalsize
 

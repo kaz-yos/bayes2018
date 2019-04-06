@@ -801,7 +801,6 @@ c(rbeta(n = 1, shape1 = 1 + 29, shape2 = 1 + 11),
 \normalsize
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-set.seed(737265171)
 rbinom(n = 5, size = 1, prob = c(0.83, 0.03, 0.10, 0.94, 0.27))
 #+END_SRC
 \normalsize
@@ -839,11 +838,12 @@ c(rbeta(n = 1, shape1 = 1 + 24, shape2 = 1 +  6),
 #+END_SRC
 \normalsize
 - We now have updated parameter draws.
-  - $\theta_{0}^{(2)} := 0.828$
-  - $\theta_{1}^{(2)} := 0.495$
+  - $\theta_{0}^{(2)} := 0.677$
+  - $\theta_{1}^{(2)} := 0.483$
 
 
-- In the limit, the draws for the missing data (I-Step) and the parameters (P-Step) are from the joint posterior distribution of the missing data and the parameters. cite:littleStatisticalAnalysisMissing2002
+- In the limit, the draws for the missing data (I-Step) and the parameters (P-Step) are from the joint posterior /distribution/ of the missing data and the parameters. cite:littleStatisticalAnalysisMissing2002
+- Note that this algorithm does not converge to a point unlike the EM algorithm.
 
 ** Automated Version
    :PROPERTIES:
@@ -901,12 +901,17 @@ ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
     :BEAMER_col: 0.50
     :END:
 \scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports none
+set.seed(737265171)
+ip_data <- ip_iter(theta = c(0.6, 0.5), a = c(1,1), b = c(1, 1), iter = 10^4)
+#+END_SRC
 #+HEADER: :width 5 :height 5
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure1.pdf :exports results
-ip_data <- ip_iter(theta = c(0.6, 0.5), a = c(1,1), b = c(1, 1), iter = 10^4)
-ip_data %>%
+ip_data[1:30,] %>%
+  mutate(r = seq_len(n())) %>%
   ggplot(mapping = aes(x = theta0, y = theta1)) +
-  geom_point(size = 1, alpha = 0.5) +
+  geom_path(size = 0.1) +
+  geom_text(mapping = aes(label = r)) +
   scale_x_continuous(limits = 0:1) +
   scale_y_continuous(limits = 0:1) +
   theme_bw() +
@@ -918,7 +923,7 @@ ip_data %>%
 
 #+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
 #+RESULTS:
-[[file:./source/em_figure1.pdf]]
+[[file:./source/ip_figure1.pdf]]
 \normalsize
 
 ** Visual Representation of Iteration

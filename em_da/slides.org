@@ -680,7 +680,7 @@ crossing(init0 = init,
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-- Current parameters: $\thetahat_{0}^{(0)} = 0.6, \thetahat_{1}^{(0)} = 0.5$
+- Current parameters: $\theta_{0}^{(0)} = 0.6, \theta_{1}^{(0)} = 0.5$
 \footnotesize
 | Index | Coin    | Prob. Coin A              | Prob. Coin B          |   Heads | Heads Coin A                     | Heads Coin B                 |
 |   $i$ | $Z_{i}$ | $E[(1-Z_{i})\vert X_{i}]$ | $E[Z_{i}\vert X_{i}]$ | $X_{i}$ | $E[(1-Z_{i}) X_{i} \vert X_{i}]$ | $E[Z_{i} X_{i} \vert X_{i}]$ |
@@ -694,7 +694,7 @@ crossing(init0 = init,
 |-------+---------+---------------------------+-----------------------+---------+----------------------------------+------------------------------|
 |   Sum |         |                           |                       |      33 | ?                                | ?                            |
 \normalsize
-- First, we need coin probabilities for each $i$ given the current parameter values $\bthetahat^{(0)}$.
+- First, we need coin probabilities for each $i$ given the current parameter values $\btheta^{(0)}$.
 - This calculation is the same as the EM algorithm.
 
 \newpage
@@ -778,28 +778,24 @@ rbinom(n = 5, size = 1, prob = c(0.55, 0.20, 0.27, 0.65, 0.35))
 \newpage
 - By conjugacy, we can updated the beta distributions as follows.
 \begin{align*}
-  \theta_{0} &\sim \text{Beta}(1 + 29, 1 + 11)\\
-  \theta_{1} &\sim \text{Beta}(1 + 4, 1 + 6)
+  \theta_{0}^{(1)} &\sim \text{Beta}(1 + 29, 1 + 11)\\
+  \theta_{1}^{(1)} &\sim \text{Beta}(1 + 4, 1 + 6)
 \end{align*}
 - Draw updated values.
-\scriptsize
+\tiny
 #+HEADER: :width 3.5 :height 3
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-tibble(thetas = c(rbeta(n = 1, shape1 = 1+29, shape2 = 1+11),
-                  rbeta(n = 1, shape1 = 1+4, shape2 = 1+6)))
+c(rbeta(n = 1, shape1 = 1 + 29, shape2 = 1 + 11),
+  rbeta(n = 1, shape1 = 1 +  4, shape2 = 1 +  6)) %>% round(3)
 #+END_SRC
 \normalsize
-
-\newpage
-- We now have updated parameter draws.
-  - $\thetahat_{0}^{(1)} := 0.760$
-  - $\thetahat_{1}^{(1)} := 0.471$
+- We now have updated parameter draws: $\thetahat_{0}^{(1)} := 0.760$; $\thetahat_{1}^{(1)} := 0.471$
 
 ** I-Step (2)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-- Current parameters: $\thetahat_{0}^{(1)} = 0.760, \thetahat_{1}^{(1)} = 0.471$
+- Current parameters: $\theta_{0}^{(1)} = 0.760, \theta_{1}^{(1)} = 0.471$
 - Calculate the probabilities again and impute the latent states.
 \footnotesize
 | Index |    Coin |              Prob. Coin A |          Prob. Coin B |   Heads | Heads Coin A                     | Heads Coin B                 |
@@ -843,19 +839,19 @@ rbinom(n = 5, size = 1, prob = c(0.83, 0.03, 0.10, 0.94, 0.27))
 - We have 24 head and 6 tails (30 tosses) for Coin A and 9 heads and 11 tail (20 tosses) for Coin B.
 - The posterior distributions are:
 \begin{align*}
-  \theta_{0} &\sim \text{Beta}(1 + 24, 1 + 6)\\
-  \theta_{1} &\sim \text{Beta}(1 + 9, 1 + 11)
+  \theta_{0}^{(2)} &\sim \text{Beta}(1 + 24, 1 + 6)\\
+  \theta_{1}^{(2)} &\sim \text{Beta}(1 + 9, 1 + 11)
 \end{align*}
 - Draw updated values.
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-tibble(thetas = c(rbeta(n = 1, shape1 = 1+24, shape2 = 1+6),
-                  rbeta(n = 1, shape1 = 1+9, shape2 = 1+11)))
+c(rbeta(n = 1, shape1 = 1 + 24, shape2 = 1 +  6),
+  rbeta(n = 1, shape1 = 1 +  9, shape2 = 1 + 11)) %>% round(3)
 #+END_SRC
 \normalsize
 - We now have updated parameter draws.
-  - $\thetahat_{0}^{(2)} := 0.828$
-  - $\thetahat_{1}^{(2)} := 0.495$
+  - $\theta_{0}^{(2)} := 0.828$
+  - $\theta_{1}^{(2)} := 0.495$
 
 
 - In the limit, the draws for the missing data (I-Step) and the parameters (P-Step) are from the joint posterior distribution of the missing data and the parameters. cite:littleStatisticalAnalysisMissing2002

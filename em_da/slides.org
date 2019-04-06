@@ -474,6 +474,7 @@ B / (A + B)                                # Prob. of Coin B given 5 heads
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
+- The =em_step= function perform one cycle of the E-step and M-step.
 \tiny
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 suppressMessages(library(tidyverse)); options(crayon.enabled = FALSE)
@@ -530,6 +531,7 @@ em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
+- The =em_iter= function fully automate the iterations until convergence at the specified tolerance.
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 em_iter <- function(theta, tolerance = 10^(-3)) {
@@ -559,8 +561,10 @@ em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- The algorithm deterministically converge to the local maximum by monotonically optimizing.
-- As with most optimization methods for nonconcave function (i.e., multiple local maxima), the EM algorithm comes with guarantees only of convergence to a local maximum.
+- The algorithm deterministically converge to the local maximum by monotonically improving the parameter estimate.
+
+
+- As with most optimization methods for non-concave function (i.e., multiple local maxima), the EM algorithm comes with guarantees only of convergence to a local maximum.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -644,7 +648,7 @@ crossing(init0 = init,
 #+END_CENTER
 
 ** From EM to DA
-- A related Bayesian computation method is the /Data Augmentation/ method. cite:tannerCalculationPosteriorDistributions1987
+- A related Bayesian computation method is the /Data Augmentation/ method. cite:tannerCalculationPosteriorDistributions1987,tannerEMDataAugmentation2010
 - After random initialization of parameters, two steps alternates until convergence to a posterior distribution.
 - Steps repeated
   1. Imputation (I) Step:

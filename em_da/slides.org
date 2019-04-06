@@ -995,12 +995,12 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
    :BEAMER_ENV: fullframe
    :END:
 #+BEGIN_CENTER
-\resizebox{\linewidth}{!}{Stan}
+\resizebox{\linewidth}{!}{Sampling Using Stan}
 #+END_CENTER
 ** Stan: Hamiltonian Monte Carlo
 - Stan is a modern Bayesian MCMC sampler.
 
-** Posterior Derivation
+** Marginalized Posterior Derivation
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -1016,7 +1016,7 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
   &= \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i}) p(\btheta)\\
   &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i},\btheta) p(z_{i})\\
   &= p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta) (0.5)\\
-  &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta)\\
+  &\propto p(\btheta) \prod^{5}_{i=1} \sum^{1}_{z_{i}=0} p(X_{i} | z_{i}, \btheta)
 \end{align*}
 
 ** Stan Implementation
@@ -1024,12 +1024,15 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
 \scriptsize
-#+HEADER: :width 5 :height 5
-#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_stan.pdf :exports both
+#+BEGIN_SRC R :session *R-org* :results output :exports both
 suppressMessages(library(rstan))
 stan_code <- readr::read_file("./coin.stan")
 cat(stan_code)
+#+END_SRC
+\normalsize
 
+\scriptsize
+#+BEGIN_SRC R :session *R-org* :results output :exports none
 coin_sample <- rstan::stan(model_code = stan_code,
                            data = list(a = c(1,1),
                                        b = c(1,1),
@@ -1037,7 +1040,23 @@ coin_sample <- rstan::stan(model_code = stan_code,
                                        X = c(5,9,8,4,7)),
                            iter = 10^4,
                            chains = 12)
+#+END_SRC
+\normalsize
 
+** Stan Posterior Sample
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- The posterior density is the following.
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_stan.pdf :exports results
 tidybayes::tidy_draws(coin_sample) %>%
   select(`theta[1]`, `theta[2]`) %>%
   with(.,
@@ -1050,8 +1069,8 @@ tidybayes::tidy_draws(coin_sample) %>%
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 #+RESULTS:
 [[file:./source/figure_stan.pdf]]
-
 \normalsize
+
 
 * Appendix
 \appendix

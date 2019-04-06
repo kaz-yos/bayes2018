@@ -591,7 +591,7 @@ crossing(init0 = 0.60,
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Multiple initial starting parameters is often helpful.
+- Multiple initial starting parameters are often helpful.
 - In this instance, at least three $\bthetahat$ seem to exist: (0.80, 0.52), (0.52, 0.80), (0.66, 0.66).
 - Note $\btheta = (0.80, 0.52)$ and $\btheta = (0.52, 0.80)$ give the same models because the labeling $\theta_{0}$ and $\theta_{1}$ (which coin we call 0 or 1) is arbitrary.
 - $\btheta = (0.66, 0.66)$ corresponds to a model where we really only have one type of coins.
@@ -889,12 +889,14 @@ ip_iter <- function(theta, a = c(1,1), b = c(1,1), iter = 10) {
 #+END_SRC
 \normalsize
 
-** Visual Representation of Iteration
+** Visual Representation of Initial Iterations
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Bimodal joint posterior
+- The algorithm does not converge to a point.
+- Sampling is performed proportional to the posterior density.
+- More samples are obtained from parameter values that are more likely.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -907,11 +909,14 @@ ip_data <- ip_iter(theta = c(0.6, 0.5), a = c(1,1), b = c(1, 1), iter = 10^4)
 #+END_SRC
 #+HEADER: :width 5 :height 5
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure1.pdf :exports results
-ip_data[1:30,] %>%
-  mutate(r = seq_len(n())) %>%
+max_iter <- 49
+ip_data[seq_len(max_iter + 1),] %>%
+  mutate(r = seq_len(n()) - 1) %>%
   ggplot(mapping = aes(x = theta0, y = theta1)) +
   geom_path(size = 0.1) +
-  geom_text(mapping = aes(label = r)) +
+  geom_text(mapping = aes(label = r), size = 3) +
+  geom_point(data = ip_data[c(1, max_iter + 1),],
+             shape = 1, size = 5) +
   scale_x_continuous(limits = 0:1) +
   scale_y_continuous(limits = 0:1) +
   theme_bw() +
@@ -926,12 +931,13 @@ ip_data[1:30,] %>%
 [[file:./source/ip_figure1.pdf]]
 \normalsize
 
-** Visual Representation of Iteration
+** Visual Representation of Posterior Samples
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Bimodal joint posterior
+- 10^{4} posterior samples were obtained.
+- The first 10% of posterior samples were discarded to reduce the influence of the initialization values.
 
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
@@ -940,6 +946,38 @@ ip_data[1:30,] %>%
 \scriptsize
 #+HEADER: :width 5 :height 5
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure2.pdf :exports results
+ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),] %>%
+  ggplot(mapping = aes(x = theta0, y = theta1)) +
+  geom_point(size = 0.1, alpha = 0.5) +
+  scale_x_continuous(limits = 0:1) +
+  scale_y_continuous(limits = 0:1) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5),
+        legend.key = element_blank(),
+        plot.title = element_text(hjust = 0.5),
+        strip.background = element_blank())
+#+END_SRC
+
+#+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
+#+RESULTS:
+[[file:./source/ip_figure2.pdf]]
+\normalsize
+
+** Visual Representation of Posterior Density
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- The first 10% of posterior samples were discarded to reduce the influence of the initialization values.
+- Similarly to the EM results with multiple initialization values, the posterior exhibits bimodality.
+
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+\scriptsize
+#+HEADER: :width 5 :height 5
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/ip_figure3.pdf :exports results
 with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
      persp(MASS::kde2d(theta0, theta1, n = 50),
            main = "Joint Posterior",
@@ -948,7 +986,7 @@ with(ip_data[seq(round(nrow(ip_data) * 0.1), nrow(ip_data)),],
 
 #+ATTR_LATEX: :width \textwidth :options page=1,keepaspectratio :center t
 #+RESULTS:
-[[file:./source/em_figure2.pdf]]
+[[file:./source/em_figure3.pdf]]
 \normalsize
 
 * Stan

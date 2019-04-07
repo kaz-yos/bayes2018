@@ -812,7 +812,7 @@ with(lik_data,
 surface3d(x = grid, y = grid, z = lik_data_gt$mat[[1]],
           back = "line", front = "line", col = "gray",
           lwd = 1, alpha = 0.1)
-rgl.snapshot(filename = "./source/em_rgl.png", fmt = "png", top = TRUE)
+rgl.snapshot(filename = "./source/em_rgl_.png", fmt = "png", top = TRUE)
 
 ## Loop over iterations
 for (i in seq_len(nrow(lik_data_gt) - 1)) {
@@ -835,6 +835,10 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
   rgl.snapshot(filename = sprintf("./source/em_rgl_%s_m.png", lik_data_gt$gt[[i + 1]]),
                fmt = "png", top = TRUE)
 }
+
+## Convert to a gif
+## https://www.r-bloggers.com/animate-gif-images-in-r-imagemagick/
+system("convert -delay 80 ./source/em_rgl_*.png ./source/em_rgl.gif")
 #+END_SRC
 
 *** @@latex:@@                                                        :BMCOL:

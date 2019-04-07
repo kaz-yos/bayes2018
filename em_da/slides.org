@@ -68,6 +68,9 @@
 
 * Opening
 ** Personal Background
+   :PROPERTIES:
+   :BEAMER_opt: noframenumbering
+   :END:
 - 2005 /Igakushi/ degree (\approx MD) in Japan.
 - -2012 Trained clinically as a rheumatologist/internist.
 - 2014 Master of Public Health (MPH) at Harvard T.H. Chan School of Public Health and research fellowship at Brigham and Women's Hospital.

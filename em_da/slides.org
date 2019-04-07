@@ -769,25 +769,37 @@ construct_gt <- function(thetahat_t) {
   return(gt)
 }
 
-g1 <- construct_gt(c(0.6, 0.5))
-g2 <- construct_gt(em_step(c(0.6,0.5))$M)
-g3 <- construct_gt(em_step(em_step(c(0.6,0.5))$M)$M)
-g4 <- construct_gt(em_step(em_step(em_step(c(0.6,0.5))$M)$M)$M)
-g5 <- construct_gt(em_step(em_step(em_step(em_step(c(0.6,0.5))$M)$M)$M)$M)
+em_iter_out <- em_iter(c(0.6, 0.5))
+
+thetahat0 <- as.numeric(em_iter_out[1,])
+thetahat1 <- as.numeric(em_iter_out[2,])
+thetahat2 <- as.numeric(em_iter_out[3,])
+thetahat3 <- as.numeric(em_iter_out[4,])
+thetahat4 <- as.numeric(em_iter_out[5,])
+thetahat5 <- as.numeric(em_iter_out[6,])
+
+g0 <- construct_gt(thetahat0)
+g1 <- construct_gt(thetahat1)
+g2 <- construct_gt(thetahat2)
+g3 <- construct_gt(thetahat3)
+g4 <- construct_gt(thetahat4)
+g5 <- construct_gt(thetahat5)
 
 lik_data_gt <- lik_data %>%
-  mutate(exp_g1 = exp(g1(theta0, theta1)),
+  mutate(exp_g0 = exp(g0(theta0, theta1)),
+         exp_g1 = exp(g1(theta0, theta1)),
          exp_g2 = exp(g2(theta0, theta1)),
          exp_g3 = exp(g3(theta0, theta1)),
          exp_g4 = exp(g4(theta0, theta1)),
          exp_g5 = exp(g5(theta0, theta1)))
 
-## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
-suppressMessages(library(rgl))
-
 mat_lik <- lik_data_gt %>%
   select(theta0, theta1, lik) %>%
   spread(key = theta1, value = lik) %>%
+  as.matrix(.) %>% `[`(,-1)
+mat_exp_g0 <- lik_data_gt %>%
+  select(theta0, theta1, exp_g0) %>%
+  spread(key = theta1, value = exp_g0) %>%
   as.matrix(.) %>% `[`(,-1)
 mat_exp_g1 <- lik_data_gt %>%
   select(theta0, theta1, exp_g1) %>%
@@ -810,6 +822,8 @@ mat_exp_g5 <- lik_data_gt %>%
   spread(key = theta1, value = exp_g5) %>%
   as.matrix(.) %>% `[`(,-1)
 
+## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
+suppressMessages(library(rgl))
 ## https://stackoverflow.com/questions/18065669/setting-size-of-the-rgl-device
 ## left, top, right and bottom of the displayed window
 par3d(windowRect = c(20, 30, 800, 800))
@@ -821,17 +835,29 @@ with(lik_data_gt,
             xlab = "theta0", ylab = "theta1", zlab = "Likelihood",
             xlim = c(0,1), ylim = c(0,1),
             aspect = c(1, 1, 0.7)))
+##
 surface3d(grid, grid, mat_lik,    back = "line", front = "line", col = "gray", lwd = 1, alpha = 0.1)
-rgl.snapshot(filename = "./source/em_rgl0.png", fmt = "png", top = TRUE)
+points3d(x = thetahat0[1], y = thetahat0[2], z = exp(g0(thetahat0[1], thetahat0[2])))
+rgl.snapshot(filename = "./source/em_rgl.png", fmt = "png", top = TRUE)
+##
 surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "blue",  lwd = 1, alpha = 0.1)
+points3d(x = thetahat1[1], y = thetahat1[2], z = exp(g1(thetahat1[1], thetahat1[2])))
 rgl.snapshot(filename = "./source/em_rgl1.png", fmt = "png", top = TRUE)
+##
 surface3d(grid, grid, mat_exp_g2, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+points3d(x = thetahat2[1], y = thetahat2[2], z = exp(g2(thetahat2[1], thetahat2[2])))
 rgl.snapshot(filename = "./source/em_rgl2.png", fmt = "png", top = TRUE)
+##
 surface3d(grid, grid, mat_exp_g3, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+points3d(x = thetahat2[1], y = thetahat2[2], z = exp(g3(thetahat2[1], thetahat2[2])))
 rgl.snapshot(filename = "./source/em_rgl3.png", fmt = "png", top = TRUE)
+##
 surface3d(grid, grid, mat_exp_g4, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+points3d(x = thetahat4[1], y = thetahat4[2], z = exp(g4(thetahat4[1], thetahat4[2])))
 rgl.snapshot(filename = "./source/em_rgl4.png", fmt = "png", top = TRUE)
+##
 surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+points3d(x = thetahat5[1], y = thetahat5[2], z = exp(g5(thetahat5[1], thetahat5[2])))
 rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
 #+END_SRC
 

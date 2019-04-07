@@ -675,7 +675,8 @@ lik_data %>%
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
-- The EM Algorithm is guaranteed to improve the parameter estimates toward the local optimum.
+- This part proves that the EM Algorithm is guaranteed to improve the parameter estimates toward the local optimum every step. cite:doWhatExpectationMaximization2008,murphyMachineLearningProbabilistic2012
+\footnotesize
 \begin{align*}
   \log \left( p(\bx | \btheta) \right)
   &= \log \left( \sum_{\bz} p(\bx, \bz | \btheta) \right)\\
@@ -690,9 +691,48 @@ lik_data %>%
   &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right) + \sum_{\bz} Q(\bz) \log \left( p(\bx | \btheta) \right)\\
   &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right) + \log \left( p(\bx | \btheta) \right) \sum_{\bz} Q(\bz)\\
   &= \log \left( p(\bx | \btheta) \right) + \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right)\\
-  &= \log \left( p(\bx | \btheta) \right) - \Kbb\Lbb \left( Q(\bz) || p(\bz | \bx, \btheta) \right)\\
+  &= \log \left( p(\bx | \btheta) \right) - \Kbb\Lbb \left( Q(\bz) || p(\bz | \bx, \btheta) \right)
 \end{align*}
-- This lower bound is maximized by reducing the KL divergence by setting $Q(\bz) = p(\bz | \bx, \btheta)$, which also gives equality.
+\normalsize
+- This lower bound is maximized by reducing the KL divergence cite:murphyMachineLearningProbabilistic2012 by setting $Q(\bz) = p(\bz | \bx, \btheta)$, which also gives equality.
+- Consider the following function $g_{t}(\btheta)$, which sets $Q(\bz) = p(\bz | \bx, \bthetahat^{(t)})$. Note that only the numerator term within the log has a free parameter $\btheta$.
+\footnotesize
+\begin{align*}
+  g_{t}(\btheta) &= \sum_{\bz} p \left( \bz | \bx, \bthetahat^{(t)} \right) \log \left( \frac{p(\bx,\bz | \btheta)}{p \left( \bz | \bx, \bthetahat^{(t)} \right)} \right)
+\end{align*}
+\normalsize
+- Note $\log \left( p(\bx | \btheta) \right) \ge g_{t}(\btheta)$ for all $\btheta$.
+- At $\bthetahat^{(t)}$, $g_{t}(\bthetahat^{(t)})$ meets the equality condition above, thus, $g_{t}(\bthetahat^{(t)}) = \log p(\bx | \bthetahat^{(t)})$. That is, $g_{t}$ "touches" the incomplete-data likelihood function at the current parameter estimates. cite:murphyMachineLearningProbabilistic2012
+- Consider an update rule to find $\btheta^{(t+1)}$ that maximizes this $g_{t}$ function: $\bthetahat^{(t+1)} = \arg\max_{\btheta} g_{t}(\btheta)$. Then the following inequality holds.
+\footnotesize
+\begin{align*}
+  &~~~\text{By above inequality}\\
+  \log p \left( \bx | \bthetahat^{(t+1)} \right)
+  &\ge g_{t}\left( \bthetahat^{(t+1)} \right)\\
+  &~~~\text{As $\bthetahat^{(t+1)}$ maximizes $g_{t}$}\\
+  &\ge g_{t}\left( \bthetahat^{(t)} \right)\\
+  &~~~\text{Equality holds at current value}\\
+  &= \log p \left( \bx | \bthetahat^{(t)} \right)
+\end{align*}
+\normalsize
+- That is, this update rule is guaranteed to improve the incomplete-data likelihood at each step.
+- Now compare this update rule to the EM algorithm.
+\footnotesize
+\begin{align*}
+  \bthetahat^{(t+1)}
+  &= \arg\max_{\btheta} g_{t}(\btheta)\\
+  &= \arg\max_{\btheta} \sum_{\bz} p \left( \bz | \bx, \bthetahat^{(t)} \right) \log \left( \frac{p(\bx,\bz | \btheta)}{p \left( \bz | \bx, \bthetahat^{(t)} \right)} \right)\\
+  &= \arg\max_{\btheta} \sum_{\bz} p \left( \bz | \bx, \bthetahat^{(t)} \right)
+    \left[
+    \log p(\bx,\bz | \btheta)
+    -
+    \log p \left( \bz | \bx, \bthetahat^{(t)} \right)
+    \right]\\
+  &~~~\text{Drop constant second term free of $\btheta$}\\
+  &= \arg\max_{\btheta} \sum_{\bz} p \left( \bz | \bx, \bthetahat^{(t)} \right) \log p(\bx,\bz | \btheta)
+\end{align*}
+\normalsize
+- This is maximization of the expected complete-data log likelihood. The expectation is over the distribution $\bz$ given the observed data $\bx$ and assuming the current parameter value $\bthetahat^{(t)}$.
 
 * DA Method
 ** Title DA

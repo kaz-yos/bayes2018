@@ -849,89 +849,161 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl.png]]
 
-** EM
+** EM: E Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g0.png]]
+[[./source/em_rgl_g0_e.png]]
 
-** EM
+** EM: M Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g1.png]]
+[[./source/em_rgl_g0_m.png]]
 
-** EM
+** EM: E Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g2.png]]
+[[./source/em_rgl_g1_e.png]]
 
-** EM
+** EM: M Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g3.png]]
+[[./source/em_rgl_g1_m.png]]
 
-** EM
+** EM: E Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g4.png]]
+[[./source/em_rgl_g2_e.png]]
 
-** EM
+** EM: M Step
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- Incomplete-data likelihood function
-- Expected likelihood added
+- $g_{t}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g5.png]]
+[[./source/em_rgl_g2_m.png]]
+
+** EM: E Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g3_e.png]]
+
+** EM: M Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ maximized
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g3_m.png]]
+
+** EM: E Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g4_e.png]]
+
+** EM: M Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ maximized
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g4_m.png]]
+
+** EM: E Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g5_e.png]]
+
+** EM: M Step
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- $g_{t}(\theta)$ maximized
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g5_m.mng]]
 
 * DA Method
 ** Title DA

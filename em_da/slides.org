@@ -507,7 +507,7 @@ em_step <- function(theta) {
 #+END_SRC
 \normalsize
 
-** EM Step 3
+** EM Step (3)
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
@@ -744,7 +744,7 @@ lik_data %>%
 - This is maximization of the expected complete-data log likelihood. The expectation is over the distribution $\bz$ given the observed data $\bx$ and assuming the current parameter value $\bthetahat^{(t)}$.
 - Therefore, the EM algorithm is equivalent to the update rule with the guaranteed improvement at each step.
 
-** EM Step 0
+** EM: Incomplete-Data Likelihood
 #+BEGIN_SRC R :session *R-org* :results output :exports none
 construct_gt <- function(thetahat0_t, thetahat1_t) {
   gt <- function(theta0, theta1) {
@@ -840,7 +840,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl.png]]
 
-** EM Step 0
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -854,7 +854,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g0.png]]
 
-** EM Step 1
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -868,7 +868,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g1.png]]
 
-** EM Step 2
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -882,7 +882,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g2.png]]
 
-** EM Step 3
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -896,7 +896,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g3.png]]
 
-** EM Step 4
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -910,7 +910,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g4.png]]
 
-** EM Step 5
+** EM
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50

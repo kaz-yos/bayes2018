@@ -786,28 +786,6 @@ lik_data_gt <- lik_data %>%
          exp_g4 = exp(g4(theta0, theta1)),
          exp_g5 = exp(g5(theta0, theta1)))
 
-mat_zeros <- outer(grid, grid, function(x,y) {rep(0, length(x))})
-
-## https://stat.ethz.ch/pipermail/r-help/2002-March/019516.html
-## ‘persp()’ returns the _viewing transformation matrix_, say ‘VT’, a
-## 4 x 4 matrix suitable for projecting 3D coordinates (x,y,z) into
-## the 2D plane using homogeneous 4D coordinates (x,y,z,t).  It can
-## be used to superimpose additional graphical elements on the 3D
-## plot, by lines or points, using the function trans3d.
-
-pmat_lik <- persp(x = grid, y = grid, z = mat_zeros,
-                  xlim = c(0,1), ylim = c(0,1), zlim = c(0, max(lik_data_gt$lik * 1.1)),
-                  main = "EM Algorithm",
-                  xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
-
-points(with(lik_data_gt, trans3d(theta0, theta1, lik, pmat = pmat_lik)),    col = "black", lwd = 0.5, pch = 1, cex = 0.2)
-
-lines(with(lik_data_gt, trans3d(theta0, theta1, exp_g1, pmat = pmat_lik)), col = "blue", lwd = 0.5)
-lines(with(lik_data_gt, trans3d(theta0, theta1, exp_g2, pmat = pmat_lik)), col = "red", lwd = 0.2)
-lines(with(lik_data_gt, trans3d(theta0, theta1, exp_g3, pmat = pmat_lik)), col = "green", lwd = 0.2)
-lines(with(lik_data_gt, trans3d(theta0, theta1, exp_g4, pmat = pmat_lik)), col = "yellow", lwd = 0.2)
-
-
 ## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
 library(rgl)
 
@@ -845,7 +823,7 @@ with(lik_data_gt,
             aspect = c(1, 1, 0.7)))
 
 surface3d(grid, grid, mat_lik,    back = "line", front = "line", col = "gray", lwd = 1, alpha = 0.1)
-surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "red",  lwd = 1, alpha = 0.1)
+surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "blue",  lwd = 1, alpha = 0.1)
 surface3d(grid, grid, mat_exp_g2, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
 surface3d(grid, grid, mat_exp_g3, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
 surface3d(grid, grid, mat_exp_g4, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)

@@ -851,7 +851,7 @@ system("convert -delay 80 ./source/em_rgl_*.png ./source/em_rgl.gif")
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl.png]]
+[[./source/em_rgl_.png]]
 
 ** EM: E Step (0)
 *** @@latex:@@                                                        :BMCOL:

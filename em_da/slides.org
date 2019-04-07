@@ -744,6 +744,83 @@ lik_data %>%
 - This is maximization of the expected complete-data log likelihood. The expectation is over the distribution $\bz$ given the observed data $\bx$ and assuming the current parameter value $\bthetahat^{(t)}$.
 - Therefore, the EM algorithm is equivalent to the update rule with the guaranteed improvement at each step.
 
+** Further Illustration
+# https://orgmode.org/manual/results.html
+# https://orgmode.org/manual/Exporting-code-blocks.html
+\scriptsize
+#+HEADER: :width 3.5 :height 3
+#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_improvement.pdf :exports both
+construct_gt <- function(thetahat_t) {
+  gt <- function(theta0, theta1) {
+    stopifnot(length(theta0) == length(theta1))
+    if (length(theta0) > 1) {
+      return((Vectorize(gt))(theta0, theta1))
+    }
+    ## Calculate contributions
+    df <- tibble(X = c(5,9,8,4,7),
+                 P_X_given_Z0 = dbinom(X, size = 10, prob = thetahat_t[1]),
+                 P_X_given_Z1 = dbinom(X, size = 10, prob = thetahat_t[2]),
+                 P_X_and_Z0 = dbinom(X, size = 10, prob = theta0),
+                 P_X_and_Z1 = dbinom(X, size = 10, prob = theta1),
+                 P_Z0_given_X = P_X_given_Z0 / (P_X_given_Z0 + P_X_given_Z1),
+                 P_Z1_given_X = P_X_given_Z1 / (P_X_given_Z0 + P_X_given_Z1),
+                 Z0_contrib = P_Z0_given_X * log(P_X_and_Z0 / P_Z0_given_X),
+                 Z1_contrib = P_Z1_given_X * log(P_X_and_Z1 / P_Z1_given_X),
+                 contrib = Z0_contrib + Z1_contrib)
+    ## Sum over individuals and return
+    return(sum(df$contrib))
+  }
+  return(gt)
+}
+
+g1 <- construct_gt(c(0.6, 0.5))
+g2 <- construct_gt(em_step(c(0.6,0.5))$M)
+g3 <- construct_gt(em_step(em_step(c(0.6,0.5))$M)$M)
+
+lik_data_gt <- lik_data %>%
+  mutate(exp_g1 = exp(g1(theta0, theta1)),
+         exp_g2 = exp(g2(theta0, theta1)),
+         exp_g3 = exp(g3(theta0, theta1)))
+
+mat_lik <- lik_data_gt %>%
+  select(theta0, theta1, lik) %>%
+  spread(key = theta1, value = lik) %>%
+  as.matrix(.) %>% `[`(,-1)
+mat_exp_g1 <- lik_data_gt %>%
+  select(theta0, theta1, exp_g1) %>%
+  spread(key = theta1, value = exp_g1) %>%
+  as.matrix(.) %>% `[`(,-1)
+mat_exp_g2 <- lik_data_gt %>%
+  select(theta0, theta1, exp_g2) %>%
+  spread(key = theta1, value = exp_g2) %>%
+  as.matrix(.) %>% `[`(,-1)
+mat_exp_g3 <- lik_data_gt %>%
+  select(theta0, theta1, exp_g3) %>%
+  spread(key = theta1, value = exp_g3) %>%
+  as.matrix(.) %>% `[`(,-1)
+
+persp(x = grid, y = grid, z = mat_lik,
+      xlim = c(0,1), ylim = c(0,1),
+      main = "Incomplete-Data Likelihood",
+      xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
+
+persp(x = grid, y = grid, z = mat_exp_g1,
+      xlim = c(0,1), ylim = c(0,1),
+      main = "exp(g1(theta))",
+      xlab = "theta0", ylab = "theta1", zlab = "exp(g1(theta))")
+
+persp(x = grid, y = grid, z = mat_exp_g2,
+      xlim = c(0,1), ylim = c(0,1),
+      main = "exp(g2(theta))",
+      xlab = "theta0", ylab = "theta1", zlab = "exp(g2(theta))")
+
+persp(x = grid, y = grid, z = mat_exp_g3,
+      xlim = c(0,1), ylim = c(0,1),
+      main = "exp(g3(theta))",
+      xlab = "theta0", ylab = "theta1", zlab = "exp(g3(theta))")
+#+END_SRC
+\normalsize
+
 * DA Method
 ** Title DA
    :PROPERTIES:

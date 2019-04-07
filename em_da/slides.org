@@ -838,7 +838,21 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl0.png]]
+[[./source/em_rgl.png]]
+
+** EM Step 0
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl_g0.png]]
 
 ** EM Step 1
 *** @@latex:@@                                                        :BMCOL:
@@ -852,7 +866,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl1.png]]
+[[./source/em_rgl_g1.png]]
 
 ** EM Step 2
 *** @@latex:@@                                                        :BMCOL:
@@ -866,7 +880,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl2.png]]
+[[./source/em_rgl_g2.png]]
 
 ** EM Step 3
 *** @@latex:@@                                                        :BMCOL:
@@ -880,7 +894,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl3.png]]
+[[./source/em_rgl_g3.png]]
 
 ** EM Step 4
 *** @@latex:@@                                                        :BMCOL:
@@ -894,7 +908,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl4.png]]
+[[./source/em_rgl_g4.png]]
 
 ** EM Step 5
 *** @@latex:@@                                                        :BMCOL:
@@ -908,7 +922,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl5.png]]
+[[./source/em_rgl_g5.png]]
 
 * DA Method
 ** Title DA

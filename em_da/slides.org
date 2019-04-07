@@ -643,7 +643,7 @@ crossing(init0 = init,
 \scriptsize
 #+HEADER: :width 7 :height 7
 #+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/likelihood2.pdf :exports results
-construct_llik2 <- function(x) {
+construct_llik_incompl <- function(x) {
   llik <- function(theta0, theta1) {
     stopifnot(length(theta0) == length(theta1))
     if (length(theta0) > 1) {
@@ -655,13 +655,13 @@ construct_llik2 <- function(x) {
     return(sum(log(`+`(exp(z0_contrib), exp(z1_contrib)))))
   }
 }
-llik2 <- construct_llik2(x = c(5,9,8,4,7))
+llik_incompl <- construct_llik_incompl(x = c(5,9,8,4,7))
 inc <- 0.01
 grid <- seq(from = inc, to = 1 - inc, by = inc)
 lik_data <- crossing(theta0 = grid,
                      theta1 = grid) %>%
-  mutate(llik2 = llik2(theta0, theta1)) %>%
-  mutate(lik = exp(llik2))
+  mutate(llik_incompl = llik_incompl(theta0, theta1)) %>%
+  mutate(lik = exp(llik_incompl))
 lik_data %>%
   select(theta0, theta1, lik) %>%
   spread(key = theta1, value = lik) %>%
@@ -837,27 +837,27 @@ with(lik_data_gt,
             aspect = c(1, 1, 0.7)))
 ##
 surface3d(grid, grid, mat_lik,    back = "line", front = "line", col = "gray", lwd = 1, alpha = 0.1)
-points3d(x = thetahat0[1], y = thetahat0[2], z = exp(g0(thetahat0[1], thetahat0[2])))
+points3d(x = thetahat0[1], y = thetahat0[2], z = exp(llik_incompl(thetahat0[1], thetahat0[2])))
 rgl.snapshot(filename = "./source/em_rgl.png", fmt = "png", top = TRUE)
 ##
 surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "blue",  lwd = 1, alpha = 0.1)
-points3d(x = thetahat1[1], y = thetahat1[2], z = exp(g1(thetahat1[1], thetahat1[2])))
+points3d(x = thetahat1[1], y = thetahat1[2], z = exp(llik_incompl(thetahat1[1], thetahat1[2])))
 rgl.snapshot(filename = "./source/em_rgl1.png", fmt = "png", top = TRUE)
 ##
 surface3d(grid, grid, mat_exp_g2, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat2[1], y = thetahat2[2], z = exp(g2(thetahat2[1], thetahat2[2])))
+points3d(x = thetahat2[1], y = thetahat2[2], z = exp(llik_incompl(thetahat2[1], thetahat2[2])))
 rgl.snapshot(filename = "./source/em_rgl2.png", fmt = "png", top = TRUE)
 ##
 surface3d(grid, grid, mat_exp_g3, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat2[1], y = thetahat2[2], z = exp(g3(thetahat2[1], thetahat2[2])))
+points3d(x = thetahat2[1], y = thetahat2[2], z = exp(llik_incompl(thetahat2[1], thetahat2[2])))
 rgl.snapshot(filename = "./source/em_rgl3.png", fmt = "png", top = TRUE)
 ##
 surface3d(grid, grid, mat_exp_g4, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat4[1], y = thetahat4[2], z = exp(g4(thetahat4[1], thetahat4[2])))
+points3d(x = thetahat4[1], y = thetahat4[2], z = exp(llik_incompl(thetahat4[1], thetahat4[2])))
 rgl.snapshot(filename = "./source/em_rgl4.png", fmt = "png", top = TRUE)
 ##
 surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat5[1], y = thetahat5[2], z = exp(g5(thetahat5[1], thetahat5[2])))
+points3d(x = thetahat5[1], y = thetahat5[2], z = exp(llik_incompl(thetahat5[1], thetahat5[2])))
 rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
 #+END_SRC
 

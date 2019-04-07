@@ -671,6 +671,29 @@ lik_data %>%
         xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
 #+END_SRC
 
+** Monotone Improvement in EM Algorithm
+   :PROPERTIES:
+   :BEAMER_opt: allowframebreaks,label=,t
+   :END:
+- The EM Algorithm is guaranteed to improve the parameter estimates toward the local optimum.
+\begin{align*}
+  \log \left( p(\bx | \btheta) \right)
+  &= \log \left( \sum_{\bz} p(\bx, \bz | \btheta) \right)\\
+  &~~~\text{Introduce arbitrary distribution $Q$}\\
+  &= \log \left( \sum_{\bz} Q(\bz) \frac{p(\bx, \bz | \btheta)}{Q(\bz)} \right)\\
+  &~~~\text{Rewrite as expectation}\\
+  &= \log \left( E_{Q} \left[ \frac{p(\bx, \bz | \btheta)}{Q(\bz)} \right] \right)\\
+  &~~~\text{Jensen's inequality on concave log}\\
+  &\ge E_{Q} \left[ \log \left( \frac{p(\bx, \bz | \btheta)}{Q(\bz)} \right) \right]\\
+  &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bx, \bz | \btheta)}{Q(\bz)} \right)\\
+  &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta) p(\bx | \btheta)}{Q(\bz)} \right)\\
+  &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right) + \sum_{\bz} Q(\bz) \log \left( p(\bx | \btheta) \right)\\
+  &= \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right) + \log \left( p(\bx | \btheta) \right) \sum_{\bz} Q(\bz)\\
+  &= \log \left( p(\bx | \btheta) \right) + \sum_{\bz} Q(\bz) \log \left( \frac{p(\bz | \bx, \btheta)}{Q(\bz)} \right)\\
+  &= \log \left( p(\bx | \btheta) \right) - \Kbb\Lbb \left( Q(\bz) || p(\bz | \bx, \btheta) \right)\\
+\end{align*}
+- This lower bound is maximized by reducing the KL divergence by setting $Q(\bz) = p(\bz | \bx, \btheta)$, which also gives equality.
+
 * DA Method
 ** Title DA
    :PROPERTIES:

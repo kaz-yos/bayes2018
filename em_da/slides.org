@@ -307,7 +307,7 @@ lik_data %>%
   - $\thetahat_{0}^{(0)} := 0.6$
   - $\thetahat_{1}^{(0)} := 0.5$
 
-** E-Step (1)
+** E-Step (0)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -412,7 +412,7 @@ B / (A + B)                                # Prob. of Coin B given 5 heads
 - In expectation, Coin A was chosen 2.99 times, resulting in 29.9 expected tosses, whereas Coin B was chosen 2.01 times, resulting in 20.1 expected tosses.
 - The observed heads are distributed across coins. The sums indicate 21.3 expected heads for Coin A and 11.7 expected heads for Coin B.
 
-** M-Step (1)
+** M-Step (0)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -432,7 +432,7 @@ B / (A + B)                                # Prob. of Coin B given 5 heads
 \normalsize
 - MLE: $\thetahat_{0}^{(1)} = 21.3 / (2.99 \times 10) = 0.71$; $\thetahat_{1}^{(1)} = 11.7 / (2.01 \times 10) = 0.58$
 
-** E-Step (2)
+** E-Step (1)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -454,7 +454,7 @@ B / (A + B)                                # Prob. of Coin B given 5 heads
 - In expectation, Coin A was chosen 2.58 times, resulting in 25.8 expected tosses, whereas Coin B was chosen 2.42 times, resulting in 24.2 expected tosses.
 - The sums indicate 19.21 expected heads for Coin A and 13.79 expected heads for Coin B.
 
-** M-Step (2)
+** M-Step (1)
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t
    :END:
@@ -507,7 +507,7 @@ em_step <- function(theta) {
 #+END_SRC
 \normalsize
 
-** EM Step (3)
+** EM Step (2)
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
 em_step(theta = c(0.6, 0.5)) %>% magrittr::extract2("M") %>%
@@ -704,7 +704,7 @@ lik_data %>%
 - This inequality gives the lower bound for $\log \left( p(\bx | \btheta) \right)$ for all $\btheta$.
 - This lower bound is improved (maximized) by reducing the KL divergence cite:murphyMachineLearningProbabilistic2012 by setting $Q(\bz) = p(\bz | \bx, \btheta)$, which also gives equality.
 - As $\btheta$ is the unknown quantity that we want to estimate, we can use $Q(\bz) = p(\bz | \bx, \bthetahat^{(t)})$ as our best available option. In this case, equality holds at $\log \left( p(\bx | \bthetahat^{(t)}) \right)$.
-- Consider the following function $g_{t}(\btheta)$, which uses $Q(\bz) = p(\bz | \bx, \bthetahat^{(t)})$. Note that only the numerator term within the log has a free parameter $\btheta$.
+- Consider the following function $g_{t}(\btheta)$, which uses $Q(\bz) = p(\bz | \bx, \bthetahat^{(t)})$. Note that only the numerator term within the log has a free parameter $\btheta$. cite:doWhatExpectationMaximization2008
 \footnotesize
 \begin{align*}
   g_{t}(\btheta) &= \sum_{\bz} p \left( \bz | \bx, \bthetahat^{(t)} \right) \log \left( \frac{p(\bx,\bz | \btheta)}{p \left( \bz | \bx, \bthetahat^{(t)} \right)} \right)
@@ -849,12 +849,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl.png]]
 
-** EM: E Step
+** EM: E Step (0)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{0}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -862,12 +862,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g0_e.png]]
 
-** EM: M Step
+** EM: M Step (0)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{0}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -875,12 +875,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g0_m.png]]
 
-** EM: E Step
+** EM: E Step (1)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{1}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -888,12 +888,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g1_e.png]]
 
-** EM: M Step
+** EM: M Step (1)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{1}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -901,12 +901,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g1_m.png]]
 
-** EM: E Step
+** EM: E Step (2)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{2}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -914,12 +914,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g2_e.png]]
 
-** EM: M Step
+** EM: M Step (2)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{2}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -927,12 +927,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g2_m.png]]
 
-** EM: E Step
+** EM: E Step (3)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{3}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -940,12 +940,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g3_e.png]]
 
-** EM: M Step
+** EM: M Step (3)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{3}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -953,12 +953,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g3_m.png]]
 
-** EM: E Step
+** EM: E Step (4)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{4}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -966,12 +966,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g4_e.png]]
 
-** EM: M Step
+** EM: M Step (4)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{4}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -979,12 +979,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g4_m.png]]
 
-** EM: E Step
+** EM: E Step (5)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ added
+- $g_{5}(\theta)$ added
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
@@ -992,12 +992,12 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
 [[./source/em_rgl_g5_e.png]]
 
-** EM: M Step
+** EM: M Step (5)
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50
     :END:
-- $g_{t}(\theta)$ maximized
+- $g_{5}(\theta)$ maximized
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50

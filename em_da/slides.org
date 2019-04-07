@@ -813,7 +813,7 @@ surface3d(x = grid, y = grid, z = lik_data_gt$mat[[1]],
           lwd = 1, alpha = 0.1)
 rgl.snapshot(filename = "./source/em_rgl.png", fmt = "png", top = TRUE)
 
-##
+## Loop over iterations
 for (i in seq_len(nrow(lik_data_gt) - 1)) {
   ## Add current parameter estimate on incomplete-data likelihood surface
   points3d(x = gt_funs$theta0[i], y = gt_funs$theta1[i],
@@ -822,13 +822,16 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
   surface3d(x = grid, y = grid, z = lik_data_gt$mat[[i + 1]],
             back = "line", front = "line", col = "blue",
             lwd = 1, alpha = 0.1)
+  ## Save E Step plot
+  rgl.snapshot(filename = sprintf("./source/em_rgl_%s_e.png", lik_data_gt$gt[[i + 1]]),
+               fmt = "png", top = TRUE)
   ## Add segment indicating maximization
   segments3d(x = c(gt_funs$theta0[i], gt_funs$theta0[i + 1]),
              y = c(gt_funs$theta1[i], gt_funs$theta1[i + 1]),
              z = c(exp(llik_incompl(gt_funs$theta0[i], gt_funs$theta1[i])),
                    exp(gt_funs$gt[[i]](gt_funs$theta0[i + 1], gt_funs$theta1[i + 1]))))
-  ## Save plot
-  rgl.snapshot(filename = sprintf("./source/em_rgl_%s.png", lik_data_gt$gt[[i + 1]]),
+  ## Save M Step plot
+  rgl.snapshot(filename = sprintf("./source/em_rgl_%s_m.png", lik_data_gt$gt[[i + 1]]),
                fmt = "png", top = TRUE)
 }
 #+END_SRC

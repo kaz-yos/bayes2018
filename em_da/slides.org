@@ -835,6 +835,88 @@ surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", l
 rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
 #+END_SRC
 
+** EM Step 0
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function.
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl0.png]]
+
+** EM Step 1
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl1.png]]
+
+** EM Step 2
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl2.png]]
+
+** EM Step 3
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl3.png]]
+
+** EM Step 4
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl4.png]]
+
+** EM Step 5
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+- Incomplete-data likelihood function
+- Expected likelihood added
+*** @@latex:@@                                                        :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.50
+    :END:
+#+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
+[[./source/em_rgl5.png]]
 
 * DA Method
 ** Title DA

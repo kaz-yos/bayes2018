@@ -797,8 +797,9 @@ lik_data_gt <- bind_cols(lik_data, lst_exp_gt) %>%
 ## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
 suppressMessages(library(rgl))
 ## https://stackoverflow.com/questions/18065669/setting-size-of-the-rgl-device
-## left, top, right and bottom of the displayed window
-par3d(windowRect = c(20, 30, 800, 800))
+## windowRect: left, top, right and bottom of the displayed window
+par3d(windowRect = c(20, 30, 800, 800),
+      zoom = 0.7)
 ## Set up the plot space.
 with(lik_data,
      plot3d(x = theta0, y = theta1, z = lik,

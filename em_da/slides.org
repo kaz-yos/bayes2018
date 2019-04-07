@@ -649,8 +649,9 @@ construct_llik2 <- function(x) {
     if (length(theta0) > 1) {
       return((Vectorize(llik))(theta0, theta1))
     }
-    z0_contrib <- (x * log(theta0) + (10 - x) * log(1 - theta0))
-    z1_contrib <- (x * log(theta1) + (10 - x) * log(1 - theta1))
+    z0_contrib <- (x * log(theta0) + (10 - x) * log(1 - theta0)) + log(choose(10, x))
+    z1_contrib <- (x * log(theta1) + (10 - x) * log(1 - theta1)) + log(choose(10, x))
+    ## outer sum is over observations. Inside is log_sum_exp
     return(sum(log(`+`(exp(z0_contrib), exp(z1_contrib)))))
   }
 }

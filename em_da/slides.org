@@ -541,7 +541,7 @@ em_iter <- function(theta, tolerance = 10^(-3)) {
 \newpage
 \scriptsize
 #+BEGIN_SRC R :session *R-org* :results output :exports both
-em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3))
+(em_iter_out <- em_iter(theta = c(0.6, 0.5), tolerance = 10^(-3)))
 #+END_SRC
 \normalsize
 
@@ -746,7 +746,7 @@ lik_data %>%
 
 ** EM Step 0
 #+BEGIN_SRC R :session *R-org* :results output :exports none
-construct_gt <- function(thetahat_t) {
+construct_gt <- function(thetahat0_t, thetahat1_t) {
   gt <- function(theta0, theta1) {
     stopifnot(length(theta0) == length(theta1))
     if (length(theta0) > 1) {
@@ -754,8 +754,8 @@ construct_gt <- function(thetahat_t) {
     }
     ## Calculate contributions
     df <- tibble(X = c(5,9,8,4,7),
-                 P_X_given_Z0 = dbinom(X, size = 10, prob = thetahat_t[1]),
-                 P_X_given_Z1 = dbinom(X, size = 10, prob = thetahat_t[2]),
+                 P_X_given_Z0 = dbinom(X, size = 10, prob = thetahat0_t),
+                 P_X_given_Z1 = dbinom(X, size = 10, prob = thetahat1_t),
                  P_X_and_Z0 = dbinom(X, size = 10, prob = theta0),
                  P_X_and_Z1 = dbinom(X, size = 10, prob = theta1),
                  P_Z0_given_X = P_X_given_Z0 / (P_X_given_Z0 + P_X_given_Z1),
@@ -769,96 +769,63 @@ construct_gt <- function(thetahat_t) {
   return(gt)
 }
 
-em_iter_out <- em_iter(c(0.6, 0.5))
+## Create a corresponding function at each thetahat^(t)
+gt_funs <- em_iter_out %>%
+  mutate(gt = map2(theta0, theta1, construct_gt))
 
-thetahat0 <- as.numeric(em_iter_out[1,])
-thetahat1 <- as.numeric(em_iter_out[2,])
-thetahat2 <- as.numeric(em_iter_out[3,])
-thetahat3 <- as.numeric(em_iter_out[4,])
-thetahat4 <- as.numeric(em_iter_out[5,])
-thetahat5 <- as.numeric(em_iter_out[6,])
+## Construct list of gt() values.
+lst_exp_gt <- lapply(gt_funs$gt,
+                     function(gt_fun) {
+                       ## Global lik_data access
+                       exp(gt_fun(lik_data$theta0, lik_data$theta1))
+                     })
+names(lst_exp_gt) <- paste0("g", seq_along(lst_exp_gt) - 1)
 
-g0 <- construct_gt(thetahat0)
-g1 <- construct_gt(thetahat1)
-g2 <- construct_gt(thetahat2)
-g3 <- construct_gt(thetahat3)
-g4 <- construct_gt(thetahat4)
-g5 <- construct_gt(thetahat5)
-
-lik_data_gt <- lik_data %>%
-  mutate(exp_g0 = exp(g0(theta0, theta1)),
-         exp_g1 = exp(g1(theta0, theta1)),
-         exp_g2 = exp(g2(theta0, theta1)),
-         exp_g3 = exp(g3(theta0, theta1)),
-         exp_g4 = exp(g4(theta0, theta1)),
-         exp_g5 = exp(g5(theta0, theta1)))
-
-mat_lik <- lik_data_gt %>%
-  select(theta0, theta1, lik) %>%
-  spread(key = theta1, value = lik) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g0 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g0) %>%
-  spread(key = theta1, value = exp_g0) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g1 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g1) %>%
-  spread(key = theta1, value = exp_g1) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g2 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g2) %>%
-  spread(key = theta1, value = exp_g2) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g3 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g3) %>%
-  spread(key = theta1, value = exp_g3) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g4 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g4) %>%
-  spread(key = theta1, value = exp_g4) %>%
-  as.matrix(.) %>% `[`(,-1)
-mat_exp_g5 <- lik_data_gt %>%
-  select(theta0, theta1, exp_g5) %>%
-  spread(key = theta1, value = exp_g5) %>%
-  as.matrix(.) %>% `[`(,-1)
+lik_data_gt <- bind_cols(lik_data, lst_exp_gt) %>%
+  select(theta0, theta1, lik, starts_with("g")) %>%
+  gather(key = gt, value = value, lik, starts_with("g")) %>%
+  group_by(gt) %>%
+  nest() %>%
+  mutate(mat = map(data, function(df) {
+    ## Create a matrix
+    df %>%
+      spread(key = theta1, value = value) %>%
+      as.matrix(.) %>%
+      `[`(,-1)
+  }))
 
 ## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
 suppressMessages(library(rgl))
 ## https://stackoverflow.com/questions/18065669/setting-size-of-the-rgl-device
 ## left, top, right and bottom of the displayed window
 par3d(windowRect = c(20, 30, 800, 800))
-
-with(lik_data_gt,
+## Set up the plot space.
+with(lik_data,
      plot3d(x = theta0, y = theta1, z = lik,
-            ## n_othing
+            ## n_othing: Do not plot anything, just the framework.
             type = "n",
             xlab = "theta0", ylab = "theta1", zlab = "Likelihood",
             xlim = c(0,1), ylim = c(0,1),
             aspect = c(1, 1, 0.7)))
-##
-surface3d(grid, grid, mat_lik,    back = "line", front = "line", col = "gray", lwd = 1, alpha = 0.1)
-points3d(x = thetahat0[1], y = thetahat0[2], z = exp(llik_incompl(thetahat0[1], thetahat0[2])))
+## Incomplete-data likelihood
+surface3d(x = grid, y = grid, z = lik_data_gt$mat[[1]],
+          back = "line", front = "line", col = "gray",
+          lwd = 1, alpha = 0.1)
 rgl.snapshot(filename = "./source/em_rgl.png", fmt = "png", top = TRUE)
+
 ##
-surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "blue",  lwd = 1, alpha = 0.1)
-points3d(x = thetahat1[1], y = thetahat1[2], z = exp(llik_incompl(thetahat1[1], thetahat1[2])))
-rgl.snapshot(filename = "./source/em_rgl1.png", fmt = "png", top = TRUE)
-##
-surface3d(grid, grid, mat_exp_g2, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat2[1], y = thetahat2[2], z = exp(llik_incompl(thetahat2[1], thetahat2[2])))
-rgl.snapshot(filename = "./source/em_rgl2.png", fmt = "png", top = TRUE)
-##
-surface3d(grid, grid, mat_exp_g3, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat2[1], y = thetahat2[2], z = exp(llik_incompl(thetahat2[1], thetahat2[2])))
-rgl.snapshot(filename = "./source/em_rgl3.png", fmt = "png", top = TRUE)
-##
-surface3d(grid, grid, mat_exp_g4, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat4[1], y = thetahat4[2], z = exp(llik_incompl(thetahat4[1], thetahat4[2])))
-rgl.snapshot(filename = "./source/em_rgl4.png", fmt = "png", top = TRUE)
-##
-surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
-points3d(x = thetahat5[1], y = thetahat5[2], z = exp(llik_incompl(thetahat5[1], thetahat5[2])))
-rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
+for (i in seq_len(nrow(lik_data_gt) - 1)) {
+  ## Add current parameter estimate on incomplete-data likelihood surface
+  points3d(x = gt_funs$theta0[i], y = gt_funs$theta1[i],
+           z = exp(llik_incompl(gt_funs$theta0[i], gt_funs$theta1[i])))
+  ## Add gt
+  surface3d(x = grid, y = grid, z = lik_data_gt$mat[[i + 1]],
+            back = "line", front = "line", col = "blue",
+            lwd = 1, alpha = 0.1)
+  ## Save plot
+  rgl.snapshot(filename = sprintf("./source/em_rgl_%s.png", lik_data_gt$gt[[i + 1]]),
+               fmt = "png", top = TRUE)
+}
 #+END_SRC
 
 *** @@latex:@@                                                        :BMCOL:

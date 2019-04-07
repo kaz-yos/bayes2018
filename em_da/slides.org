@@ -745,11 +745,7 @@ lik_data %>%
 - Therefore, the EM algorithm is equivalent to the update rule with the guaranteed improvement at each step.
 
 ** Further Illustration
-# https://orgmode.org/manual/results.html
-# https://orgmode.org/manual/Exporting-code-blocks.html
-\scriptsize
-#+HEADER: :width 3.5 :height 3
-#+BEGIN_SRC R :session *R-org* :results output graphics :file ./source/figure_improvement.pdf :exports both
+#+BEGIN_SRC R :session *R-org* :results output :exports none
 construct_gt <- function(thetahat_t) {
   gt <- function(theta0, theta1) {
     stopifnot(length(theta0) == length(theta1))
@@ -787,7 +783,7 @@ lik_data_gt <- lik_data %>%
          exp_g5 = exp(g5(theta0, theta1)))
 
 ## https://stackoverflow.com/questions/30960620/how-to-plot-a-plane-from-an-equation-in-r
-library(rgl)
+suppressMessages(library(rgl))
 
 mat_lik <- lik_data_gt %>%
   select(theta0, theta1, lik) %>%
@@ -814,6 +810,10 @@ mat_exp_g5 <- lik_data_gt %>%
   spread(key = theta1, value = exp_g5) %>%
   as.matrix(.) %>% `[`(,-1)
 
+## https://stackoverflow.com/questions/18065669/setting-size-of-the-rgl-device
+## left, top, right and bottom of the displayed window
+par3d(windowRect = c(20, 30, 800, 800))
+
 with(lik_data_gt,
      plot3d(x = theta0, y = theta1, z = lik,
             ## n_othing
@@ -821,15 +821,20 @@ with(lik_data_gt,
             xlab = "theta0", ylab = "theta1", zlab = "Likelihood",
             xlim = c(0,1), ylim = c(0,1),
             aspect = c(1, 1, 0.7)))
-
 surface3d(grid, grid, mat_lik,    back = "line", front = "line", col = "gray", lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl0.png", fmt = "png", top = TRUE)
 surface3d(grid, grid, mat_exp_g1, back = "line", front = "line", col = "blue",  lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl1.png", fmt = "png", top = TRUE)
 surface3d(grid, grid, mat_exp_g2, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl2.png", fmt = "png", top = TRUE)
 surface3d(grid, grid, mat_exp_g3, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl3.png", fmt = "png", top = TRUE)
 surface3d(grid, grid, mat_exp_g4, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl4.png", fmt = "png", top = TRUE)
 surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", lwd = 1, alpha = 0.1)
+rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
 #+END_SRC
-\normalsize
+
 
 * DA Method
 ** Title DA

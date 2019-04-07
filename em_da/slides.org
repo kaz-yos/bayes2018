@@ -744,7 +744,7 @@ lik_data %>%
 - This is maximization of the expected complete-data log likelihood. The expectation is over the distribution $\bz$ given the observed data $\bx$ and assuming the current parameter value $\bthetahat^{(t)}$.
 - Therefore, the EM algorithm is equivalent to the update rule with the guaranteed improvement at each step.
 
-** Further Illustration
+** EM Step 0
 #+BEGIN_SRC R :session *R-org* :results output :exports none
 construct_gt <- function(thetahat_t) {
   gt <- function(theta0, theta1) {
@@ -835,7 +835,6 @@ surface3d(grid, grid, mat_exp_g5, back = "line", front = "line", col = "blue", l
 rgl.snapshot(filename = "./source/em_rgl5.png", fmt = "png", top = TRUE)
 #+END_SRC
 
-** EM Step 0
 *** @@latex:@@                                                        :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.50

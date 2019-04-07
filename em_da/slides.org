@@ -671,6 +671,12 @@ lik_data %>%
         xlab = "theta0", ylab = "theta1", zlab = "Likelihood")
 #+END_SRC
 
+** EM Algorithm Applications
+- Many probabilistic models in computational biology include latent variables. cite:doWhatExpectationMaximization2008
+  - Gene expression clustering
+  - Motif finding
+  - Haplotype inference
+
 ** Monotone Improvement in EM Algorithm
    :PROPERTIES:
    :BEAMER_opt: allowframebreaks,label=,t

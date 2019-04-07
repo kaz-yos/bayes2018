@@ -1003,7 +1003,7 @@ for (i in seq_len(nrow(lik_data_gt) - 1)) {
     :BEAMER_col: 0.50
     :END:
 #+ATTR_LATEX: :height \textheight :width \textwidth :options page=1,keepaspectratio :center t
-[[./source/em_rgl_g5_m.mng]]
+[[./source/em_rgl_g5_m.png]]
 
 * DA Method
 ** Title DA

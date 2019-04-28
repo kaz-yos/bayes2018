@@ -1,3 +1,6 @@
 [submodule "em_da_repo"]
 	path = em_da_repo
 	url = ./em_da_repo/
+[submodule "stan_jacobian"]
+	path = stan_jacobian
+	url = ./stan_jacobian/

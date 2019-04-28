@@ -221,7 +221,7 @@ $$\begin{align*}
   \end{align*}
 $$
 
-Summing out the latent categorical variable $z_{i}$ results in the following (conditioning on parameters suppressed for simplicity) marginal density. Note the cluster membership latent variable $z_i$ is not measured, thus, it is a discrete parameter. Stan's Hamiltonian Monte Carlo (HMC) cannot deal with discrete parameters, this marginalization step is required fro Stan. JAGS seems to allow a discrete parameter and accepts the original model above.
+Summing out the latent categorical variable $z_{i}$ results in the following (conditioning on parameters suppressed for simplicity) marginal density. Note the cluster membership latent variable $z_i$ is not measured, thus, it is a discrete parameter. Stan's Hamiltonian Monte Carlo (HMC) cannot deal with discrete parameters, this marginalization step is required fro Stan. JAGS, which implements Gibbs sampling, allows a discrete parameter and accepts the original model above.
 
 $$\begin{align*}
   p(y) &= \sum^{H}_{z=1} p(y|z) p(z)\\

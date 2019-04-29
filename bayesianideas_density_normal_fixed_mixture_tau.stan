@@ -1,11 +1,4 @@
 data {
-    // Hyperparameters
-    real alpha;
-    real beta;
-    real m;
-    real<lower=0> s_squared;
-    real<lower=0> dirichlet_alpha;
-
     // Define variables in data
     // Number of observations (an integer)
     int<lower=0> n;
@@ -14,6 +7,13 @@ data {
     // Number of latent clusters
     int<lower=1> H;
 
+    // Hyperparameters
+    real alpha[H];
+    real beta[H];
+    real m[H];
+    real<lower=0> s_squared[H];
+    real<lower=0> dirichlet_alpha[H];
+
     // Grid evaluation
     real grid_max;
     real grid_min;
@@ -21,11 +21,15 @@ data {
 }
 
 transformed data {
-    real s;
+    real s[H];
     real grid_step;
+    vector[H] dirichlet_alpha_vector;
 
     s = sqrt(s_squared);
     grid_step = (grid_max - grid_min) / (grid_length - 1);
+    for (h in 1:H) {
+        dirichlet_alpha_vector[h] = dirichlet_alpha[h];
+    }
 }
 
 parameters {
@@ -52,13 +56,14 @@ model {
     real contributions[H];
 
     // Prior part of Bayesian inference
-    // All vectorized
-    // Mean
-    mu ~ normal(m, s);
-    // tau = 1/sigma^2 has gamma prior
-    tau ~ gamma(alpha, beta);
+    for (h in 1:H) {
+        // Mean
+        mu[h] ~ normal(m[h], s[h]);
+        // tau = 1/sigma^2 has gamma prior
+        tau[h] ~ gamma(alpha[h], beta[h]);
+    }
     // cluster probability vector
-    Pi ~ dirichlet(rep_vector(dirichlet_alpha / H, H));
+    Pi ~ dirichlet(dirichlet_alpha_vector / H);
 
     // Likelihood part of Bayesian inference
     // Outcome model N(mu, sigma^2) (use SD rather than Var)

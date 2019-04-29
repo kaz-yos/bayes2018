@@ -99,7 +99,7 @@ grid_length <- 100
 ## Define helper functions
 Helper functions for here and later use.
 ```{r}
-print_relevant_pars <- function(fit, pars = c("mu","sigma_squared","Pi","sigma","lp__")) {
+print_relevant_pars <- function(fit, pars = c("mu","sigma","Pi","lp__")) {
     print(fit, pars = pars)
 }
 
@@ -109,7 +109,7 @@ traceplot_all <- function(fit, pars = c("mu","sigma","Pi","lp__")) {
     }
 }
 
-pairs_plot_all <- function(fit, pars = c("mu","sigma_squared","Pi")) {
+pairs_plot_all <- function(fit, pars = c("mu","sigma","Pi")) {
     for (par in pars) {
         pairs(fit, pars = par)
     }
@@ -152,23 +152,29 @@ Now we examine if modeling the distribution as a mixture of several underlying c
 ```{r, results = 'hide'}
 normal_fixed_mixture_stan_tau3 <-
     rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
-                data = list(alpha = 10^(-3), beta = 10^(-3),
-                            m = 0, s_squared = 10^(3),
-                            n = nrow(galaxy),
-                            y = galaxy$k_speed,
-                            dirichlet_alpha = 1,
-                            H = 3,
-                            grid_max = grid_max,
-                            grid_min = grid_min,
-                            grid_length = grid_length),
+                data = list(
+                    ## tau ~ Gamma(alpha, beta)
+                    alpha = 10^(1), beta = 10^(0),
+                    ## mu ~ N(m, s_squared)
+                    m = 20, s_squared = 20^2,
+                    ## Pi ~ Dirichlet(dirichlet_alpha / H)
+                    dirichlet_alpha = 2*3,
+                    ## Number of clusters
+                    H = 3,
+                    n = nrow(galaxy),
+                    y = galaxy$k_speed,
+                    grid_max = grid_max,
+                    grid_min = grid_min,
+                    grid_length = grid_length),
                 chains = 12)
 ```
 ```{r}
 print_relevant_pars(normal_fixed_mixture_stan_tau3)
 traceplot_all(normal_fixed_mixture_stan_tau3)
 pairs_plot_all(normal_fixed_mixture_stan_tau3)
+pairs(normal_fixed_mixture_stan_tau3, pars = c("mu","sigma","Pi"))
 plot_draws(normal_fixed_mixture_stan_tau3)
-## shinystan::launch_shinystan(normal_fixed_mixture_unordered_stan_tau3)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
 ```
 
 

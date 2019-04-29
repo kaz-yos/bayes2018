@@ -43,7 +43,7 @@ transformed parameters {
     real<lower=0> sigma[H];
     // Standard deviation (derived from variance)
     for (h in 1:H) {
-        sigma[h] = sqrt(1 / tau[h]);
+        sigma[h] = 1 / sqrt(tau[h]);
     }
 }
 

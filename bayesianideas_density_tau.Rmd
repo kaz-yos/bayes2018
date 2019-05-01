@@ -144,23 +144,55 @@ plot_draws <- function(stan_fit) {
 }
 ```
 
-## Finite Mixture of Normals
+## Finite Mixture of Normals (Unordered mu)
+#### 3 latent cluster model
+```{r, results = 'hide'}
+H <- 3
+normal_fixed_mixture_stan_tau3 <-
+    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan"),
+                data = list(
+                    ## tau ~ Gamma(alpha, beta)
+                    alpha = rep(10^(1), H), beta = rep(10^(0), H),
+                    ## mu ~ N(m, s_squared)
+                    m = c(10,20,30), s_squared = c(4,4,4),
+                    ## Pi ~ Dirichlet(dirichlet_alpha / H)
+                    dirichlet_alpha = c(1,3,1) * 3,
+                    ## Number of clusters
+                    H = H,
+                    n = nrow(galaxy),
+                    y = galaxy$k_speed,
+                    grid_max = grid_max,
+                    grid_min = grid_min,
+                    grid_length = grid_length),
+                chains = 12)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_stan_tau3)
+traceplot_all(normal_fixed_mixture_stan_tau3)
+pairs_plot_all(normal_fixed_mixture_stan_tau3)
+pairs(normal_fixed_mixture_stan_tau3, pars = c("mu","sigma","Pi"))
+plot_draws(normal_fixed_mixture_stan_tau3)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
+```
+
+## Finite Mixture of Normals (Ordered mu)
 
 Now we examine if modeling the distribution as a mixture of several underlying cluster-specific normals better fit the data. Here we assume some fixed number of clusters $H$.
 
 #### 3 latent cluster model
 ```{r, results = 'hide'}
+H <- 3
 normal_fixed_mixture_stan_tau3 <-
     rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
-                    alpha = 10^(1), beta = 10^(0),
+                    alpha = rep(10^(1), H), beta = rep(10^(0), H),
                     ## mu ~ N(m, s_squared)
-                    m = 20, s_squared = 20^2,
+                    m = c(10,20,30), s_squared = c(4,4,4),
                     ## Pi ~ Dirichlet(dirichlet_alpha / H)
-                    dirichlet_alpha = 2*3,
+                    dirichlet_alpha = c(1,3,1) * 3,
                     ## Number of clusters
-                    H = 3,
+                    H = H,
                     n = nrow(galaxy),
                     y = galaxy$k_speed,
                     grid_max = grid_max,

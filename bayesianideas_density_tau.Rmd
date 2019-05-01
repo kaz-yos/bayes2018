@@ -36,6 +36,7 @@ options(cores = n_cores)
 ## Register doParallel as the parallel backend for foreach
 ## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
 doParallel::registerDoParallel(cores = n_cores)
+set.seed(165635606)
 ```
 
 ## References
@@ -154,9 +155,9 @@ normal_fixed_mixture_stan_tau3 <-
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(1), H), beta = rep(10^(0), H),
                     ## mu ~ N(m, s_squared)
-                    m = c(10,20,30), s_squared = c(4,4,4),
+                    m = c(20,20,20), s_squared = c(4,4,4),
                     ## Pi ~ Dirichlet(dirichlet_alpha / H)
-                    dirichlet_alpha = c(1,3,1) * 3,
+                    dirichlet_alpha = c(1,1,1) * 3 * 3,
                     ## Number of clusters
                     H = H,
                     n = nrow(galaxy),
@@ -164,7 +165,8 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                chains = 12)
+                iter = 2000*5,
+                chains = 12*3)
 ```
 ```{r}
 print_relevant_pars(normal_fixed_mixture_stan_tau3)
@@ -175,10 +177,38 @@ plot_draws(normal_fixed_mixture_stan_tau3)
 ## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
 ```
 
+#### 6 latent cluster model
+```{r, results = 'hide'}
+H <- 6
+normal_fixed_mixture_stan_tau6 <-
+    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan"),
+                data = list(
+                    ## tau ~ Gamma(alpha, beta)
+                    alpha = rep(10^(1), H), beta = rep(10^(0), H),
+                    ## mu ~ N(m, s_squared)
+                    m = c(20,20,20), s_squared = c(4,4,4),
+                    ## Pi ~ Dirichlet(dirichlet_alpha / H)
+                    dirichlet_alpha = c(1,1,1) * 3 * 3,
+                    ## Number of clusters
+                    H = H,
+                    n = nrow(galaxy),
+                    y = galaxy$k_speed,
+                    grid_max = grid_max,
+                    grid_min = grid_min,
+                    grid_length = grid_length),
+                iter = 2000*5,
+                chains = 12*3)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_stan_tau6)
+traceplot_all(normal_fixed_mixture_stan_tau6)
+pairs_plot_all(normal_fixed_mixture_stan_tau6)
+pairs(normal_fixed_mixture_stan_tau6, pars = c("mu","sigma","Pi"))
+plot_draws(normal_fixed_mixture_stan_tau6)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
+```
+
 ## Finite Mixture of Normals (Ordered mu)
-
-Now we examine if modeling the distribution as a mixture of several underlying cluster-specific normals better fit the data. Here we assume some fixed number of clusters $H$.
-
 #### 3 latent cluster model
 ```{r, results = 'hide'}
 H <- 3
@@ -198,7 +228,8 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                chains = 12)
+                iter = 2000*5,
+                chains = 12*3)
 ```
 ```{r}
 print_relevant_pars(normal_fixed_mixture_stan_tau3)
@@ -207,6 +238,37 @@ pairs_plot_all(normal_fixed_mixture_stan_tau3)
 pairs(normal_fixed_mixture_stan_tau3, pars = c("mu","sigma","Pi"))
 plot_draws(normal_fixed_mixture_stan_tau3)
 ## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
+```
+
+#### 6 latent cluster model
+```{r, results = 'hide'}
+H <- 6
+normal_fixed_mixture_stan_tau6 <-
+    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
+                data = list(
+                    ## tau ~ Gamma(alpha, beta)
+                    alpha = rep(10^(1), H), beta = rep(10^(0), H),
+                    ## mu ~ N(m, s_squared)
+                    m = c(10,20,30), s_squared = c(4,4,4),
+                    ## Pi ~ Dirichlet(dirichlet_alpha / H)
+                    dirichlet_alpha = c(1,3,1) * 3,
+                    ## Number of clusters
+                    H = H,
+                    n = nrow(galaxy),
+                    y = galaxy$k_speed,
+                    grid_max = grid_max,
+                    grid_min = grid_min,
+                    grid_length = grid_length),
+                iter = 2000*5,
+                chains = 12*3)
+```
+```{r}
+print_relevant_pars(normal_fixed_mixture_stan_tau6)
+traceplot_all(normal_fixed_mixture_stan_tau6)
+pairs_plot_all(normal_fixed_mixture_stan_tau6)
+pairs(normal_fixed_mixture_stan_tau6, pars = c("mu","sigma","Pi"))
+plot_draws(normal_fixed_mixture_stan_tau6)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau6)
 ```
 
 

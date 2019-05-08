@@ -167,13 +167,12 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000,
-                chains = 12)
+                iter = 2000*5,
+                chains = 12*3)
 ```
 ```{r}
 normal_fixed_mixture_stan_tau3 %>%
     tidybayes::gather_draws(lp__) %>%
-    ## filter(.chain != 10) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
     geom_line() +
     facet_wrap( ~ .chain) +
@@ -183,12 +182,54 @@ normal_fixed_mixture_stan_tau3 %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
-## Rhat without 10th chain
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::gather_draws(lp__) %>%
+    group_by(.chain) %>%
+    summarize(mean = mean(.value)) %>%
+    arrange(mean) %>%
+    print(n = Inf)
+
+bad_chains <- c(6,8,9,10,14,19,28)
+
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::gather_draws(lp__) %>%
+    filter(!(.chain %in% bad_chains)) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::gather_draws(lp__) %>%
+    filter(.chain %in% bad_chains) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## Rhat without bad chains
 lapply(normal_fixed_mixture_stan_tau3@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
-    "["(,-10) %>%
+    "["(,-1 * bad_chains) %>%
     asbio::R.hat(M = ., burn.in = 0.5)
+
+## Rhat among bad chains
+lapply(normal_fixed_mixture_stan_tau3@sim$samples,
+       "[[", "lp__") %>%
+    do.call(cbind, .) %>%
+    "["(,bad_chains) %>%
+    asbio::R.hat(M = ., burn.in = 0.5)
+
+plot_draws(normal_fixed_mixture_stan_tau3)
 
 rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "lp__") +
     facet_wrap(~chain) +

@@ -68,6 +68,8 @@ library(rstan)
 ## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
 ## library(biostan)
 library(DPpackage)
+library(tidybayes)
+library(bayesplot)
 set.seed(732565397)
 ```
 
@@ -144,8 +146,8 @@ plot_draws <- function(stan_fit) {
           strip.background = element_blank())
 }
 ```
-
-## Finite Mixture of Normals (Unordered mu)
+## Finite Mixture of Normals
+### Finite Mixture of Normals (Unordered mu)
 #### 3 latent cluster model
 ```{r, results = 'hide'}
 H <- 3
@@ -165,12 +167,61 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
-                chains = 12*3)
+                iter = 2000,
+                chains = 12)
 ```
 ```{r}
-print_relevant_pars(normal_fixed_mixture_stan_tau3)
-traceplot_all(normal_fixed_mixture_stan_tau3)
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::gather_draws(lp__) %>%
+    ## filter(.chain != 10) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## Rhat without 10th chain
+lapply(normal_fixed_mixture_stan_tau3@sim$samples,
+       "[[", "lp__") %>%
+    do.call(cbind, .) %>%
+    "["(,-10) %>%
+    asbio::R.hat(M = ., burn.in = 0.5)
+
+rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "lp__") +
+    facet_wrap(~chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "mu[1]") +
+    facet_wrap(~chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "mu[2]") +
+    facet_wrap(~chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "mu[3]") +
+    facet_wrap(~chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
 pairs_plot_all(normal_fixed_mixture_stan_tau3)
 pairs(normal_fixed_mixture_stan_tau3, pars = c("mu","sigma","Pi"))
 plot_draws(normal_fixed_mixture_stan_tau3)
@@ -208,7 +259,7 @@ plot_draws(normal_fixed_mixture_stan_tau6)
 ## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
 ```
 
-## Finite Mixture of Normals (Ordered mu)
+### Finite Mixture of Normals (Ordered mu)
 #### 3 latent cluster model
 ```{r, results = 'hide'}
 H <- 3

@@ -118,7 +118,7 @@ pairs_plot_all <- function(fit, pars = c("mu","sigma","Pi")) {
     }
 }
 
-plot_draws <- function(stan_fit) {
+plot_draws <- function(stan_fit, chains = NULL) {
     ## Note direct access to global variables
     draw_data  <- tidybayes::tidy_draws(stan_fit) %>%
         select(.chain, .iteration, .draw, starts_with("log_f")) %>%
@@ -128,6 +128,11 @@ plot_draws <- function(stan_fit) {
                as.character() %>%
                as.numeric(),
            value = exp(value))
+
+    if(!is.null(chains)) {
+        draw_data <- draw_data %>%
+            filter(.chain %in% chains)
+    }
 
     summary_density <- draw_data %>%
         group_by(.chain, x) %>%
@@ -157,9 +162,9 @@ normal_fixed_mixture_stan_tau3 <-
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(1), H), beta = rep(10^(0), H),
                     ## mu ~ N(m, s_squared)
-                    m = c(20,20,20), s_squared = c(4,4,4),
+                    m = rep(20,H), s_squared = rep(4,H),
                     ## Pi ~ Dirichlet(dirichlet_alpha / H)
-                    dirichlet_alpha = c(1,1,1) * 3 * 3,
+                    dirichlet_alpha = rep(1,H) * H * 3,
                     ## Number of clusters
                     H = H,
                     n = nrow(galaxy),
@@ -276,11 +281,11 @@ normal_fixed_mixture_stan_tau6 <-
     rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan"),
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
-                    alpha = rep(10^(1), H), beta = rep(10^(0), H),
+                    alpha = rep(10^(-3), H), beta = rep(10^(-3), H),
                     ## mu ~ N(m, s_squared)
-                    m = c(20,20,20), s_squared = c(4,4,4),
+                    m = rep(20,H), s_squared = rep(1000,H),
                     ## Pi ~ Dirichlet(dirichlet_alpha / H)
-                    dirichlet_alpha = c(1,1,1) * 3 * 3,
+                    dirichlet_alpha = rep(1,H),
                     ## Number of clusters
                     H = H,
                     n = nrow(galaxy),
@@ -288,10 +293,75 @@ normal_fixed_mixture_stan_tau6 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
+                iter = 2000*1,
                 chains = 12*3)
 ```
 ```{r}
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::gather_draws(lp__) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::gather_draws(lp__) %>%
+    group_by(.chain) %>%
+    summarize(mean = mean(.value)) %>%
+    arrange(mean) %>%
+    print(n = Inf)
+
+bad_chains <- c(9L, 4L, 8L, 13L, 14L, 15L, 18L)
+good_chains <- setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)), bad_chains)
+
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::gather_draws(lp__) %>%
+    filter(!(.chain %in% bad_chains)) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::gather_draws(lp__) %>%
+    filter(.chain %in% bad_chains) %>%
+    ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
+    geom_line() +
+    facet_wrap( ~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## Rhat without bad chains
+lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+       "[[", "lp__") %>%
+    do.call(cbind, .) %>%
+    "["(,-1 * bad_chains) %>%
+    asbio::R.hat(M = ., burn.in = 0.5)
+
+## Rhat among bad chains
+lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+       "[[", "lp__") %>%
+    do.call(cbind, .) %>%
+    "["(,bad_chains) %>%
+    asbio::R.hat(M = ., burn.in = 0.5)
+
+plot_draws(normal_fixed_mixture_stan_tau6,
+           chains = good_chains)
+
+plot_draws(normal_fixed_mixture_stan_tau6,
+           chains = good_chains[1])
+
 print_relevant_pars(normal_fixed_mixture_stan_tau6)
 traceplot_all(normal_fixed_mixture_stan_tau6)
 pairs_plot_all(normal_fixed_mixture_stan_tau6)

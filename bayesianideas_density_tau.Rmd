@@ -172,7 +172,7 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
+                iter = 2000,
                 chains = 12*3)
 ```
 ```{r}
@@ -373,7 +373,7 @@ normal_fixed_mixture_stan_tau6 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
+                iter = 2000,
                 chains = 12*3)
 ```
 ```{r}
@@ -574,7 +574,7 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
+                iter = 2000,
                 chains = 12*3)
 ```
 ```{r}
@@ -775,7 +775,7 @@ normal_fixed_mixture_stan_tau6 <-
                     grid_max = grid_max,
                     grid_min = grid_min,
                     grid_length = grid_length),
-                iter = 2000*5,
+                iter = 2000,
                 chains = 12*3)
 ```
 ```{r}

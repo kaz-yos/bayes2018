@@ -95,8 +95,8 @@ The speed data seem to show some distinct clusters. We will use the following gr
 
 ```{r}
 grid_max <- 40
-grid_min <- -20
-grid_length <- 100
+grid_min <- 0
+grid_length <- 120
 ```
 
 ## Define helper functions
@@ -173,7 +173,8 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_min = grid_min,
                     grid_length = grid_length),
                 iter = 2000,
-                chains = 12*3)
+                chains = 12*3,
+                seed = 34618604)
 ```
 ```{r}
 ## Check lp__ traces to detect better fits
@@ -197,8 +198,9 @@ normal_fixed_mixture_stan_tau3 %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(6L, 26L, 35L, 15L, 11L, 23L, 21L, 13L,
-                2L, 31L, 8L, 29L, 28L, 5L, 27L)
+bad_chains <- c(17L, 3L, 9L, 22L, 5L, 32L, 2L, 23L,
+                36L, 15L, 26L, 14L, 34L, 30L, 31L, 28L, 20L, 1L, 8L, 19L, 35L,
+                13L, 16L, 18L, 7L)
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau3 %>%
@@ -244,6 +246,10 @@ lapply(normal_fixed_mixture_stan_tau3@sim$samples,
 plot_draws(normal_fixed_mixture_stan_tau3,
            chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau3@sim$samples)),
                             bad_chains))
+
+plot_draws(normal_fixed_mixture_stan_tau3,
+           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau3@sim$samples)),
+                            bad_chains)[1])
 
 ## Scatter plot of parameter values
 normal_fixed_mixture_stan_tau3 %>%
@@ -374,7 +380,8 @@ normal_fixed_mixture_stan_tau6 <-
                     grid_min = grid_min,
                     grid_length = grid_length),
                 iter = 2000,
-                chains = 12*3)
+                chains = 12*3,
+                seed = 900817669)
 ```
 ```{r}
 ## Check lp__ traces to detect better fits
@@ -398,7 +405,7 @@ normal_fixed_mixture_stan_tau6 %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(29)
+bad_chains <- c(1,11,26,16)
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau6 %>%
@@ -434,16 +441,21 @@ lapply(normal_fixed_mixture_stan_tau6@sim$samples,
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Rhat among bad chains
-## lapply(normal_fixed_mixture_stan_tau6@sim$samples,
-##        "[[", "lp__") %>%
-##     do.call(cbind, .) %>%
-##     "["(,bad_chains) %>%
-##     asbio::R.hat(M = ., burn.in = 0.5)
+lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+       "[[", "lp__") %>%
+    do.call(cbind, .) %>%
+    "["(,bad_chains) %>%
+    asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Estimated densities among good chains
 plot_draws(normal_fixed_mixture_stan_tau6,
            chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)),
                             bad_chains))
+
+plot_draws(normal_fixed_mixture_stan_tau6,
+           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)),
+                            bad_chains)[1])
+
 
 ## Scatter plot of parameter values
 normal_fixed_mixture_stan_tau6 %>%
@@ -558,7 +570,7 @@ plot_draws(normal_fixed_mixture_stan_tau6)
 #### 3 latent cluster model
 ```{r, results = 'hide'}
 H <- 3
-normal_fixed_mixture_stan_tau3 <-
+normal_fixed_mixture_stan_tau3_order <-
     rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
@@ -575,11 +587,12 @@ normal_fixed_mixture_stan_tau3 <-
                     grid_min = grid_min,
                     grid_length = grid_length),
                 iter = 2000,
-                chains = 12*3)
+                chains = 12*3,
+                seed = 339492111)
 ```
 ```{r}
 ## Check lp__ traces to detect better fits
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::gather_draws(lp__) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
     geom_line() +
@@ -591,7 +604,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
@@ -603,7 +616,7 @@ bad_chains <- c(6L, 26L, 35L, 15L, 11L, 23L, 21L, 13L,
                 2L, 31L, 8L, 29L, 28L, 5L, 27L)
 
 ## Check lp__ traces for good chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::gather_draws(lp__) %>%
     filter(!(.chain %in% bad_chains)) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
@@ -616,7 +629,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## Check lp__ traces for bad chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::gather_draws(lp__) %>%
     filter(.chain %in% bad_chains) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
@@ -629,26 +642,26 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## Rhat for good chains (slightly different definition?)
-lapply(normal_fixed_mixture_stan_tau3@sim$samples,
+lapply(normal_fixed_mixture_stan_tau3_order@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
     "["(,-1 * bad_chains) %>%
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Rhat among bad chains
-lapply(normal_fixed_mixture_stan_tau3@sim$samples,
+lapply(normal_fixed_mixture_stan_tau3_order@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
     "["(,bad_chains) %>%
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Estimated densities among good chains
-plot_draws(normal_fixed_mixture_stan_tau3,
-           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau3@sim$samples)),
+plot_draws(normal_fixed_mixture_stan_tau3_order,
+           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau3_order@sim$samples)),
                             bad_chains))
 
 ## Scatter plot of parameter values
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::tidy_draws() %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     ggplot(mapping = aes(x = `mu[1]`, y = `mu[2]`)) +
@@ -661,7 +674,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## mean traces among good chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(mu[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -676,7 +689,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## mean traces among bad chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(mu[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -691,7 +704,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## precision traces among good chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(tau[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -706,7 +719,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## precision traces among bad chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(tau[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -721,7 +734,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## proportion traces among good chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(Pi[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -736,7 +749,7 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## proportion traces among bad chains
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::spread_draws(Pi[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -750,16 +763,16 @@ normal_fixed_mixture_stan_tau3 %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
-pairs_plot_all(normal_fixed_mixture_stan_tau3)
-pairs(normal_fixed_mixture_stan_tau3, pars = c("mu","sigma","Pi"))
-plot_draws(normal_fixed_mixture_stan_tau3)
-## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
+pairs_plot_all(normal_fixed_mixture_stan_tau3_order)
+pairs(normal_fixed_mixture_stan_tau3_order, pars = c("mu","sigma","Pi"))
+plot_draws(normal_fixed_mixture_stan_tau3_order)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3_order)
 ```
 
 #### 6 latent cluster model
 ```{r, results = 'hide'}
 H <- 6
-normal_fixed_mixture_stan_tau6 <-
+normal_fixed_mixture_stan_tau6_order <-
     rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
@@ -776,11 +789,12 @@ normal_fixed_mixture_stan_tau6 <-
                     grid_min = grid_min,
                     grid_length = grid_length),
                 iter = 2000,
-                chains = 12*3)
+                chains = 12*3,
+                seed = 410921792)
 ```
 ```{r}
 ## Check lp__ traces to detect better fits
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::gather_draws(lp__) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
     geom_line() +
@@ -792,7 +806,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
@@ -804,7 +818,7 @@ bad_chains <- c(6L, 26L, 35L, 15L, 11L, 23L, 21L, 13L,
                 2L, 31L, 8L, 29L, 28L, 5L, 27L)
 
 ## Check lp__ traces for good chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::gather_draws(lp__) %>%
     filter(!(.chain %in% bad_chains)) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
@@ -817,7 +831,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## Check lp__ traces for bad chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::gather_draws(lp__) %>%
     filter(.chain %in% bad_chains) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
@@ -830,26 +844,26 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## Rhat for good chains (slightly different definition?)
-lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+lapply(normal_fixed_mixture_stan_tau6_order@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
     "["(,-1 * bad_chains) %>%
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Rhat among bad chains
-lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+lapply(normal_fixed_mixture_stan_tau6_order@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
     "["(,bad_chains) %>%
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Estimated densities among good chains
-plot_draws(normal_fixed_mixture_stan_tau6,
-           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)),
+plot_draws(normal_fixed_mixture_stan_tau6_order,
+           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6_order@sim$samples)),
                             bad_chains))
 
 ## Scatter plot of parameter values
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::tidy_draws() %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     ggplot(mapping = aes(x = `mu[1]`, y = `mu[2]`)) +
@@ -862,7 +876,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## mean traces among good chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(mu[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -877,7 +891,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## mean traces among bad chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(mu[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -892,7 +906,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## precision traces among good chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(tau[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -907,7 +921,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## precision traces among bad chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(tau[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -922,7 +936,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## proportion traces among good chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(Pi[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(!bad_chain) %>%
@@ -937,7 +951,7 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## proportion traces among bad chains
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::spread_draws(Pi[h]) %>%
     mutate(bad_chain = (.chain %in% bad_chains)) %>%
     filter(bad_chain) %>%
@@ -951,10 +965,10 @@ normal_fixed_mixture_stan_tau6 %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
-pairs_plot_all(normal_fixed_mixture_stan_tau6)
-pairs(normal_fixed_mixture_stan_tau6, pars = c("mu","sigma","Pi"))
-plot_draws(normal_fixed_mixture_stan_tau6)
-## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau6)
+pairs_plot_all(normal_fixed_mixture_stan_tau6_order)
+pairs(normal_fixed_mixture_stan_tau6_order, pars = c("mu","sigma","Pi"))
+plot_draws(normal_fixed_mixture_stan_tau6_order)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau6_order)
 ```
 
 

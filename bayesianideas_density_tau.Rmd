@@ -347,17 +347,19 @@ normal_fixed_mixture_stan_tau6 <-
                 chains = 12*3)
 ```
 ```{r}
+## Check lp__ traces to detect better fits
 normal_fixed_mixture_stan_tau6 %>%
     tidybayes::gather_draws(lp__) %>%
     ggplot(mapping = aes(x = .iteration, y = .value, group = .chain)) +
     geom_line() +
-    facet_wrap( ~ .chain) +
+    facet_wrap(~ .chain) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
+## Order fits by mean lp__ to find bad ones
 normal_fixed_mixture_stan_tau6 %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
@@ -365,9 +367,10 @@ normal_fixed_mixture_stan_tau6 %>%
     arrange(mean) %>%
     print(n = Inf)
 
-bad_chains <- c(9L, 4L, 8L, 13L, 14L, 15L, 18L)
-good_chains <- setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)), bad_chains)
+## For vague prior fit
+bad_chains <- c(29)
 
+## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau6 %>%
     tidybayes::gather_draws(lp__) %>%
     filter(!(.chain %in% bad_chains)) %>%
@@ -380,6 +383,7 @@ normal_fixed_mixture_stan_tau6 %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
+## Check lp__ traces for bad chains
 normal_fixed_mixture_stan_tau6 %>%
     tidybayes::gather_draws(lp__) %>%
     filter(.chain %in% bad_chains) %>%
@@ -392,7 +396,7 @@ normal_fixed_mixture_stan_tau6 %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
-## Rhat without bad chains
+## Rhat for good chains (slightly different definition?)
 lapply(normal_fixed_mixture_stan_tau6@sim$samples,
        "[[", "lp__") %>%
     do.call(cbind, .) %>%
@@ -400,24 +404,94 @@ lapply(normal_fixed_mixture_stan_tau6@sim$samples,
     asbio::R.hat(M = ., burn.in = 0.5)
 
 ## Rhat among bad chains
-lapply(normal_fixed_mixture_stan_tau6@sim$samples,
-       "[[", "lp__") %>%
-    do.call(cbind, .) %>%
-    "["(,bad_chains) %>%
-    asbio::R.hat(M = ., burn.in = 0.5)
+## lapply(normal_fixed_mixture_stan_tau6@sim$samples,
+##        "[[", "lp__") %>%
+##     do.call(cbind, .) %>%
+##     "["(,bad_chains) %>%
+##     asbio::R.hat(M = ., burn.in = 0.5)
 
+## Estimated densities among good chains
 plot_draws(normal_fixed_mixture_stan_tau6,
-           chains = good_chains)
+           chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)),
+                            bad_chains))
 
-plot_draws(normal_fixed_mixture_stan_tau6,
-           chains = good_chains[1])
+## Scatter plot of parameter values
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::tidy_draws() %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    ggplot(mapping = aes(x = `mu[1]`, y = `mu[2]`)) +
+    geom_point() +
+    facet_grid(~ bad_chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 
-print_relevant_pars(normal_fixed_mixture_stan_tau6)
-traceplot_all(normal_fixed_mixture_stan_tau6)
+## mean traces among good chains
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::spread_draws(mu[h]) %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    filter(!bad_chain) %>%
+    ungroup() %>%
+    ggplot(mapping = aes(x = .iteration, y = mu, group = .chain, color = factor(h))) +
+    geom_line() +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## mean traces among bad chains
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::spread_draws(mu[h]) %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    filter(bad_chain) %>%
+    ungroup() %>%
+    ggplot(mapping = aes(x = .iteration, y = mu, group = .chain, color = factor(h))) +
+    geom_line() +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## proportion traces among good chains
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::spread_draws(Pi[h]) %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    filter(!bad_chain) %>%
+    ungroup() %>%
+    ggplot(mapping = aes(x = .iteration, y = Pi, group = .chain, color = factor(h))) +
+    geom_line() +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+## proportion traces among bad chains
+normal_fixed_mixture_stan_tau6 %>%
+    tidybayes::spread_draws(Pi[h]) %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    filter(bad_chain) %>%
+    ungroup() %>%
+    ggplot(mapping = aes(x = .iteration, y = Pi, group = .chain, color = factor(h))) +
+    geom_line() +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
 pairs_plot_all(normal_fixed_mixture_stan_tau6)
 pairs(normal_fixed_mixture_stan_tau6, pars = c("mu","sigma","Pi"))
 plot_draws(normal_fixed_mixture_stan_tau6)
-## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau3)
+## shinystan::launch_shinystan(normal_fixed_mixture_stan_tau6)
 ```
 
 ### Finite Mixture of Normals (Ordered mu)

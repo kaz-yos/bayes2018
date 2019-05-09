@@ -244,6 +244,31 @@ rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "lp__") +
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::tidy_draws() %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    ggplot(mapping = aes(x = `mu[1]`, y = `mu[2]`)) +
+    geom_point() +
+    facet_grid(~ bad_chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
+normal_fixed_mixture_stan_tau3 %>%
+    tidybayes::spread_draws(mu[h]) %>%
+    mutate(bad_chain = (.chain %in% bad_chains)) %>%
+    ungroup() %>%
+    ggplot(mapping = aes(x = .iteration, y = mu, group = .chain, color = factor(h))) +
+    geom_line() +
+    facet_wrap(~ .chain) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+
 rstan::traceplot(normal_fixed_mixture_stan_tau3, pars = "mu[1]") +
     facet_wrap(~chain) +
     theme_bw() +

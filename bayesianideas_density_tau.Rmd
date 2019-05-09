@@ -814,8 +814,9 @@ normal_fixed_mixture_stan_tau6_order %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(6L, 26L, 35L, 15L, 11L, 23L, 21L, 13L,
-                2L, 31L, 8L, 29L, 28L, 5L, 27L)
+bad_chains <- c(3L, 26L, 6L, 19L, 7L, 9L, 35L, 1L,
+                12L, 20L, 14L, 23L, 5L, 10L, 27L, 36L, 22L, 21L, 29L, 13L, 31L,
+                33L, 11L)
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau6_order %>%

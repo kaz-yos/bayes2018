@@ -190,17 +190,21 @@ normal_fixed_mixture_stan_tau3 %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau3 %>%
+normal_fixed_mixture_stan_tau3_good <-
+    normal_fixed_mixture_stan_tau3 %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
     arrange(mean) %>%
+    ## Define
+    mutate(good_chain = between(mean, max(mean) - 1, max(mean)))
+normal_fixed_mixture_stan_tau3_good %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(17L, 3L, 9L, 22L, 5L, 32L, 2L, 23L,
-                36L, 15L, 26L, 14L, 34L, 30L, 31L, 28L, 20L, 1L, 8L, 19L, 35L,
-                13L, 16L, 18L, 7L)
+bad_chains <- normal_fixed_mixture_stan_tau3_good %>%
+    filter(!good_chain) %>%
+    magrittr::extract2(".chain")
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau3 %>%
@@ -397,15 +401,21 @@ normal_fixed_mixture_stan_tau6 %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau6 %>%
+normal_fixed_mixture_stan_tau6_good <-
+    normal_fixed_mixture_stan_tau6 %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
     arrange(mean) %>%
+    ## Define
+    mutate(good_chain = between(mean, max(mean) - 1, max(mean)))
+normal_fixed_mixture_stan_tau6_good %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(1,11,26,16)
+bad_chains <- normal_fixed_mixture_stan_tau6_good %>%
+    filter(!good_chain) %>%
+    magrittr::extract2(".chain")
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau6 %>%
@@ -455,7 +465,6 @@ plot_draws(normal_fixed_mixture_stan_tau6,
 plot_draws(normal_fixed_mixture_stan_tau6,
            chains = setdiff(seq_len(length(normal_fixed_mixture_stan_tau6@sim$samples)),
                             bad_chains)[1])
-
 
 ## Scatter plot of parameter values
 normal_fixed_mixture_stan_tau6 %>%
@@ -604,16 +613,21 @@ normal_fixed_mixture_stan_tau3_order %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau3_order %>%
+normal_fixed_mixture_stan_tau3_order_good <-
+    normal_fixed_mixture_stan_tau3_order %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
     arrange(mean) %>%
+    ## Define
+    mutate(good_chain = between(mean, max(mean) - 1, max(mean)))
+normal_fixed_mixture_stan_tau3_order_good %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(6L, 26L, 35L, 15L, 11L, 23L, 21L, 13L,
-                2L, 31L, 8L, 29L, 28L, 5L, 27L)
+bad_chains <- normal_fixed_mixture_stan_tau3_order_good %>%
+    filter(!good_chain) %>%
+    magrittr::extract2(".chain")
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau3_order %>%
@@ -806,17 +820,21 @@ normal_fixed_mixture_stan_tau6_order %>%
           strip.background = element_blank())
 
 ## Order fits by mean lp__ to find bad ones
-normal_fixed_mixture_stan_tau6_order %>%
+normal_fixed_mixture_stan_tau6_order_good <-
+    normal_fixed_mixture_stan_tau6_order %>%
     tidybayes::gather_draws(lp__) %>%
     group_by(.chain) %>%
     summarize(mean = mean(.value)) %>%
     arrange(mean) %>%
+    ## Define
+    mutate(good_chain = between(mean, max(mean) - 1, max(mean)))
+normal_fixed_mixture_stan_tau6_order_good %>%
     print(n = Inf)
 
 ## For vague prior fit
-bad_chains <- c(3L, 26L, 6L, 19L, 7L, 9L, 35L, 1L,
-                12L, 20L, 14L, 23L, 5L, 10L, 27L, 36L, 22L, 21L, 29L, 13L, 31L,
-                33L, 11L)
+bad_chains <- normal_fixed_mixture_stan_tau6_order_good %>%
+    filter(!good_chain) %>%
+    magrittr::extract2(".chain")
 
 ## Check lp__ traces for good chains
 normal_fixed_mixture_stan_tau6_order %>%

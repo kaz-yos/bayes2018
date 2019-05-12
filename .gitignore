@@ -27,7 +27,6 @@
 auto/
 figure/
 cache/
-*SugarSyncTemp
 *.icloud
-*.html
-/stan_jm_cache
+/*_cache/
+/.history

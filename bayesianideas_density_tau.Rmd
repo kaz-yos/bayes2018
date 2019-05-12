@@ -1,5 +1,5 @@
 ---
-title: "BIDA: Density Estimation (Finite Mixture Model)"
+title: "BIDA: Density Estimation (Gaussian Finite Mixture Model)"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -154,10 +154,14 @@ plot_draws <- function(stan_fit, chains = NULL) {
 ## Finite Mixture of Normals
 ### Finite Mixture of Normals (Unordered mu)
 #### 3 latent cluster model
+```{r}
+stan_tau3 <- readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan")
+cat(stan_tau3)
+```
 ```{r, results = 'hide'}
 H <- 3
 normal_fixed_mixture_stan_tau3 <-
-    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan"),
+    rstan::stan(model_code = stan_tau3,
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(-3), H), beta = rep(10^(-3), H),
@@ -365,10 +369,14 @@ plot_draws(normal_fixed_mixture_stan_tau3)
 ```
 
 #### 6 latent cluster model
+```{r}
+stan_tau6 <- readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan")
+cat(stan_tau6)
+```
 ```{r, results = 'hide'}
 H <- 6
 normal_fixed_mixture_stan_tau6 <-
-    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau_unordered.stan"),
+    rstan::stan(model_code = stan_tau6,
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(-3), H), beta = rep(10^(-3), H),
@@ -577,10 +585,14 @@ plot_draws(normal_fixed_mixture_stan_tau6)
 
 ### Finite Mixture of Normals (Ordered mu)
 #### 3 latent cluster model
+```{r}
+stan_tau3_order <- readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan")
+cat(stan_tau3_order)
+```
 ```{r, results = 'hide'}
 H <- 3
 normal_fixed_mixture_stan_tau3_order <-
-    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
+    rstan::stan(model_code = stan_tau3_order,
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(-3), H), beta = rep(10^(-3), H),
@@ -784,10 +796,14 @@ plot_draws(normal_fixed_mixture_stan_tau3_order)
 ```
 
 #### 6 latent cluster model
+```{r}
+stan_tau6_order <- readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan")
+cat(stan_tau6_order)
+```
 ```{r, results = 'hide'}
 H <- 6
 normal_fixed_mixture_stan_tau6_order <-
-    rstan::stan(model_code = readr::read_file("./bayesianideas_density_normal_fixed_mixture_tau.stan"),
+    rstan::stan(model_code = stan_tau6_order,
                 data = list(
                     ## tau ~ Gamma(alpha, beta)
                     alpha = rep(10^(-3), H), beta = rep(10^(-3), H),

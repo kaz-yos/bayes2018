@@ -30,3 +30,6 @@ cache/
 *.icloud
 /*_cache/
 /.history
+/ermeel_resources/
+/rsconnect/
+/example-models/

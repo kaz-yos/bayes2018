@@ -37,7 +37,7 @@ parameters {
     // Population mean (a real number)
     ordered[H] mu;
     // Population variance (a positive real number)
-    real<lower=0> tau[H];
+    real<lower=0,upper=100> tau[H];
     // Cluster probability
     simplex[H] Pi;
 }

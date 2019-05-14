@@ -13,6 +13,7 @@ data {
     real m[H];
     real<lower=0> s_squared[H];
     real<lower=0> dirichlet_alpha[H];
+    real<lower=0> tau_max;
 
     // Grid evaluation
     real grid_max;
@@ -37,7 +38,7 @@ parameters {
     // Population mean (a real number)
     vector[H] mu;
     // Population variance (a positive real number)
-    real<lower=0,upper=100> tau[H];
+    real<lower=0,upper=tau_max> tau[H];
     // Cluster probability
     simplex[H] Pi;
 }

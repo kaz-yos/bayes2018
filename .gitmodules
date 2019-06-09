@@ -4,3 +4,6 @@
 [submodule "stan_jacobian"]
 	path = stan_jacobian
 	url = ./stan_jacobian/
+[submodule "stan_workshop_2019"]
+	path = stan_workshop_2019
+	url = ./stan_workshop_2019/

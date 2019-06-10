@@ -20,6 +20,10 @@ data {
     int<lower=0,upper=1> cens[N];
     real y[N];
     int<lower=0,upper=1> x[N];
+    //
+    // grids for evaluating posterior predictions
+    int<lower=0> grid_size;
+    real grid[grid_size];
 }
 
 transformed data {
@@ -85,5 +89,19 @@ model {
 }
 
 generated quantities {
+    // Hazard function evaluated at grids
+    real<lower=0> h_grid[grid_size];
+    // Cumulative hazard function at grids
+    real<lower=0> H_grid[grid_size];
 
+    // Loop over cutpoints
+    for (k in 1:K) {
+        // At each k, hazard is constant at lambda[k]
+        // Loop over grid points
+        for (g in 1:grid_size) {
+            if(cutpoints[k] <= grid[g] && grid[g] < cutpoints[k+1]) {
+                h_grid[k] = lambda[k];
+            }
+        }
+    }
 }

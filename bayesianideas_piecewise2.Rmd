@@ -86,6 +86,30 @@ leukemia %>%
               quantiles = list(quantile(time, probs = seq(from = 0, to = 1, by = 0.2)))) %>%
     unnest()
 ```
+
+## Model fitting
+
+```{r}
+piecewise_ph_stan <- readr::read_file("./bayesianideas_piecewise2.stan")
+cat(piecewise_ph_stan)
+```
+```{r,results="hide"}
+piecewise_ph_model <-
+    stan(model_code = piecewise_ph_stan,
+         data = list(w = 0.01,
+                     lambda_star = 0.05,
+                     beta_mean = 0,
+                     beta_sd = 100,
+                     K = 5,
+                     cutpoints = quantile(leukemia$time, probs = seq(from = 0, to = 1, by = 0.2))[-1],
+                     N = length(leukemia$time),
+                     cens = leukemia$status,
+                     y = leukemia$time,
+                     x = as.integer(leukemia$x == "Maintained")))
+```
+```{r}
+piecewise_ph_model
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

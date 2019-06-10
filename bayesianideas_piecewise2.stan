@@ -53,14 +53,14 @@ model {
         // BIDA 13.2.3 Likelihood for piecewise hazard PH model
         for (i in 1:N) {
             // Linear predictor
-            real lp = beta * x;
+            real lp = beta * x[i];
             // Everyone will contribute to survival part
             if (y[i] >= cutpoints[k+1]) {
                 // If surviving beyond end of interval,
                 // contribute survival throughout interval.
                 target += -exp(lp) * (lambda[k] * length);
                 //
-            } else if (cutpoints[k] <= y[i] & y[i] < cutpoints[k+1]) {
+            } else if (cutpoints[k] <= y[i] && y[i] < cutpoints[k+1]) {
                 // If ending follow up during the interval,
                 // Contribute survival until end of follow up.
                 target += -exp(lp) * (lambda[k] * (y[i] - cutpoints[k]));

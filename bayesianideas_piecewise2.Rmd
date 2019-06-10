@@ -81,12 +81,13 @@ leukemia
 
 Check distribution of event times
 ```{r}
-leukemia %>%
+leukemia_summary <- leukemia %>%
     filter(status == 1) %>%
     summarize(n = n(),
               mean_time = mean(time),
               quantiles = list(quantile(time, probs = seq(from = 0, to = 1, by = 0.2)))) %>%
     unnest()
+leukemia_summary
 ```
 
 ## Frequentist fit as a references
@@ -98,7 +99,16 @@ summary(coxph1)
 ```
 
 ## Model fitting
-
+```{r}
+## Cutpoints
+cutpoints <- as.numeric(leukemia_summary$quantiles)
+## First cutpoint should be time 0.
+cutpoints[1] <- 0
+## Last cutpoint should be larger than the maximum failure time.
+cutpoints[length(cutpoints)] <- cutpoints[length(cutpoints)] + 1
+## Show
+cutpoints
+```
 ```{r}
 piecewise_ph_stan <- readr::read_file("./bayesianideas_piecewise2.stan")
 cat(piecewise_ph_stan)
@@ -110,8 +120,8 @@ piecewise_ph_model <-
                      lambda_star = 0.05,
                      beta_mean = 0,
                      beta_sd = 100,
-                     K = 5,
-                     cutpoints = quantile(leukemia$time, probs = seq(from = 0, to = 1, by = 0.2))[-1],
+                     K = length(cutpoints) - 1,
+                     cutpoints = cutpoints,
                      N = length(leukemia$time),
                      cens = leukemia$status,
                      y = leukemia$time,
@@ -120,6 +130,10 @@ piecewise_ph_model <-
 ```{r}
 piecewise_ph_model
 ```
+```{r}
+traceplot(piecewise_ph_model, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+```
+
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

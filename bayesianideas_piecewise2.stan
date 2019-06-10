@@ -7,7 +7,11 @@ data {
     real<lower=0> beta_sd;
     // Number of pieces
     int<lower=0> K;
-    real cutpoints[K];
+    // Cutopoints on time
+    //  cutpoints[1] = 0
+    //  max(event time) < cutpoints[K+1] < Inf
+    //  K+1 elements
+    real cutpoints[K+1];
     //
     int<lower=0> N;
     int<lower=0,upper=1> cens[N];
@@ -34,9 +38,7 @@ model {
 
     // Loop over pieces of time
     for (k in 1:(K - 1)) {
-        // start/end of interval
-        real start = cutpoints[k];
-        real end = cutpoints[k+1];
+        // k = 1,2,...,(K-1)
         real length = cutpoints[k+1] - cutpoints[k];
 
         // Prior on lambda
@@ -54,24 +56,24 @@ model {
         for (i in 1:N) {
             // Linear predictor
             real lp = beta * x[i];
-            // Everyone will contribute to survival part
+            // Everyone will contribute to the survival part.
             if (y[i] >= cutpoints[k+1]) {
-                // If surviving beyond end of interval,
-                // contribute survival throughout interval.
+                // If surviving beyond the end of the interval,
+                // contribute survival throughout the interval.
                 target += -exp(lp) * (lambda[k] * length);
                 //
             } else if (cutpoints[k] <= y[i] && y[i] < cutpoints[k+1]) {
                 // If ending follow up during the interval,
-                // Contribute survival until end of follow up.
+                // contribute survival until the end of follow up.
                 target += -exp(lp) * (lambda[k] * (y[i] - cutpoints[k]));
                 //
-                // Event individuals also contribute to hazard part
+                // Event individuals also contribute to the hazard part.
                 if (cens[i] == 1) {
-                  target += -exp(lp) * lambda[k];
+                    target += lp + log(lambda[k]);
                 }
             } else {
-                // If having ended follow up,
-                // No contribution in this interval
+                // If having ended follow up before this interval,
+                // no contribution in this interval.
             }
         }
     }

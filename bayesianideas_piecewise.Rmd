@@ -246,7 +246,7 @@ Source:
 
 ```{r bayesianideas_piecewise-4 }
 data(leukemia, package = "survival")
-leukemia <- as_data_frame(leukemia) %>%
+leukemia <- as_tibble(leukemia) %>%
     mutate(id = seq_len(n())) %>%
     select(id, everything())
 leukemia

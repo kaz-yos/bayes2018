@@ -44,6 +44,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ```{r}
 library(tidyverse)
+library(survival)
 library(rstan)
 ```
 
@@ -85,6 +86,14 @@ leukemia %>%
               mean_time = mean(time),
               quantiles = list(quantile(time, probs = seq(from = 0, to = 1, by = 0.2)))) %>%
     unnest()
+```
+
+## Frequentist fit as a references
+```{r}
+coxph1 <- coxph(formula = Surv(time, status) ~ as.integer(x == "Maintained"),
+                data    = leukemia,
+                ties    = c("efron","breslow","exact")[1])
+summary(coxph1)
 ```
 
 ## Model fitting

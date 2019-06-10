@@ -1,4 +1,7 @@
 data {
+    // Hypeparameters for lambda[1]
+    real<lower=0> lambda1_mean;
+    real<lower=0> lambda1_length_w;
     // Hyperparameter for lambda[k]
     real<lower=0> w;
     real<lower=0> lambda_star;
@@ -47,7 +50,7 @@ model {
         // BIDA 13.2.5 Priors for lambda
         if (k == 1) {
             // The first interval requires special handling.
-            target += gamma_lpdf(lambda[1] | 10000 * 0.01, 10000);
+            target += gamma_lpdf(lambda[1] | lambda1_mean * lambda1_length_w, lambda1_length_w);
         } else {
             // Mean lambda_star
             target += gamma_lpdf(lambda[k] | lambda_star * length * w, length * w);

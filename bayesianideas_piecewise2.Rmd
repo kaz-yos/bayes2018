@@ -100,28 +100,31 @@ summary(coxph1)
 
 ## Model fitting
 ```{r}
-## Cutpoints
-cutpoints <- as.numeric(leukemia_summary$quantiles)
-## First cutpoint should be time 0.
-cutpoints[1] <- 0
-## Last cutpoint should be larger than the maximum failure time.
-cutpoints[length(cutpoints)] <- cutpoints[length(cutpoints)] + 1
-## Show
-cutpoints
-```
-```{r}
 piecewise_ph_stan <- readr::read_file("./bayesianideas_piecewise2.stan")
 cat(piecewise_ph_stan)
+```
+### Time cutoffs at 20% quantiles
+```{r}
+## Cutpoints
+cutpoints_20 <- as.numeric(leukemia_summary$quantiles)
+## First cutpoint should be time 0.
+cutpoints_20[1] <- 0
+## Last cutpoint should be larger than the maximum failure time.
+cutpoints_20[length(cutpoints_20)] <- cutpoints_20[length(cutpoints_20)] + 1
+## Show
+cutpoints_20
 ```
 ```{r,results="hide"}
 piecewise_ph_model <-
     stan(model_code = piecewise_ph_stan,
-         data = list(w = 0.01,
+         data = list(lambda1_mean = 0.01,
+                     lambda1_length_w = 10^4,
+                     w = 0.01,
                      lambda_star = 0.05,
                      beta_mean = 0,
                      beta_sd = 100,
-                     K = length(cutpoints) - 1,
-                     cutpoints = cutpoints,
+                     K = length(cutpoints_20) - 1,
+                     cutpoints = cutpoints_20,
                      N = length(leukemia$time),
                      cens = leukemia$status,
                      y = leukemia$time,
@@ -134,6 +137,34 @@ piecewise_ph_model
 traceplot(piecewise_ph_model, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 ```
 
+### Time cutoffs at all event times
+```{R}
+cutpoints_all <- unique(sort(leukemia$time[leukemia$status == 1]))
+cutpoints_all <- c(0, cutpoints_all, max(cutpoints_all)+1)
+cutpoints_all
+```
+```{r,results="hide"}
+piecewise_ph_model2 <-
+    stan(model_code = piecewise_ph_stan,
+         data = list(lambda1_mean = 0.01,
+                     lambda1_length_w = 10^4,
+                     w = 0.01,
+                     lambda_star = 0.05,
+                     beta_mean = 0,
+                     beta_sd = 100,
+                     K = length(cutpoints_all) - 1,
+                     cutpoints = cutpoints_all,
+                     N = length(leukemia$time),
+                     cens = leukemia$status,
+                     y = leukemia$time,
+                     x = as.integer(leukemia$x == "Maintained")))
+```
+```{r}
+piecewise_ph_model2
+```
+```{r}
+traceplot(piecewise_ph_model2, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

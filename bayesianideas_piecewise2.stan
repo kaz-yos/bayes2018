@@ -37,8 +37,10 @@ model {
     target += normal_lpdf(beta | beta_mean, beta_sd);
 
     // Loop over pieces of time
-    for (k in 1:(K - 1)) {
-        // k = 1,2,...,(K-1)
+    for (k in 1:K) {
+        // k = 1,2,...,K
+        // cutpoints[1] = 0
+        // cutpoints[K+1] > max event time
         real length = cutpoints[k+1] - cutpoints[k];
 
         // Prior on lambda

@@ -24,7 +24,7 @@ transformed data {
 
 parameters {
     // Baseline hazards
-    real lambda[K];
+    real<lower=0> lambda[K];
     // Effect of group
     real beta;
 }

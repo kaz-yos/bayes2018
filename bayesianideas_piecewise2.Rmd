@@ -135,6 +135,7 @@ piecewise_ph_model
 ```
 ```{r}
 traceplot(piecewise_ph_model, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_model, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
 
 ### Time cutoffs at all event times
@@ -164,6 +165,7 @@ piecewise_ph_model2
 ```
 ```{r}
 traceplot(piecewise_ph_model2, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_model2, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

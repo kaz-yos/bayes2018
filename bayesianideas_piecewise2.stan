@@ -93,6 +93,8 @@ generated quantities {
     real<lower=0> h_grid[grid_size];
     // Cumulative hazard function at grid points
     real<lower=0> H_grid[grid_size];
+    // Survival function at grid points
+    real<lower=0> S_grid[grid_size];
     // Time zero cumulative hazard should be zero.
     H_grid[1] = 0;
 
@@ -124,5 +126,7 @@ generated quantities {
                 H_grid[g] = H_grid[g-1] + (width * h_grid[gg-1]);
             }
         }
+        // Survival
+        S_grid[g] = exp(-H_grid[g]);
     }
 }

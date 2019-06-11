@@ -100,6 +100,12 @@ summary(coxph1)
 ```
 
 ## Model fitting
+### Define and compile model
+```{r}
+## Load and compile
+piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
+piecewise_ph_model
+```
 ### Time cutoffs at 20% quantiles
 ```{r}
 ## Cutpoints
@@ -113,12 +119,6 @@ cutpoints_20
 ## Evaluation grid
 grid <- seq(from = 0, to = max(leukemia_summary$quantiles), by = 0.1)
 ```
-### Define and compile prior check
-```{r}
-## Load and compile
-piecewise_ph_prior_model <- rstan::stan_model("./bayesianideas_piecewise2_prior_only.stan")
-piecewise_ph_prior_model
-```
 ```{r,results="hide"}
 piecewise_ph_prior_sample <-
     rstan::sampling(object = piecewise_ph_prior_model,
@@ -130,13 +130,14 @@ piecewise_ph_prior_sample <-
                                 beta_sd = 100,
                                 K = length(cutpoints_20) - 1,
                                 cutpoints = cutpoints_20,
-                                ## We do not need data here.
-                                ## N = length(leukemia$time),
-                                ## cens = leukemia$status,
-                                ## y = leukemia$time,
-                                ## x = as.integer(leukemia$x == "Maintained"),
+                                N = length(leukemia$time),
+                                cens = leukemia$status,
+                                y = leukemia$time,
+                                x = as.integer(leukemia$x == "Maintained"),
                                 grid_size = length(grid),
-                                grid = grid))
+                                grid = grid,
+                                ## Do not use likelihood
+                                eval_likelihood = 0))
 ```
 Survival estimate for the Nonmaintained group.
 ```{r}
@@ -158,12 +159,6 @@ piecewise_ph_prior_S_sample %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
-### Define and compile model
-```{r}
-## Load and compile
-piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
-piecewise_ph_model
-```
 ### Sample
 ```{r,results="hide"}
 piecewise_ph_sample <-
@@ -181,7 +176,9 @@ piecewise_ph_sample <-
                                 y = leukemia$time,
                                 x = as.integer(leukemia$x == "Maintained"),
                                 grid_size = length(grid),
-                                grid = grid))
+                                grid = grid,
+                                ## Do use likelihood
+                                eval_likelihood = 1))
 ```
 ```{r}
 print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))

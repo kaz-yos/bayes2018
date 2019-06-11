@@ -115,7 +115,7 @@ cutpoints_20[length(cutpoints_20)] <- cutpoints_20[length(cutpoints_20)] + 1
 ## Show
 cutpoints_20
 ## Evaluation grid
-grid <- seq(from = 0, to = 50, by = 1)
+grid <- seq(from = 0, to = max(leukemia_summary$quantiles), by = 0.1)
 ```
 ```{r,results="hide"}
 piecewise_ph_sample <-

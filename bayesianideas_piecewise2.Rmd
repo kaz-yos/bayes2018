@@ -116,12 +116,15 @@ cutpoints_20[1] <- 0
 cutpoints_20[length(cutpoints_20)] <- cutpoints_20[length(cutpoints_20)] + 1
 ## Show
 cutpoints_20
-## Evaluation grid
+## For exponential model
+cutpoints_100 <- c(0, max(cutpoints_20))
+cutpoints_100
+## Evaluation grid for survival function
 grid <- seq(from = 0, to = max(leukemia_summary$quantiles), by = 0.1)
 ```
 ```{r,results="hide"}
 piecewise_ph_prior_sample <-
-    rstan::sampling(object = piecewise_ph_prior_model,
+    rstan::sampling(object = piecewise_ph_model,
                     data = list(lambda1_mean = 0.01,
                                 lambda1_length_w = 10^4,
                                 w = 0.01,
@@ -142,7 +145,7 @@ piecewise_ph_prior_sample <-
 Survival estimate for the Nonmaintained group.
 ```{r}
 piecewise_ph_prior_S_sample <- piecewise_ph_prior_sample %>%
-    as.matrix(pars = "S_grid") %>%
+    as.matrix(pars = "S0_grid") %>%
     as_tibble()
 names(piecewise_ph_prior_S_sample) <- as.character(grid)
 piecewise_ph_prior_S_sample %>%

@@ -96,14 +96,14 @@ model {
 
 generated quantities {
     // Hazard function evaluated at grid points
-    real<lower=0> h_grid[grid_size];
+    real<lower=0> h0_grid[grid_size];
     // Cumulative hazard function at grid points
-    real<lower=0> H_grid[grid_size];
+    real<lower=0> H0_grid[grid_size];
     // Survival function at grid points
     real<lower=0> S0_grid[grid_size];
     real<lower=0> S1_grid[grid_size];
     // Time zero cumulative hazard should be zero.
-    H_grid[1] = 0;
+    H0_grid[1] = 0;
 
     // Loop over grid points
     for (g in 1:grid_size) {
@@ -111,13 +111,13 @@ generated quantities {
         for (k in 1:K) {
             // At each k, hazard is constant at lambda[k]
             if (cutpoints[k] <= grid[g] && grid[g] < cutpoints[k+1]) {
-                h_grid[g] = lambda[k];
+                h0_grid[g] = lambda[k];
                 break;
             }
         }
         // Set grid points beyond the last time cutoff to zeros.
         if (grid[g] >= cutpoints[K+1]) {
-            h_grid[g] = 0;
+            h0_grid[g] = 0;
         }
         // Cumulative hazard
         if (g > 1) {
@@ -130,11 +130,11 @@ generated quantities {
                 // This is approximation and is incorrect for grid points
                 // between which the hazard changes.
                 // Previous cumulative + current contribution.
-                H_grid[g] = H_grid[g-1] + (width * h_grid[gg-1]);
+                H0_grid[g] = H0_grid[g-1] + (width * h0_grid[gg-1]);
             }
         }
         // Survival
-        S0_grid[g] = exp(-H_grid[g]);
+        S0_grid[g] = exp(-H0_grid[g]);
         S1_grid[g] = S0_grid[g]^exp(beta);
     }
 }

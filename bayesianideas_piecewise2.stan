@@ -92,16 +92,21 @@ generated quantities {
     // Hazard function evaluated at grids
     real<lower=0> h_grid[grid_size];
     // Cumulative hazard function at grids
-    real<lower=0> H_grid[grid_size];
+    // real<lower=0> H_grid[grid_size];
 
-    // Loop over cutpoints
-    for (k in 1:K) {
-        // At each k, hazard is constant at lambda[k]
-        // Loop over grid points
-        for (g in 1:grid_size) {
-            if(cutpoints[k] <= grid[g] && grid[g] < cutpoints[k+1]) {
-                h_grid[k] = lambda[k];
+    // Loop over grid points
+    for (g in 1:grid_size) {
+        // Loop over cutpoints
+        for (k in 1:K) {
+            // At each k, hazard is constant at lambda[k]
+            if (cutpoints[k] <= grid[g] && grid[g] < cutpoints[k+1]) {
+                h_grid[g] = lambda[k];
+                break;
             }
+        }
+        // Set grid points beyond the last time cutoff to zeros.
+        if (grid[g] >= cutpoints[K+1]) {
+            h_grid[g] = 0;
         }
     }
 }

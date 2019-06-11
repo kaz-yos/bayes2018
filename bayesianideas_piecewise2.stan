@@ -89,10 +89,12 @@ model {
 }
 
 generated quantities {
-    // Hazard function evaluated at grids
+    // Hazard function evaluated at grid points
     real<lower=0> h_grid[grid_size];
-    // Cumulative hazard function at grids
-    // real<lower=0> H_grid[grid_size];
+    // Cumulative hazard function at grid points
+    real<lower=0> H_grid[grid_size];
+    // Time zero cumulative hazard should be zero.
+    H_grid[1] = 0;
 
     // Loop over grid points
     for (g in 1:grid_size) {
@@ -107,6 +109,20 @@ generated quantities {
         // Set grid points beyond the last time cutoff to zeros.
         if (grid[g] >= cutpoints[K+1]) {
             h_grid[g] = 0;
+        }
+        // Cumulative hazard
+        if (g > 1) {
+            // This double loop is very inefficient.
+            // Index starts at 2!
+            for (gg in 2:g) {
+                // Width between current grid points
+                real width = grid[gg] - grid[gg-1];
+                // Width x hazard value at first grid point.
+                // This is approximation and is incorrect for grid points
+                // between which the hazard changes.
+                // Previous cumulative + current contribution.
+                H_grid[g] = H_grid[g-1] + (width * h_grid[gg-1]);
+            }
         }
     }
 }

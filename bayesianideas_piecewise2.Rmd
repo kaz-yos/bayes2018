@@ -100,11 +100,6 @@ summary(coxph1)
 ```
 
 ## Model fitting
-```{r}
-## Load and compile
-piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
-piecewise_ph_model
-```
 ### Time cutoffs at 20% quantiles
 ```{r}
 ## Cutpoints
@@ -118,6 +113,58 @@ cutpoints_20
 ## Evaluation grid
 grid <- seq(from = 0, to = max(leukemia_summary$quantiles), by = 0.1)
 ```
+### Define and compile prior check
+```{r}
+## Load and compile
+piecewise_ph_prior_model <- rstan::stan_model("./bayesianideas_piecewise2_prior_only.stan")
+piecewise_ph_prior_model
+```
+```{r,results="hide"}
+piecewise_ph_prior_sample <-
+    rstan::sampling(object = piecewise_ph_prior_model,
+                    data = list(lambda1_mean = 0.01,
+                                lambda1_length_w = 10^4,
+                                w = 0.01,
+                                lambda_star = 0.05,
+                                beta_mean = 0,
+                                beta_sd = 100,
+                                K = length(cutpoints_20) - 1,
+                                cutpoints = cutpoints_20,
+                                ## We do not need data here.
+                                ## N = length(leukemia$time),
+                                ## cens = leukemia$status,
+                                ## y = leukemia$time,
+                                ## x = as.integer(leukemia$x == "Maintained"),
+                                grid_size = length(grid),
+                                grid = grid))
+```
+Survival estimate for the Nonmaintained group.
+```{r}
+piecewise_ph_prior_S_sample <- piecewise_ph_prior_sample %>%
+    as.matrix(pars = "S_grid") %>%
+    as_tibble()
+names(piecewise_ph_prior_S_sample) <- as.character(grid)
+piecewise_ph_prior_S_sample %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = survival, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = survival, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+### Define and compile model
+```{r}
+## Load and compile
+piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
+piecewise_ph_model
+```
+### Sample
 ```{r,results="hide"}
 piecewise_ph_sample <-
     rstan::sampling(object = piecewise_ph_model,

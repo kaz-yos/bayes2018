@@ -1,5 +1,5 @@
 ---
-title: "Piecewise constant hazard Cox model in Stan"
+title: "Piecewise constant hazard model in Stan"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -39,6 +39,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ```
 
 ## References
+- [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/) 13.2 Proportional Hazards Modeling
 
 ## Load packages
 

@@ -100,8 +100,9 @@ summary(coxph1)
 
 ## Model fitting
 ```{r}
-piecewise_ph_stan <- readr::read_file("./bayesianideas_piecewise2.stan")
-cat(piecewise_ph_stan)
+## Load and compile
+piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
+piecewise_ph_model
 ```
 ### Time cutoffs at 20% quantiles
 ```{r}
@@ -113,29 +114,33 @@ cutpoints_20[1] <- 0
 cutpoints_20[length(cutpoints_20)] <- cutpoints_20[length(cutpoints_20)] + 1
 ## Show
 cutpoints_20
+## Evaluation grid
+grid <- seq(from = 0, to = 50, by = 1)
 ```
 ```{r,results="hide"}
-piecewise_ph_model <-
-    stan(model_code = piecewise_ph_stan,
-         data = list(lambda1_mean = 0.01,
-                     lambda1_length_w = 10^4,
-                     w = 0.01,
-                     lambda_star = 0.05,
-                     beta_mean = 0,
-                     beta_sd = 100,
-                     K = length(cutpoints_20) - 1,
-                     cutpoints = cutpoints_20,
-                     N = length(leukemia$time),
-                     cens = leukemia$status,
-                     y = leukemia$time,
-                     x = as.integer(leukemia$x == "Maintained")))
+piecewise_ph_sample <-
+    rstan::sampling(object = piecewise_ph_model,
+                    data = list(lambda1_mean = 0.01,
+                                lambda1_length_w = 10^4,
+                                w = 0.01,
+                                lambda_star = 0.05,
+                                beta_mean = 0,
+                                beta_sd = 100,
+                                K = length(cutpoints_20) - 1,
+                                cutpoints = cutpoints_20,
+                                N = length(leukemia$time),
+                                cens = leukemia$status,
+                                y = leukemia$time,
+                                x = as.integer(leukemia$x == "Maintained"),
+                                grid_size = length(grid),
+                                grid = grid))
 ```
 ```{r}
-piecewise_ph_model
+print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
-traceplot(piecewise_ph_model, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
-traceplot(piecewise_ph_model, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
 
 ### Time cutoffs at all event times
@@ -145,27 +150,27 @@ cutpoints_all <- c(0, cutpoints_all, max(cutpoints_all)+1)
 cutpoints_all
 ```
 ```{r,results="hide"}
-piecewise_ph_model2 <-
-    stan(model_code = piecewise_ph_stan,
-         data = list(lambda1_mean = 0.01,
-                     lambda1_length_w = 10^4,
-                     w = 0.01,
-                     lambda_star = 0.05,
-                     beta_mean = 0,
-                     beta_sd = 100,
-                     K = length(cutpoints_all) - 1,
-                     cutpoints = cutpoints_all,
-                     N = length(leukemia$time),
-                     cens = leukemia$status,
-                     y = leukemia$time,
-                     x = as.integer(leukemia$x == "Maintained")))
+piecewise_ph_all_sample <-
+    sampling(object = piecewise_ph_model,
+             data = list(lambda1_mean = 0.01,
+                         lambda1_length_w = 10^4,
+                         w = 0.01,
+                         lambda_star = 0.05,
+                         beta_mean = 0,
+                         beta_sd = 100,
+                         K = length(cutpoints_all) - 1,
+                         cutpoints = cutpoints_all,
+                         N = length(leukemia$time),
+                         cens = leukemia$status,
+                         y = leukemia$time,
+                         x = as.integer(leukemia$x == "Maintained")))
 ```
 ```{r}
-piecewise_ph_model2
+print(piecewise_ph_all_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
-traceplot(piecewise_ph_model2, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
-traceplot(piecewise_ph_model2, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_all_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_all_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

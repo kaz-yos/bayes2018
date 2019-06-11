@@ -163,7 +163,9 @@ piecewise_ph_all_sample <-
                          N = length(leukemia$time),
                          cens = leukemia$status,
                          y = leukemia$time,
-                         x = as.integer(leukemia$x == "Maintained")))
+                         x = as.integer(leukemia$x == "Maintained"),
+                         grid_size = length(grid),
+                         grid = grid))
 ```
 ```{r}
 print(piecewise_ph_all_sample, pars = c("lambda","beta","lp__"))

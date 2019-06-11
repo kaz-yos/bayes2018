@@ -142,6 +142,26 @@ print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
+Survival estimate for the Nonmaintained group.
+```{r}
+piecewise_ph_S_sample <- piecewise_ph_sample %>%
+    as.matrix(pars = "S_grid") %>%
+    as_tibble()
+names(piecewise_ph_S_sample) <- as.character(grid)
+piecewise_ph_S_sample %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = survival, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = survival, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
 
 ### Time cutoffs at all event times
 ```{R}
@@ -174,6 +194,27 @@ print(piecewise_ph_all_sample, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_all_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_all_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
+Survival estimate for the Nonmaintained group.
+```{r}
+piecewise_ph_all_S_sample <- piecewise_ph_all_sample %>%
+    as.matrix(pars = "S_grid") %>%
+    as_tibble()
+names(piecewise_ph_all_S_sample) <- as.character(grid)
+piecewise_ph_all_S_sample %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = survival, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = survival, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

@@ -151,6 +151,7 @@ exponential_prior_sample <-
                                 eval_likelihood = 0))
 ```
 ```{r}
+check_hmc_diagnostics(exponential_prior_sample)
 print(exponential_prior_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
@@ -256,6 +257,7 @@ exponential_sample <-
                                 eval_likelihood = 1))
 ```
 ```{r}
+check_hmc_diagnostics(exponential_sample)
 print(exponential_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
@@ -361,6 +363,7 @@ piecewise_ph_prior_sample <-
                                 eval_likelihood = 0))
 ```
 ```{r}
+check_hmc_diagnostics(piecewise_ph_prior_sample)
 print(piecewise_ph_prior_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
@@ -466,6 +469,7 @@ piecewise_ph_sample <-
                                 eval_likelihood = 1))
 ```
 ```{r}
+check_hmc_diagnostics(piecewise_ph_sample)
 print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
@@ -570,6 +574,7 @@ piecewise_ph_all_prior_sample <-
                          eval_likelihood = 1))
 ```
 ```{r}
+check_hmc_diagnostics(piecewise_ph_all_prior_sample)
 print(piecewise_ph_all_prior_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}
@@ -674,6 +679,7 @@ piecewise_ph_all_sample <-
                          eval_likelihood = 1))
 ```
 ```{r}
+check_hmc_diagnostics(piecewise_ph_all_sample)
 print(piecewise_ph_all_sample, pars = c("lambda","beta","lp__"))
 ```
 ```{r}

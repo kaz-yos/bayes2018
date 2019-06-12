@@ -40,6 +40,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - [(BIDA) Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/) 13.2 Proportional Hazards Modeling
+- [(BSA) Bayesian Survival Analysis](https://www.springer.com/us/book/9780387952772) 3.1 Piecewise Constant Hazard Model
 
 ## Load packages
 
@@ -99,16 +100,17 @@ coxph1 <- coxph(formula = Surv(time, status) ~ as.integer(x == "Maintained"),
 summary(coxph1)
 ```
 
-## Model fitting
-### Define and compile model
+## Bayesian Model fitting
+### Define and compile piecewise constant hazard model
 ```{r}
 ## Load and compile
 piecewise_ph_model <- rstan::stan_model("./bayesianideas_piecewise2.stan")
 piecewise_ph_model
 ```
-### Time cutoffs at 20% quantiles
+
+### Define time cut points
 ```{r}
-## Cutpoints
+## Cutpoints every 20% of events
 cutpoints_20 <- as.numeric(leukemia_summary$quantiles)
 ## First cutpoint should be time 0.
 cutpoints_20[1] <- 0
@@ -116,12 +118,221 @@ cutpoints_20[1] <- 0
 cutpoints_20[length(cutpoints_20)] <- cutpoints_20[length(cutpoints_20)] + 1
 ## Show
 cutpoints_20
-## For exponential model
+## Entire time as a single interval for exponential model
 cutpoints_100 <- c(0, max(cutpoints_20))
 cutpoints_100
+## All unique event times
+cutpoints_all <- unique(sort(leukemia$time[leukemia$status == 1]))
+cutpoints_all <- c(0, cutpoints_all, max(cutpoints_all)+1)
+cutpoints_all
 ## Evaluation grid for survival function
 grid <- seq(from = 0, to = max(leukemia_summary$quantiles), by = 0.1)
 ```
+
+### Exponential model (Prior)
+```{r,results="hide"}
+exponential_prior_sample <-
+    rstan::sampling(object = piecewise_ph_model,
+                    data = list(lambda1_mean = 0.01,
+                                lambda1_length_w = 10^4,
+                                w = 0.01,
+                                lambda_star = 0.05,
+                                beta_mean = 0,
+                                beta_sd = 100,
+                                K = length(cutpoints_100) - 1,
+                                cutpoints = cutpoints_100,
+                                N = length(leukemia$time),
+                                cens = leukemia$status,
+                                y = leukemia$time,
+                                x = as.integer(leukemia$x == "Maintained"),
+                                grid_size = length(grid),
+                                grid = grid,
+                                ## Do not use likelihood
+                                eval_likelihood = 0))
+```
+Baseline hazard function.
+```{r}
+exponential_prior_sample %>%
+    as.matrix(pars = "h0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline cumulative hazard function.
+```{r}
+exponential_prior_sample %>%
+    as.matrix(pars = "H0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline survival estimate for the Nonmaintained group.
+```{r}
+exponential_prior_sample %>%
+    as.matrix(pars = "S0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Survival estimate for the Maintained group.
+```{r}
+exponential_prior_sample %>%
+    as.matrix(pars = "S1_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+### Exponential model (Posterior)
+```{r,results="hide"}
+exponential_sample <-
+    rstan::sampling(object = piecewise_ph_model,
+                    data = list(lambda1_mean = 0.01,
+                                lambda1_length_w = 10^4,
+                                w = 0.01,
+                                lambda_star = 0.05,
+                                beta_mean = 0,
+                                beta_sd = 100,
+                                K = length(cutpoints_100) - 1,
+                                cutpoints = cutpoints_100,
+                                N = length(leukemia$time),
+                                cens = leukemia$status,
+                                y = leukemia$time,
+                                x = as.integer(leukemia$x == "Maintained"),
+                                grid_size = length(grid),
+                                grid = grid,
+                                ## Do use likelihood
+                                eval_likelihood = 1))
+```
+```{r}
+print(exponential_sample, pars = c("lambda","beta","lp__"))
+```
+```{r}
+traceplot(exponential_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(exponential_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+```
+Baseline hazard function.
+```{r}
+exponential_sample %>%
+    as.matrix(pars = "h0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline cumulative hazard function.
+```{r}
+exponential_sample %>%
+    as.matrix(pars = "H0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline survival estimate for the Nonmaintained group.
+```{r}
+exponential_sample %>%
+    as.matrix(pars = "S0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Survival estimate for the Maintained group.
+```{r}
+exponential_sample %>%
+    as.matrix(pars = "S1_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+### Time cutoffs at 20% quantiles (Prior)
 ```{r,results="hide"}
 piecewise_ph_prior_sample <-
     rstan::sampling(object = piecewise_ph_model,
@@ -218,7 +429,8 @@ piecewise_ph_prior_sample %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
-### Sample
+
+### Time cutoffs at 20% quantiles (Posterior)
 ```{r,results="hide"}
 piecewise_ph_sample <-
     rstan::sampling(object = piecewise_ph_model,
@@ -322,12 +534,112 @@ piecewise_ph_sample %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
-### Time cutoffs at all event times
-```{R}
-cutpoints_all <- unique(sort(leukemia$time[leukemia$status == 1]))
-cutpoints_all <- c(0, cutpoints_all, max(cutpoints_all)+1)
-cutpoints_all
+
+### Time cutoffs at all event times (Prior)
+```{r,results="hide"}
+piecewise_ph_all_prior_sample <-
+    sampling(object = piecewise_ph_model,
+             data = list(lambda1_mean = 0.01,
+                         lambda1_length_w = 10^4,
+                         w = 0.01,
+                         lambda_star = 0.05,
+                         beta_mean = 0,
+                         beta_sd = 100,
+                         K = length(cutpoints_all) - 1,
+                         cutpoints = cutpoints_all,
+                         N = length(leukemia$time),
+                         cens = leukemia$status,
+                         y = leukemia$time,
+                         x = as.integer(leukemia$x == "Maintained"),
+                         grid_size = length(grid),
+                         grid = grid,
+                         eval_likelihood = 1))
 ```
+```{r}
+print(piecewise_ph_all_prior_sample, pars = c("lambda","beta","lp__"))
+```
+```{r}
+traceplot(piecewise_ph_all_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_all_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+```
+Baseline hazard function.
+```{r}
+piecewise_ph_all_prior_sample %>%
+    as.matrix(pars = "h0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline cumulative hazard function.
+```{r}
+piecewise_ph_all_prior_sample %>%
+    as.matrix(pars = "H0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline survival estimate for the Nonmaintained group.
+```{r}
+piecewise_ph_all_prior_sample %>%
+    as.matrix(pars = "S0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Survival estimate for the Maintained group.
+```{r}
+piecewise_ph_all_prior_sample %>%
+    as.matrix(pars = "S1_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+### Time cutoffs at all event times (Posterior)
 ```{r,results="hide"}
 piecewise_ph_all_sample <-
     sampling(object = piecewise_ph_model,

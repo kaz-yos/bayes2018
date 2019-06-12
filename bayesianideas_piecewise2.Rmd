@@ -246,19 +246,18 @@ print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
-Survival estimate for the Nonmaintained group.
+Baseline hazard function.
 ```{r}
-piecewise_ph_S_sample <- piecewise_ph_sample %>%
-    as.matrix(pars = "S_grid") %>%
-    as_tibble()
-names(piecewise_ph_S_sample) <- as.character(grid)
-piecewise_ph_S_sample %>%
+piecewise_ph_sample %>%
+    as.matrix(pars = "h0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
     mutate(iter = seq_len(n())) %>%
-    gather(key = time, value = survival, -iter) %>%
+    gather(key = time, value = value, -iter) %>%
     mutate(time = as.numeric(time)) %>%
     filter(iter %in% sample(1:max(iter), size = 500)) %>%
     ##
-    ggplot(mapping = aes(x = time, y = survival, group = iter)) +
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
     geom_line(alpha = 0.1) +
     theme_bw() +
     theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
@@ -266,7 +265,63 @@ piecewise_ph_S_sample %>%
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
-
+Baseline cumulative hazard function.
+```{r}
+piecewise_ph_sample %>%
+    as.matrix(pars = "H0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Baseline survival estimate for the Nonmaintained group.
+```{r}
+piecewise_ph_sample %>%
+    as.matrix(pars = "S0_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+Survival estimate for the Maintained group.
+```{r}
+piecewise_ph_sample %>%
+    as.matrix(pars = "S1_grid") %>%
+    as_tibble() %>%
+    `names<-`(as.character(grid)) %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = time, value = value, -iter) %>%
+    mutate(time = as.numeric(time)) %>%
+    filter(iter %in% sample(1:max(iter), size = 500)) %>%
+    ##
+    ggplot(mapping = aes(x = time, y = value, group = iter)) +
+    geom_line(alpha = 0.1) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
 ### Time cutoffs at all event times
 ```{R}
 cutpoints_all <- unique(sort(leukemia$time[leukemia$status == 1]))
@@ -301,7 +356,7 @@ traceplot(piecewise_ph_all_sample, inc_warmup = FALSE, pars = c("lambda","beta",
 Survival estimate for the Nonmaintained group.
 ```{r}
 piecewise_ph_all_S_sample <- piecewise_ph_all_sample %>%
-    as.matrix(pars = "S_grid") %>%
+    as.matrix(pars = "S0_grid") %>%
     as_tibble()
 names(piecewise_ph_all_S_sample) <- as.character(grid)
 piecewise_ph_all_S_sample %>%

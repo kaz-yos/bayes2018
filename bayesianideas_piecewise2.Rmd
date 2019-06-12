@@ -150,6 +150,13 @@ exponential_prior_sample <-
                                 ## Do not use likelihood
                                 eval_likelihood = 0))
 ```
+```{r}
+print(exponential_prior_sample, pars = c("lambda","beta","lp__"))
+```
+```{r}
+traceplot(exponential_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(exponential_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+```
 Baseline hazard function.
 ```{r}
 exponential_prior_sample %>%
@@ -352,6 +359,13 @@ piecewise_ph_prior_sample <-
                                 grid = grid,
                                 ## Do not use likelihood
                                 eval_likelihood = 0))
+```
+```{r}
+print(piecewise_ph_prior_sample, pars = c("lambda","beta","lp__"))
+```
+```{r}
+traceplot(piecewise_ph_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
+traceplot(piecewise_ph_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}

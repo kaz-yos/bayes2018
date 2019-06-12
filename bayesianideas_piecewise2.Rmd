@@ -48,6 +48,7 @@ doParallel::registerDoParallel(cores = n_cores)
 library(tidyverse)
 library(survival)
 library(rstan)
+library(bayesplot)
 set.seed(13960043)
 ```
 
@@ -157,6 +158,7 @@ print(exponential_prior_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(exponential_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(exponential_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(exponential_prior_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}
@@ -263,6 +265,7 @@ print(exponential_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(exponential_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(exponential_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(exponential_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}
@@ -369,6 +372,7 @@ print(piecewise_ph_prior_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(piecewise_ph_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(piecewise_ph_prior_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}
@@ -475,6 +479,7 @@ print(piecewise_ph_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(piecewise_ph_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(piecewise_ph_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}
@@ -580,6 +585,7 @@ print(piecewise_ph_all_prior_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(piecewise_ph_all_prior_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_all_prior_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(piecewise_ph_all_prior_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}
@@ -685,6 +691,7 @@ print(piecewise_ph_all_sample, pars = c("lambda","beta","lp__"))
 ```{r}
 traceplot(piecewise_ph_all_sample, inc_warmup = TRUE, pars = c("lambda","beta","lp__"))
 traceplot(piecewise_ph_all_sample, inc_warmup = FALSE, pars = c("lambda","beta","lp__"))
+bayesplot::mcmc_rank_overlay(piecewise_ph_all_sample, regex_pars = c("lambda","beta","lp__"))
 ```
 Baseline hazard function.
 ```{r}

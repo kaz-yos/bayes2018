@@ -161,8 +161,8 @@ $$\begin{align*}
   \end{align*}
 $$
 ```{r}
-stan_code_poisson <- biostan::read_stan_file("./bmspe_poisson.stan")
-biostan::print_stan_code(stan_code_poisson, section = NULL)
+stan_code_poisson <- readr::read_file("./bmspe_poisson.stan")
+cat(stan_code_poisson, section = NULL)
 ```
 ```{r, results = "hide"}
 stan_model_poisson <- stan(model_code = stan_code_poisson,
@@ -195,8 +195,8 @@ $$\begin{align*}
   \end{align*}
 $$
 ```{r}
-stan_code_poisson_covs <- biostan::read_stan_file("./bmspe_poisson_covs.stan")
-biostan::print_stan_code(stan_code_poisson_covs, section = NULL)
+stan_code_poisson_covs <- readr::read_file("./bmspe_poisson_covs.stan")
+cat(stan_code_poisson_covs, section = NULL)
 ```
 ```{r, results = "hide"}
 stan_model_poisson_covs <- stan(model_code = stan_code_poisson_covs,
@@ -240,8 +240,8 @@ $$\begin{align*}
   \end{align*}
 $$
 ```{r}
-stan_code_poisson_covs_zip <- biostan::read_stan_file("./bmspe_poisson_covs_zip.stan")
-biostan::print_stan_code(stan_code_poisson_covs_zip, section = NULL)
+stan_code_poisson_covs_zip <- readr::read_file("./bmspe_poisson_covs_zip.stan")
+cat(stan_code_poisson_covs_zip, section = NULL)
 ```
 ```{r, results = "hide"}
 stan_model_poisson_covs_zip <- stan(model_code = stan_code_poisson_covs_zip,
@@ -303,8 +303,8 @@ $$\begin{align*}
   \end{align*}
 $$
 ```{r}
-stan_code_poisson_covs_gamma <- biostan::read_stan_file("./bmspe_poisson_covs_gamma.stan")
-biostan::print_stan_code(stan_code_poisson_covs_gamma, section = NULL)
+stan_code_poisson_covs_gamma <- readr::read_file("./bmspe_poisson_covs_gamma.stan")
+cat(stan_code_poisson_covs_gamma, section = NULL)
 ```
 ```{r, results = "hide"}
 stan_model_poisson_covs_gamma <- stan(model_code = stan_code_poisson_covs_gamma,
@@ -344,8 +344,8 @@ $$\begin{align*}
 $$
 ```{r}
 ## http://rstudio-pubs-static.s3.amazonaws.com/34099_2e35c3966ef548c2918d5b6c2146bfd1.html
-stan_code_negbin_covs <- biostan::read_stan_file("./bmspe_negbin_covs.stan")
-biostan::print_stan_code(stan_code_negbin_covs, section = NULL)
+stan_code_negbin_covs <- readr::read_file("./bmspe_negbin_covs.stan")
+cat(stan_code_negbin_covs, section = NULL)
 ```
 ```{r, results = "hide"}
 stan_model_negbin_covs <- stan(model_code = stan_code_negbin_covs,

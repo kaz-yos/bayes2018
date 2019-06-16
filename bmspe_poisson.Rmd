@@ -56,7 +56,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ## Load packages
 ```{r}
 library(tidyverse)
-## devtools::install_github('jburos/biostan', build_vignettes = TRUE, dependencies = TRUE)
+library(magrittr)
 library(rstan)
 ## To avoid recompilation of unchanged Stan programs, we recommend calling
 rstan_options(auto_write = TRUE)
@@ -179,7 +179,11 @@ print(stan_model_poisson, pars = pars)
 pairs(stan_model_poisson, pars = pars)
 traceplot(stan_model_poisson, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson, n_sample = 20)
-loo(stan_model_poisson)
+loo(stan_model_poisson) %T>% plot()
+```
+```{r}
+## Posterior predictive check
+bayesplot::pp_check(stan_model_poisson)
 ```
 
 ## Poisson model with covariates
@@ -213,7 +217,7 @@ print(stan_model_poisson_covs, pars = pars)
 pairs(stan_model_poisson_covs, pars = pars)
 traceplot(stan_model_poisson_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs, n_sample = 20)
-loo(stan_model_poisson_covs)
+loo(stan_model_poisson_covs) %T>% plot()
 ```
 We are using vague priors on the regression coefficients, so the results are similar to the corresponding Frequentist fit.
 ```{r}
@@ -259,7 +263,7 @@ print(stan_model_poisson_covs_zip, pars = pars)
 pairs(stan_model_poisson_covs_zip, pars = pars)
 traceplot(stan_model_poisson_covs_zip, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_zip, n_sample = 20)
-loo(stan_model_poisson_covs_zip)
+loo(stan_model_poisson_covs_zip) %T>% plot()
 ```
 The model did not converge with vague priors on both sets of coefficients. The pairs plot shows straight line patterns among coefficients fro the Bernoulli model coefficients. As seen in the barplots of the data, the General program does not have any individuals with zero days absent from school. This may be causing a complete separation issue. Taking this as a data sparsity issue, we will examine a model that regularizes more heavily the non-intercept coefficients for the Bernoulli model.
 ```{r, results = "hide"}
@@ -278,7 +282,7 @@ print(stan_model_poisson_covs_zip2, pars = pars)
 pairs(stan_model_poisson_covs_zip2, pars = pars)
 traceplot(stan_model_poisson_covs_zip2, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_zip2, n_sample = 20)
-loo(stan_model_poisson_covs_zip2)
+loo(stan_model_poisson_covs_zip2) %T>% plot()
 ```
 The regularized model converged. The narrow linear patterns among the Bernoulli model coefficients are probably due to strong correlation. Being either in an Academic program (coefficient 3) or Vocational program (coefficient 4) is a strong predictor of having zero absent days. So when one is strong, the other is also strong. When the coefficients for these are strong, the intercept (coefficient 1) has to be very small.
 ```{r}
@@ -322,7 +326,7 @@ print(stan_model_poisson_covs_gamma, pars = pars)
 pairs(stan_model_poisson_covs_gamma, pars = pars)
 traceplot(stan_model_poisson_covs_gamma, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_poisson_covs_gamma, n_sample = 20)
-loo(stan_model_poisson_covs_gamma)
+loo(stan_model_poisson_covs_gamma) %T>% plot()
 ```
 
 ## Negative binomial model with covariates
@@ -363,7 +367,7 @@ print(stan_model_negbin_covs, pars = pars)
 pairs(stan_model_negbin_covs, pars = pars)
 traceplot(stan_model_negbin_covs, inc_warmup = TRUE, pars = pars)
 plot_draws(stan_model_negbin_covs, n_sample = 20)
-loo(stan_model_negbin_covs)
+loo(stan_model_negbin_covs) %T>% plot()
 ```
 We see the similarity in the posterior for $a_{\gamma}$ as well as the posterior predictive plots, empirically confirming the equivalence of these two models.
 

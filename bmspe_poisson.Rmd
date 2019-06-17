@@ -47,6 +47,7 @@ doParallel::registerDoParallel(cores = n_cores)
   - [4.A Models for Over-Dispersed Count Data](https://data.princeton.edu/wws509/stata/overdispersion)
   - [Models for Count Data With Overdispersion](https://data.princeton.edu/wws509/notes/c4a.pdf)
   - [An Introduction to ggdag](https://cran.r-project.org/web/packages/ggdag/vignettes/intro-to-ggdag.html)
+  - [Graphical posterior predictive checks using the bayesplot package](https://cran.r-project.org/web/packages/bayesplot/vignettes/graphical-ppcs.html)
 - Books
   - [Bayesian Models: a Statistical Primer for Ecologists](https://press.princeton.edu/titles/10523.html)
   - [A Student’s Guide to Bayesian Statistics](https://uk.sagepub.com/en-gb/eur/a-student’s-guide-to-bayesian-statistics/book245409)

@@ -50,15 +50,36 @@ doParallel::registerDoParallel(cores = n_cores)
 
 
 ## Load packages
-
 ```{r}
 library(tidyverse)
 library(rstan)
 ```
 
 ## Load data
+```{r}
+data("sunspot.year", package = "datasets")
+sunspot.year
+sunspot_year <- tibble(sun_spot = as.numeric(sunspot.year),
+                       year = as.integer(time(sunspot.year)))
+sunspot_year
+```
 
-
+## AR(1) Model
+### Stan code
+```{r}
+ar_p_stan <- rstan::stan_model("./bugs_time_series_ar_p.stan")
+ar_p_stan
+```
+```{r, results = "hide"}
+ar_p_stan_fit <-
+    rstan::sampling(ar_p_stan,
+                    data = list(p = 1,
+                                init_mean = c(0),
+                                init_sd = c(100),
+                                N = length(sunspot.year),
+                                y = as.numeric(sunspot.year),
+                                yr = as.integer(time(sunspot.year))))
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

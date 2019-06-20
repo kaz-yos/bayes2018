@@ -1,9 +1,13 @@
 data {
     // Hyperparameters
     // AR(p)
-    int <lower=0> p;
+    int<lower=0> p;
     real init_mean[p];
-    real init_sd[p];
+    real<lower=0> init_sd[p];
+    real theta_mean[p];
+    real<lower=0> theta_sd[p];
+    real<lower=0> sigma_mean;
+    real<lower=0> sigma_sd;
     // Data
     int<lower=0> N;
     real y[N];
@@ -15,7 +19,7 @@ transformed data {
 
 parameters {
     real theta[p];
-    real sigma;
+    real<lower=0> sigma;
 }
 
 transformed parameters {
@@ -23,6 +27,11 @@ transformed parameters {
 }
 
 model {
+    // Priors
+    for (i in 1:p) {
+        target += normal_lpdf(theta[i] | theta_mean[i], theta_sd[i]);
+    }
+    target += normal_lpdf(sigma | sigma_mean, sigma_sd);
     // The first p time points need appropriate vague distributions.
     for (t in 1:p) {
         target += normal_lpdf(y[t] | init_mean[t], init_sd[t]);

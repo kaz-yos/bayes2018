@@ -53,6 +53,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ```{r}
 library(tidyverse)
 library(rstan)
+library(bayesplot)
 ```
 
 ## Load data
@@ -70,16 +71,139 @@ sunspot_year
 ar_p_stan <- rstan::stan_model("./bugs_time_series_ar_p.stan")
 ar_p_stan
 ```
+### Stan fit
 ```{r, results = "hide"}
-ar_p_stan_fit <-
+ar_1_stan_fit <-
     rstan::sampling(ar_p_stan,
                     data = list(p = 1,
-                                init_mean = c(0),
-                                init_sd = c(100),
+                                init_mean = as.array(c(0)),
+                                init_sd = as.array(c(100)),
+                                theta_mean = as.array(c(0)),
+                                theta_sd = as.array(c(100)),
+                                sigma_mean = 0,
+                                sigma_sd = 100,
+                                ##
                                 N = length(sunspot.year),
                                 y = as.numeric(sunspot.year),
                                 yr = as.integer(time(sunspot.year))))
 ```
+### Diagnostics
+Diagnostics indicate the HMC sampler behaved nicely.
+```{r}
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(ar_1_stan_fit, pars = c("theta","sigma","lp__"))
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(ar_1_stan_fit)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(ar_1_stan_fit, pars = c("theta","sigma","lp__"))
+## Explicity specify HMC diagnostics
+bayesplot::mcmc_scatter(as.array(ar_1_stan_fit),
+                        regex_pars = c("theta", "sigma"),
+                        transform = list("sigma" = log),
+                        np = nuts_params(ar_1_stan_fit))
+## Markov chain traceplots
+rstan::traceplot(ar_1_stan_fit, pars = c("theta","sigma","lp__"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+## ‘mcmc_rank_hist()’ Whereas traditional trace plots visualize how
+##      the chains mix over the course of sampling, rank histograms
+##      visualize how the values from the chains mix together in
+##      terms of ranking. An ideal plot would show the rankings
+##      mixing or overlapping in a uniform distribution. See Vehtari
+##      et al. (2019) for details.
+bayesplot::mcmc_rank_hist(ar_1_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(ar_1_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_trace_highlight(ar_1_stan_fit, regex_pars = c("theta", "sigma"), highlight = 1)
+```
+### Posterior predictive checks
+Posterior predictive checks indicate there are missed features.
+```{r}
+y_rep <- as.matrix(ar_1_stan_fit, pars = "y_rep")
+## Density overlay
+ppc_dens_overlay(y = as.numeric(sunspot.year),
+                 yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ])
+## Interval
+ppc_intervals(y = as.numeric(sunspot.year),
+              yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ],
+              x = as.integer(time(sunspot.year)),
+              prob = 0.5)
+## Quantiles
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.25)}) +
+    labs(title = "25th Percentile")
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.75)}) +
+    labs(title = "75th Percentile")
+```
+
+## AR(2) model
+### Stan fit
+```{r, results = "hide"}
+ar_2_stan_fit <-
+    rstan::sampling(ar_p_stan,
+                    data = list(p = 2,
+                                init_mean = c(0,0),
+                                init_sd = c(100,100),
+                                theta_mean = c(0,0),
+                                theta_sd = c(100,100),
+                                sigma_mean = 0,
+                                sigma_sd = 100,
+                                ##
+                                N = length(sunspot.year),
+                                y = as.numeric(sunspot.year),
+                                yr = as.integer(time(sunspot.year))))
+```
+### Diagnostics
+Diagnostics indicate the HMC sampler behaved nicely. However, we observe that two theta parameters are correlated, which may be improved by reparametrization.
+```{r}
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(ar_2_stan_fit, pars = c("theta","sigma","lp__"))
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(ar_2_stan_fit)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(ar_2_stan_fit, pars = c("theta","sigma","lp__"))
+## Explicity specify HMC diagnostics
+bayesplot::mcmc_scatter(as.array(ar_2_stan_fit),
+                        pars = c("theta[1]", "theta[2]"),
+                        np = nuts_params(ar_2_stan_fit))
+## Markov chain traceplots
+rstan::traceplot(ar_2_stan_fit, pars = c("theta","sigma","lp__"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+## ‘mcmc_rank_hist()’ Whereas traditional trace plots visualize how
+##      the chains mix over the course of sampling, rank histograms
+##      visualize how the values from the chains mix together in
+##      terms of ranking. An ideal plot would show the rankings
+##      mixing or overlapping in a uniform distribution. See Vehtari
+##      et al. (2019) for details.
+bayesplot::mcmc_rank_hist(ar_2_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(ar_2_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_trace_highlight(ar_2_stan_fit, regex_pars = c("theta", "sigma"), highlight = 1)
+```
+### Posterior predictive checks
+Posterior predictive checks still indicate there are missed features.
+```{r}
+y_rep <- as.matrix(ar_2_stan_fit, pars = "y_rep")
+## Density overlay
+ppc_dens_overlay(y = as.numeric(sunspot.year),
+                 yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ])
+## Interval
+ppc_intervals(y = as.numeric(sunspot.year),
+              yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ],
+              x = as.integer(time(sunspot.year)),
+              prob = 0.5)
+## Quantiles
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.25)}) +
+    labs(title = "25th Percentile")
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.75)}) +
+    labs(title = "75th Percentile")
+```
+
+
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

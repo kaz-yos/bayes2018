@@ -47,5 +47,16 @@ model {
 }
 
 generated quantities {
-
+    real y_rep[N];
+    for (t in 1:p) {
+        y_rep[t] = normal_rng(init_mean[t], init_sd[t]);
+    }
+    // AR(p) process
+    for (t in (p + 1):N) {
+        real m_t = 0;
+        for (i in 1:p) {
+            m_t += theta[i] * y[t - i];
+        }
+        y_rep[t] = normal_rng(m_t, sigma);
+    }
 }

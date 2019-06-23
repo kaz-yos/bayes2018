@@ -57,7 +57,7 @@ generated quantities {
     for (t in (p + 1):(N + K)) {
         real m_t = 0;
         for (i in 1:p) {
-            m_t += theta[i] * y[t - i];
+            m_t += theta[i] * y_rep[t - i];
         }
         y_rep[t] = normal_rng(m_t, sigma);
     }

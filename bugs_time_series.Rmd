@@ -63,6 +63,14 @@ sunspot.year
 sunspot_year <- tibble(sun_spot = as.numeric(sunspot.year),
                        year = as.integer(time(sunspot.year)))
 sunspot_year
+ggplot(data = sunspot_year, mapping = aes(x = year, y = sun_spot)) +
+    geom_point() +
+    geom_path() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 ## AR(1) Model
@@ -85,7 +93,8 @@ ar_1_stan_fit <-
                                 ##
                                 N = length(sunspot.year),
                                 y = as.numeric(sunspot.year),
-                                yr = as.integer(time(sunspot.year))))
+                                yr = as.integer(time(sunspot.year)),
+                                K = 10))
 ```
 ### Diagnostics
 Diagnostics indicate the HMC sampler behaved nicely.
@@ -117,7 +126,7 @@ bayesplot::mcmc_trace_highlight(ar_1_stan_fit, regex_pars = c("theta", "sigma"),
 ### Posterior predictive checks
 Posterior predictive checks indicate there are missed features.
 ```{r}
-y_rep <- as.matrix(ar_1_stan_fit, pars = "y_rep")
+y_rep <- as.matrix(ar_1_stan_fit, pars = "y_rep")[,seq_along(sunspot.year)]
 ## Density overlay
 ppc_dens_overlay(y = as.numeric(sunspot.year),
                  yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ])
@@ -152,7 +161,8 @@ ar_2_stan_fit <-
                                 ##
                                 N = length(sunspot.year),
                                 y = as.numeric(sunspot.year),
-                                yr = as.integer(time(sunspot.year))))
+                                yr = as.integer(time(sunspot.year)),
+                                K = 10))
 ```
 ### Diagnostics
 Diagnostics indicate the HMC sampler behaved nicely. However, we observe that two theta parameters are correlated, which may be improved by reparametrization.
@@ -183,7 +193,7 @@ bayesplot::mcmc_trace_highlight(ar_2_stan_fit, regex_pars = c("theta", "sigma"),
 ### Posterior predictive checks
 Posterior predictive checks still indicate there are missed features.
 ```{r}
-y_rep <- as.matrix(ar_2_stan_fit, pars = "y_rep")
+y_rep <- as.matrix(ar_1_stan_fit, pars = "y_rep")[,seq_along(sunspot.year)]
 ## Density overlay
 ppc_dens_overlay(y = as.numeric(sunspot.year),
                  yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ])

@@ -4,6 +4,8 @@ data {
     int<lower=0> p;
     real init_mean[p];
     real<lower=0> init_sd[p];
+    real theta0_mean;
+    real<lower=0> theta0_sd;
     real theta_mean[p];
     real<lower=0> theta_sd[p];
     real<lower=0> sigma_mean;
@@ -20,6 +22,7 @@ transformed data {
 }
 
 parameters {
+    real theta0;
     real theta[p];
     real<lower=0> sigma;
 }
@@ -30,6 +33,7 @@ transformed parameters {
 
 model {
     // Priors
+    target += normal_lpdf(theta0 | theta0_mean, theta0_sd);
     for (i in 1:p) {
         target += normal_lpdf(theta[i] | theta_mean[i], theta_sd[i]);
     }
@@ -42,7 +46,7 @@ model {
     for (t in (p + 1):N) {
         real m_t = 0;
         for (i in 1:p) {
-            m_t += theta[i] * y[t - i];
+            m_t += theta0 + theta[i] * y[t - i];
         }
         target += normal_lpdf(y[t] | m_t, sigma);
     }
@@ -57,7 +61,7 @@ generated quantities {
     for (t in (p + 1):(N + K)) {
         real m_t = 0;
         for (i in 1:p) {
-            m_t += theta[i] * y_rep[t - i];
+            m_t += theta0 + theta[i] * y_rep[t - i];
         }
         y_rep[t] = normal_rng(m_t, sigma);
     }

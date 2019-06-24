@@ -82,6 +82,8 @@ ar_1_stan_fit <-
                     data = list(p = 1,
                                 init_mean = as.array(c(0)),
                                 init_sd = as.array(c(100)),
+                                theta0_mean = 0,
+                                theta0_sd = 100,
                                 theta_mean = as.array(c(0)),
                                 theta_sd = as.array(c(100)),
                                 sigma_mean = 0,

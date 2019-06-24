@@ -67,21 +67,32 @@ model {
 }
 
 generated quantities {
+    // Use all N observed y's for these.
     real m_rep[N + K];
     real y_rep[N + K];
+    // Use only first p observed y's for these.
+    real m_new[N + K];
+    real y_new[N + K];
     // The first p y's are not modeled, so just set to what they are.
     for (t in 1:p) {
         m_rep[t] = y[t];
         y_rep[t] = y[t];
+        m_new[t] = y[t];
+        y_new[t] = y[t];
     }
     // AR(p) prediction based on observed y's and
     for (t in (p + 1):(N + K)) {
         m_rep[t] = theta0;
+        m_new[t] = theta0;
         for (i in 1:p) {
             // Calculate m_rep using observed y's.
             m_rep[t] += theta[i] * y[t - i];
+            // Calculate m_new using generated y's except for the first p.
+            m_new[t] += theta[i] * y_new[t - i];
         }
         // Randomly generate y_rep[t] based on the calculated m_rep[t].
         y_rep[t] = normal_rng(m_rep[t], sigma);
+        // Randomly generate y_new[t] based on the calculated m_new[t].
+        y_new[t] = normal_rng(m_new[t], sigma);
     }
 }

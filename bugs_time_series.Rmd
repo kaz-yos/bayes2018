@@ -40,13 +40,9 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## References
 - Online
-  - [Stan Leukemia example](https://github.com/stan-dev/example-models/blob/master/bugs_examples/vol1/leuk/leuk.stan)
-  - [Stan for survival models](https://discourse.mc-stan.org/t/stan-for-survival-models/4146)
-  - [PyMC3 Bayesian Survival Analysis](https://docs.pymc.io/notebooks/survival_analysis.html)
-  - [Piece-Wise Exponential Model](http://data.princeton.edu/wws509/notes/c7s4.html)
-  - [Stan-dev Prior Choice Recommendations](https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations)
 - Books
   - [(BUGS) The BUGS Book: A Practical Introduction to Bayesian Analysis](https://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-the-bugs-book/) 11.2 Time series models
+  - [Introductory Time Series with R](https://www.springer.com/gp/book/9780387886978)
 
 
 ## Load packages

@@ -2,8 +2,7 @@ data {
     // Hyperparameters
     // AR(p)
     int<lower=0> p;
-    real init_mean[p];
-    real<lower=0> init_sd[p];
+    real<lower=0> epsilon_sd[p];
     real theta0_mean;
     real<lower=0> theta0_sd;
     real theta_mean[p];
@@ -25,44 +24,64 @@ parameters {
     real theta0;
     real theta[p];
     real<lower=0> sigma;
+    real epsilon[p];
 }
 
 transformed parameters {
-
+    // Mean function
+    real m[N];
+    // Define the first p elements through errors.
+    // Then define priors for epsilon. Data do not inform these.
+    for (t in 1:p) {
+        m[t] = y[t] - epsilon[t];
+    }
+    // Define the rest through AR(p)
+    for (t in (p + 1):N) {
+        m[t] = theta0;
+        for (i in 1:p) {
+            m[t] += theta[i] * y[t - i];
+        }
+    }
 }
 
 model {
     // Priors
+    // theta0
     target += normal_lpdf(theta0 | theta0_mean, theta0_sd);
+    // theta array
     for (i in 1:p) {
         target += normal_lpdf(theta[i] | theta_mean[i], theta_sd[i]);
     }
+    // sigma
     target += normal_lpdf(sigma | sigma_mean, sigma_sd);
-    // The first p time points need appropriate vague distributions.
+    // The first p error terms need appropriate prior distributions.
     for (t in 1:p) {
-        target += normal_lpdf(y[t] | init_mean[t], init_sd[t]);
+        target += normal_lpdf(epsilon[t] | 0, epsilon_sd[t]);
     }
-    // AR(p) process
+
+    // Likelihood of AR(p) process
+    // The first p y values do not contribute.
     for (t in (p + 1):N) {
-        real m_t = 0;
-        for (i in 1:p) {
-            m_t += theta0 + theta[i] * y[t - i];
-        }
-        target += normal_lpdf(y[t] | m_t, sigma);
+        target += normal_lpdf(y[t] | m[t], sigma);
     }
 }
 
 generated quantities {
+    real m_rep[N + K];
     real y_rep[N + K];
+    // The first p y's are not modeled, so just set to what they are.
     for (t in 1:p) {
-        y_rep[t] = normal_rng(init_mean[t], init_sd[t]);
+        m_rep[t] = y[t];
+        y_rep[t] = y[t];
     }
-    // AR(p) process
+    // AR(p) prediction based on observed y's and
     for (t in (p + 1):(N + K)) {
-        real m_t = 0;
+        m_rep[t] = theta0;
         for (i in 1:p) {
-            m_t += theta0 + theta[i] * y_rep[t - i];
+            // Calculate m_rep using observed y's.
+            m_rep[t] += theta[i] * y[t - i];
         }
-        y_rep[t] = normal_rng(m_t, sigma);
+        // Randomly generate y_rep[t] based on the calculated m_rep[t].
+        y_rep[t] = normal_rng(m_rep[t], sigma);
     }
 }

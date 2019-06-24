@@ -85,8 +85,13 @@ generated quantities {
         m_rep[t] = theta0;
         m_new[t] = theta0;
         for (i in 1:p) {
-            // Calculate m_rep using observed y's.
-            m_rep[t] += theta[i] * y[t - i];
+            if (t - i <= N) {
+                // Calculate m_rep using observed y's as long as they are available.
+                m_rep[t] += theta[i] * y[t - i];
+            } else {
+                // Once it's out of bound used the generated values.
+                m_rep[t] += theta[i] * y_rep[t - i];
+            }
             // Calculate m_new using generated y's except for the first p.
             m_new[t] += theta[i] * y_new[t - i];
         }

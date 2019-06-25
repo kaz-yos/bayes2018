@@ -58,10 +58,10 @@ library(bayesplot)
 ```{r}
 data("sunspot.year", package = "datasets")
 sunspot.year
-sunspot_year <- tibble(sun_spot = as.numeric(sunspot.year),
+sunspot_year <- tibble(y = as.numeric(sunspot.year),
                        year = as.integer(time(sunspot.year)))
 sunspot_year
-ggplot(data = sunspot_year, mapping = aes(x = year, y = sun_spot)) +
+ggplot(data = sunspot_year, mapping = aes(x = year, y = y)) +
     geom_point() +
     geom_path() +
     theme_bw() +
@@ -79,6 +79,7 @@ ar_p_stan
 ```
 ### Stan fit
 ```{r, results = "hide"}
+K <- 50
 ar_1_stan_fit <-
     rstan::sampling(ar_p_stan,
                     data = list(p = 1,
@@ -93,7 +94,7 @@ ar_1_stan_fit <-
                                 N = length(sunspot.year),
                                 y = as.numeric(sunspot.year),
                                 yr = as.integer(time(sunspot.year)),
-                                K = 10))
+                                K = K))
 ```
 ### Diagnostics
 Diagnostics indicate the HMC sampler behaved nicely.
@@ -144,6 +145,56 @@ ppc_stat(y = as.numeric(sunspot.year),
          yrep = y_rep,
          stat = function(y) {quantile(y, probs = 0.75)}) +
     labs(title = "75th Percentile")
+```
+If we condition on the observed y's (y_rep), we get excellent prediction. If we condition on the initial value only (y_new), the prediction goes to a stationary state. Once it is over the range of y, the y_rep prediction also goes to the same stationary value.
+```{r}
+plot_data <-
+    bind_rows(sunspot_year %>%
+              rename(value = y) %>%
+              mutate(type = "y"),
+              ##
+              as.data.frame(ar_1_stan_fit, pars = "y_rep") %>%
+              as_tibble() %>%
+              `names<-`(as.character(seq(min(time(sunspot.year)),
+                                         length.out = length(sunspot.year) + K))) %>%
+              gather(key = year, value = value) %>%
+              mutate(year = as.integer(year),
+                     type = "y_rep"),
+              ##
+              as.data.frame(ar_1_stan_fit, pars = "y_new") %>%
+              as_tibble() %>%
+              `names<-`(as.character(seq(min(time(sunspot.year)),
+                                         length.out = length(sunspot.year) + K))) %>%
+              gather(key = year, value = value) %>%
+              mutate(year = as.integer(year),
+                     type = "y_new")) %>%
+    group_by(type, year) %>%
+    summarize(mean = mean(value),
+              `25` = quantile(value, probs = 0.25),
+              `75` = quantile(value, probs = 0.75))
+## Overlay
+ggplot(data = plot_data, mapping = aes(x = year, y = mean, group = type, color = type)) +
+    geom_line() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+## Separate
+ggplot(data = plot_data,
+       mapping = aes(x = year, y = mean, group = type, color = type)) +
+    geom_line() +
+    geom_ribbon(data = plot_data %>%
+                    filter(type != "y"),
+                mapping = aes(ymin = `25`,
+                              ymax = `75`),
+                alpha = 0.5,
+                color = NA) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
 ## AR(2) model

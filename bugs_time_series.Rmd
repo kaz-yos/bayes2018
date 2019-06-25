@@ -99,7 +99,7 @@ ar_1_stan_fit <-
 ### Diagnostics
 Diagnostics indicate the HMC sampler behaved nicely.
 ```{r}
-relevant_pars <- c("theta0","theta","sigma","epsilon","lp__")
+relevant_pars <- c("theta0","theta","sigma","lp__")
 ## Print a summary for a fitted model represented by a 'stanfit' object
 print(ar_1_stan_fit, pars = relevant_pars)
 ## Check HMC diagnostics after sampling
@@ -265,7 +265,7 @@ ppc_stat(y = as.numeric(sunspot.year),
          stat = function(y) {quantile(y, probs = 0.75)}) +
     labs(title = "75th Percentile")
 ```
-If we condition on the observed y's (y_rep), we get excellent prediction. If we condition on the initial value only (y_new), the prediction goes to a stationary state. Once it is over the range of y, the y_rep prediction also goes to the same stationary value.
+If we condition on the observed y's (y_rep), we get excellent prediction. If we condition on the initial two values only (y_new), the prediction goes to a stationary state. Once it is over the range of y, the y_rep prediction also goes to the same stationary value.
 ```{r}
 plot_data <-
     bind_rows(sunspot_year %>%
@@ -281,6 +281,125 @@ plot_data <-
                      type = "y_rep"),
               ##
               as.data.frame(ar_2_stan_fit, pars = "y_new") %>%
+              as_tibble() %>%
+              `names<-`(as.character(seq(min(time(sunspot.year)),
+                                         length.out = length(sunspot.year) + K))) %>%
+              gather(key = year, value = value) %>%
+              mutate(year = as.integer(year),
+                     type = "y_new")) %>%
+    group_by(type, year) %>%
+    summarize(mean = mean(value),
+              `25` = quantile(value, probs = 0.25),
+              `75` = quantile(value, probs = 0.75))
+## Overlay
+ggplot(data = plot_data, mapping = aes(x = year, y = mean, group = type, color = type)) +
+    geom_line() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+## Separate
+ggplot(data = plot_data,
+       mapping = aes(x = year, y = mean, group = type, color = type)) +
+    geom_line() +
+    geom_ribbon(data = plot_data %>%
+                    filter(type != "y"),
+                mapping = aes(ymin = `25`,
+                              ymax = `75`),
+                alpha = 0.5,
+                color = NA) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+```
+
+## AR(5) model
+### Stan fit
+```{r, results = "hide"}
+ar_5_stan_fit <-
+    rstan::sampling(ar_p_stan,
+                    data = list(p = 5,
+                                epsilon_sd = rep(100,5),
+                                theta0_mean = 0,
+                                theta0_sd = 100,
+                                theta_mean = rep(0,5),
+                                theta_sd = rep(100,5),
+                                sigma_mean = 0,
+                                sigma_sd = 100,
+                                ##
+                                N = length(sunspot.year),
+                                y = as.numeric(sunspot.year),
+                                yr = as.integer(time(sunspot.year)),
+                                K = K))
+```
+### Diagnostics
+Diagnostics indicate the HMC sampler behaved nicely. However, we observe that two theta parameters are correlated, which may be improved by reparametrization.
+```{r}
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(ar_5_stan_fit, pars = relevant_pars)
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(ar_5_stan_fit)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(ar_5_stan_fit, pars = relevant_pars)
+## Explicity specify HMC diagnostics
+bayesplot::mcmc_scatter(as.array(ar_5_stan_fit),
+                        pars = c("theta[1]", "sigma"),
+                        transform = list("sigma" = log),
+                        np = nuts_params(ar_5_stan_fit))
+## Markov chain traceplots
+rstan::traceplot(ar_5_stan_fit, pars = relevant_pars, inc_warmup = FALSE)
+## Trace plots of MCMC draws
+## ‘mcmc_rank_hist()’ Whereas traditional trace plots visualize how
+##      the chains mix over the course of sampling, rank histograms
+##      visualize how the values from the chains mix together in
+##      terms of ranking. An ideal plot would show the rankings
+##      mixing or overlapping in a uniform distribution. See Vehtari
+##      et al. (2019) for details.
+bayesplot::mcmc_rank_hist(ar_5_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(ar_5_stan_fit, regex_pars = c("theta", "sigma"), ref_line = TRUE)
+bayesplot::mcmc_trace_highlight(ar_5_stan_fit, regex_pars = c("theta", "sigma"), highlight = 1)
+```
+### Posterior predictive checks
+Posterior predictive checks indicate there are missed features.
+```{r}
+y_rep <- as.matrix(ar_5_stan_fit, pars = "y_rep")[,seq_along(sunspot.year)]
+## Density overlay
+ppc_dens_overlay(y = as.numeric(sunspot.year),
+                 yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ])
+## Interval
+ppc_intervals(y = as.numeric(sunspot.year),
+              yrep = y_rep[sample(seq_len(nrow(y_rep)), size = 200), ],
+              x = as.integer(time(sunspot.year)),
+              prob = 0.5)
+## Quantiles
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.25)}) +
+    labs(title = "25th Percentile")
+ppc_stat(y = as.numeric(sunspot.year),
+         yrep = y_rep,
+         stat = function(y) {quantile(y, probs = 0.75)}) +
+    labs(title = "75th Percentile")
+```
+If we condition on the observed y's (y_rep), we get excellent prediction. If we condition on the initial values only (y_new), the prediction goes to a stationary state. Once it is over the range of y, the y_rep prediction also goes to the same stationary value.
+```{r}
+plot_data <-
+    bind_rows(sunspot_year %>%
+              rename(value = y) %>%
+              mutate(type = "y"),
+              ##
+              as.data.frame(ar_5_stan_fit, pars = "y_rep") %>%
+              as_tibble() %>%
+              `names<-`(as.character(seq(min(time(sunspot.year)),
+                                         length.out = length(sunspot.year) + K))) %>%
+              gather(key = year, value = value) %>%
+              mutate(year = as.integer(year),
+                     type = "y_rep"),
+              ##
+              as.data.frame(ar_5_stan_fit, pars = "y_new") %>%
               as_tibble() %>%
               `names<-`(as.character(seq(min(time(sunspot.year)),
                                          length.out = length(sunspot.year) + K))) %>%

@@ -305,7 +305,8 @@ $$\begin{align*}
   &\text{Likelihood}\\
   \eta_{i} &= \mathbf{X}_{i}^{T}\boldsymbol{\beta}\\
   \mu_{i} &= e^{\eta_{i}}\\
-  \gamma_{i} | a_{\gamma} &\overset{\text{iid}}{\sim} Gamma(1/a_{\gamma},1/a_{\gamma}) ~~ E[\gamma_{i}] = 1, Var(\gamma_{i}) = a_{\gamma}\\
+  \gamma_{i} | a_{\gamma} &\overset{\text{iid}}{\sim} Gamma(1/a_{\gamma},1/a_{\gamma})
+  ~~ E[\gamma_{i} | a_{\gamma}] = 1, Var(\gamma_{i} | a_{\gamma}) = a_{\gamma}\\
   y_{i} | \gamma_{i},\mu_{i} &\overset{\text{ind}}{\sim} Poisson(\gamma_{i} \mu_{i})\\
   \end{align*}
 $$

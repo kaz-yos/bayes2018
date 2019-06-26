@@ -185,6 +185,8 @@ loo(stan_model_poisson) %T>% plot()
 ```{r}
 ## Posterior predictive check
 bayesplot::pp_check(stan_model_poisson)
+bayesplot::posterior_predict(stan_model_poisson)
+bayesplot::ppc_dens_overlay(y = y, as.matrix(stan_model_poisson, pars = "y_new"))
 ```
 
 ## Poisson model with covariates

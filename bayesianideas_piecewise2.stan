@@ -1,7 +1,7 @@
 data {
     // Hypeparameters for lambda[1]
-    real<lower=0> lambda1_mean;
-    real<lower=0> lambda1_length_w;
+    real<lower=0> w1;
+    real<lower=0> lambda1_star;
     // Hyperparameter for lambda[k]
     real<lower=0> w;
     real<lower=0> lambda_star;
@@ -46,7 +46,7 @@ model {
     // Prior on beta
     target += normal_lpdf(beta | beta_mean, beta_sd);
 
-    // Loop over pieces of time
+    // Loop over pieces of time (intervals).
     for (k in 1:K) {
         // k = 1,2,...,K
         // cutpoints[1] = 0
@@ -56,11 +56,11 @@ model {
         // Prior on lambda
         // BIDA 13.2.5 Priors for lambda
         if (k == 1) {
-            // The first interval requires special handling.
-            target += gamma_lpdf(lambda[1] | lambda1_mean * lambda1_length_w, lambda1_length_w);
+            // The first interval requires special handling when it is empty by design.
+            target += gamma_lpdf(lambda[1] | lambda1_star * length * w1, length * w1);
         } else {
             // Mean lambda_star
-            target += gamma_lpdf(lambda[k] | lambda_star * length * w, length * w);
+            target += gamma_lpdf(lambda[k] | lambda_star  * length * w,  length * w);
         }
 
         // Likelihood contribution

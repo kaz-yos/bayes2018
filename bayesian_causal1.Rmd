@@ -140,6 +140,12 @@ regex_pars <- c("beta")
 bayesplot::mcmc_rank_hist(logit_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 bayesplot::mcmc_rank_overlay(logit_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 ```
+Visualize the conditional treatment effect.
+```{r}
+bayesplot::mcmc_areas(as.matrix(logit_stan_fit),
+                      pars = c("beta[2]"),
+                      prob = 0.9)
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

@@ -1,0 +1,112 @@
+---
+title: "Bayesian Causal Inference"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+-
+
+## Load packages
+Here we use the ```distributed``` that I wrote for a previous simulation project ([Comparison of Privacy-Protecting Analytic and Data-sharing Methods: a Simulation Study](https://github.com/kaz-yos/distributed)).
+```{r}
+library(tidyverse)
+## Simulation suite from
+## https://github.com/kaz-yos/distributed
+## devtools::install_github(repo = "kaz-yos/distributed")
+library(distributed)
+```
+
+## Generate data
+The following function can be used to construct a single dataset with treated and untreated with confounding.
+```
+     GenerateOneCenter(n, AssignCovariates, alphas, betas, survParams)
+
+Arguments:
+
+       n: study site-specific sample size
+
+AssignCovariates: covariate generation functions that takes n and p as
+          the only arguments.
+
+  alphas: parameter vector for treatment model including c(alpha0,
+          alphaX)
+
+   betas: parameter vector for outcome model shared among binary and
+          survival outcome models including ‘c(beta0, betaX, betaA,
+          betaXA)’.
+
+survParams: vector of two. The first element is the baseline hazard of
+          events in the exponential event time outcome model
+          (‘lambda’). The second element is the baseline hazard of
+          censoring in the exponential censoring time model
+          (‘lambda_c’).
+```
+This function call produces both binary and survival outcome. We focus on the binary outcome.
+```{r}
+data1 <-
+    GenerateOneCenter(n = 1000,
+                      AssignCovariates = AssignCovariatesNormBinDefault,
+                      alphas = c(alpha0 = -0.5, alphaX = c(0.5, 0.5)),
+                      betas = c(beta0 = -0.5, betaX = c(0.5, 0.5),
+                                ## Protective effect
+                                betaA = -0.3,
+                                ## No effect (measure) modification
+                                betaXA = c(0, 0)),
+                      survParams = c(lambda = -log(0.95), lambda_c = -log(0.99), Tmax = 1))
+```
+The true data including the counterfactual quantities can be displayed. The overall difference in pY0 (mean probability of response under no treatment) and pY1 (mean probability of response under treatment) is the average treatment effect (ATE). The same thing in the treated (A=1) is the average treatment effect on the treated (ATT). The treatment group difference in pY0 indicates difference in the mean counterfactuals under no treatment. That is, confounding. Similar confounding exhibits in pY1.
+```{r}
+summary(data1, truth = TRUE)
+```
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

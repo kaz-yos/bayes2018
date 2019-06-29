@@ -49,6 +49,8 @@ library(tidyverse)
 ## https://github.com/kaz-yos/distributed
 ## devtools::install_github(repo = "kaz-yos/distributed")
 library(distributed)
+library(rstan)
+library(bayesplot)
 ```
 
 ## Generate data
@@ -93,7 +95,51 @@ The true data including the counterfactual quantities can be displayed. The over
 ```{r}
 summary(data1, truth = TRUE)
 ```
+The data structure is a regular data frame. To ease modeling with Stan, create a model matrix.
+```{r}
+## Each row is c(1, A, X1, X2)
+AX <- model.matrix( ~ A + X1 + X2, data = data1)
+head(AX)
+## Each row is c(1, X1, X2)
+X <- model.matrix( ~ X1 + X2, data = data1)
+head(X)
+## Outcome vector
+y <- data1$Y
+## Treatment vector
+A <- data1$A
+```
 
+## Regular logistic regression
+```{r}
+logit_stan <- rstan::stan_model("./bayesian_causal1_logistic.stan")
+logit_stan
+```
+```{r, results = "hide"}
+logit_stan_fit <-
+    rstan::sampling(logit_stan,
+                    data = list(p = ncol(AX),
+                                beta_mean = c(0, 0, 0, 0),
+                                beta_sd = c(10, 5, 5, 5),
+                                N = nrow(AX),
+                                y = y,
+                                X = AX))
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(logit_stan_fit)
+## Specify relevant parameters
+pars <- c("beta","lp__")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(logit_stan_fit, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(logit_stan_fit, pars = pars)
+## Markov chain traceplots
+rstan::traceplot(logit_stan_fit, pars = pars, inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("beta")
+bayesplot::mcmc_rank_hist(logit_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(logit_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

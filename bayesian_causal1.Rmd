@@ -199,6 +199,14 @@ bayesplot::mcmc_areas(as.matrix(logit_stan_fit),
                       pars = c("beta[2]"),
                       prob = 0.9)
 ```
+Now we can examine the posterior predictive distribution.
+```{r}
+y_rep <- as.matrix(logit_stan_fit, pars = c("y_rep"))
+ppc_dens_overlay(y, y_rep[sample(seq_len(nrow(y_rep)), 200),])
+ppc_stat(y = y, yrep = y_rep, stat = mean)
+```
+ppc_stat shows the summary of the data, which is nicely covered by the posterior predictive counterparts.
+
 
 ## Simple "g-formula"
 Here we simply marginalize over the observed distribution of covariates as our treatment variable is time-fixed. When the treatment variable is time-varying, the treatment strategies (regimes) can involve specification of treatment values at multiple time points. This usually give rise to time-varying confounders that are affected by previous treatment. In this case, post-baseline covariates also need to be modeled. Here we are in a simpler setting.

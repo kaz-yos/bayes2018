@@ -10,6 +10,8 @@ data {
     int<lower=0,upper=1> y[N];
     // Model matrix
     matrix[N,p] X;
+    // Whether to use likelihood
+    int<lower=0,upper=1> use_lik;
 }
 
 transformed data {
@@ -33,9 +35,12 @@ model {
     }
 
     // Likelihood for logistic model
-    for (i in 1:N) {
-        // https://mc-stan.org/docs/2_19/functions-reference/bernoulli-logit-distribution.html
-        target += bernoulli_logit_lpmf(y[i] | eta[i]);
+    // http://modernstatisticalworkflow.blogspot.com/2017/04/an-easy-way-to-simulate-fake-data-from.html?m=1
+    if (use_lik == 1) {
+        for (i in 1:N) {
+            // https://mc-stan.org/docs/2_19/functions-reference/bernoulli-logit-distribution.html
+            target += bernoulli_logit_lpmf(y[i] | eta[i]);
+        }
     }
 }
 

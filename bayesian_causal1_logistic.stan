@@ -51,7 +51,7 @@ generated quantities {
     for (i in 1:N) {
         // Observation level log likelihood
         log_lik[i] = bernoulli_logit_lpmf(y[i] | eta[i]);
-        // Predicted
+        // Predicted (note these are prediction wrt observed assignment)
         y_rep[i] = bernoulli_logit_rng(eta[i]);
     }
 }

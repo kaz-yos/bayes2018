@@ -14,6 +14,8 @@ data {
     int<lower=1> N_new;
     matrix[N_new,p] X0;
     matrix[N_new,p] X1;
+    // Whether to evaluate likelihood
+    int<lower=0,upper=1> use_lik;
 }
 
 transformed data {
@@ -37,9 +39,11 @@ model {
     }
 
     // Likelihood for logistic model
-    for (i in 1:N) {
-        // https://mc-stan.org/docs/2_19/functions-reference/bernoulli-logit-distribution.html
-        target += bernoulli_logit_lpmf(y[i] | eta[i]);
+    if (use_lik == 1) {
+        for (i in 1:N) {
+            // https://mc-stan.org/docs/2_19/functions-reference/bernoulli-logit-distribution.html
+            target += bernoulli_logit_lpmf(y[i] | eta[i]);
+        }
     }
 }
 
@@ -51,4 +55,15 @@ generated quantities {
     real rd = mean(pY1) - mean(pY0);
     // Counterfactual risk ratio
     real<lower=0> rr = mean(pY1) / mean(pY0);
+
+    // Other elements
+    vector[N] log_lik;
+    int<lower=0,upper=1> y_rep[N];
+
+    for (i in 1:N) {
+        // Observation level log likelihood
+        log_lik[i] = bernoulli_logit_lpmf(y[i] | eta[i]);
+        // Predicted (note these are prediction wrt observed assignment)
+        y_rep[i] = bernoulli_logit_rng(eta[i]);
+    }
 }

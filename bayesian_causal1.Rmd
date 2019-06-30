@@ -157,7 +157,13 @@ bayesplot::mcmc_areas(as.matrix(logit_stan_fit_prior),
                       pars = c("beta[2]"),
                       prob = 0.9)
 ```
-exp(10) = 22,026. So this prior may be too diffuse and does not regularize much.
+exp(10) = 22,026. So this prior may be too diffuse and does not regularize much. We can further check the prior predictive distribution.
+```{r}
+y_rep <- as.matrix(logit_stan_fit_prior, pars = c("y_rep"))
+ppc_dens_overlay(y, y_rep[sample(seq_len(nrow(y_rep)), 200),])
+ppc_stat(y = y, yrep = y_rep, stat = mean)
+```
+In this binary outcome setting, the density overlay approach is not very useful. We can use the mean (proportion of 1) as a summary to be compared. Here it should be reasonably broad such that all values are covered. ppc_stat shows the summary of the data, but this should be ignored here.
 
 ### Posterior fit
 ```{r, results = "hide"}

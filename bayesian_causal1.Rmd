@@ -39,7 +39,10 @@ doParallel::registerDoParallel(cores = n_cores)
 ```
 
 ## References
--
+- [Stan (+R) Workshop 2019 at Calvin College](https://rpruim.github.io/StanWorkshop/)
+- [An easy way to simulate fake data from your Stan model](http://modernstatisticalworkflow.blogspot.com/2017/04/an-easy-way-to-simulate-fake-data-from.html?m=1)
+- [A Bayesian approach to the g-formula](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5790647/)
+- [Posterior Predictive Treatment Assignment for Estimating Causal Effects with Limited Overlap](https://arxiv.org/abs/1710.08749)
 
 ## Load packages
 Here we use the ```distributed``` that I wrote for a previous simulation project ([Comparison of Privacy-Protecting Analytic and Data-sharing Methods: a Simulation Study](https://github.com/kaz-yos/distributed)).

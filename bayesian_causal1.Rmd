@@ -123,6 +123,43 @@ as_tibble(data1) %>%
 logit_stan <- rstan::stan_model("./bayesian_causal1_logistic.stan")
 logit_stan
 ```
+### Prior only fit
+```{r, results = "hide"}
+logit_stan_fit_prior <-
+    rstan::sampling(logit_stan,
+                    data = list(p = ncol(AX),
+                                beta_mean = c(0, 0, 0, 0),
+                                beta_sd = c(10, 5, 5, 5),
+                                N = nrow(AX),
+                                y = y,
+                                X = AX,
+                                use_lik = 0))
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(logit_stan_fit_prior)
+## Specify relevant parameters
+pars <- c("beta","lp__")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(logit_stan_fit_prior, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(logit_stan_fit_prior, pars = pars)
+## Markov chain traceplots
+rstan::traceplot(logit_stan_fit_prior, pars = pars, inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("beta")
+bayesplot::mcmc_rank_hist(logit_stan_fit_prior, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(logit_stan_fit_prior, regex_pars = regex_pars, ref_line = TRUE)
+```
+Visualize the conditional treatment effect.
+```{r}
+bayesplot::mcmc_areas(as.matrix(logit_stan_fit_prior),
+                      pars = c("beta[2]"),
+                      prob = 0.9)
+```
+exp(10) = 22,026. So this prior may be too diffuse and does not regularize much.
+
+### Posterior fit
 ```{r, results = "hide"}
 logit_stan_fit <-
     rstan::sampling(logit_stan,
@@ -131,7 +168,8 @@ logit_stan_fit <-
                                 beta_sd = c(10, 5, 5, 5),
                                 N = nrow(AX),
                                 y = y,
-                                X = AX))
+                                X = AX,
+                                use_lik = 1))
 ```
 ```{r}
 ## Check HMC diagnostics after sampling

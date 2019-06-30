@@ -29,7 +29,7 @@ transformed parameters {
   // PS linear predictor
   vector[N] ps_lp = X * alpha;
   // PS
-  vector[N] ps = inv_logit(eta_alpha);
+  vector[N] ps = inv_logit(ps_lp);
 }
 
 model {

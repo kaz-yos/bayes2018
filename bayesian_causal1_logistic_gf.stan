@@ -45,8 +45,8 @@ model {
 
 generated quantities {
     // Counterfactual probability of outcomes
-    vector[N] pY0 = inv_logit(X0 * beta);
-    vector[N] pY1 = inv_logit(X1 * beta);
+    vector[N_new] pY0 = inv_logit(X0 * beta);
+    vector[N_new] pY1 = inv_logit(X1 * beta);
     // Counterfactual risk difference
     real rd = mean(pY1) - mean(pY0);
     // Counterfactual risk ratio

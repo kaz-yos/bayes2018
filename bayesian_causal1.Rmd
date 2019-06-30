@@ -123,7 +123,7 @@ as_tibble(data1) %>%
 logit_stan <- rstan::stan_model("./bayesian_causal1_logistic.stan")
 logit_stan
 ```
-### Prior only fit
+### Prior only fit for prior predictive check
 ```{r, results = "hide"}
 logit_stan_fit_prior <-
     rstan::sampling(logit_stan,
@@ -226,6 +226,53 @@ AX1_ate <- model.matrix( ~ A1 + X1 + X2, data = data1)
 AX0_att <- model.matrix( ~ A0 + X1 + X2, data = subset(data1, A == 1))
 AX1_att <- model.matrix( ~ A1 + X1 + X2, data = subset(data1, A == 1))
 ```
+### Prior predictive
+```{r, results = "hide"}
+logit_gf_stan_ate_fit_prior <-
+    rstan::sampling(logit_gf_stan,
+                    data = list(p = ncol(AX),
+                                beta_mean = c(0, 0, 0, 0),
+                                beta_sd = c(10, 5, 5, 5),
+                                N = nrow(AX),
+                                y = y,
+                                X = AX,
+                                N_new = nrow(AX0_ate),
+                                X0 = AX0_ate,
+                                X1 = AX1_ate,
+                                use_lik = 0))
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(logit_gf_stan_ate_fit_prior)
+## Specify relevant parameters
+pars <- c("beta","lp__")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(logit_gf_stan_ate_fit_prior, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(logit_gf_stan_ate_fit_prior, pars = pars)
+## Markov chain traceplots
+rstan::traceplot(logit_gf_stan_ate_fit_prior, pars = pars, inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("beta")
+bayesplot::mcmc_rank_hist(logit_gf_stan_ate_fit_prior, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(logit_gf_stan_ate_fit_prior, regex_pars = regex_pars, ref_line = TRUE)
+```
+Visualize the marginal treatment effect.
+```{r}
+bayesplot::mcmc_areas(as.matrix(logit_gf_stan_ate_fit_prior),
+                      pars = c("rd"),
+                      prob = 0.9)
+bayesplot::mcmc_areas(as.matrix(logit_gf_stan_ate_fit_prior),
+                      pars = c("rr"),
+                      prob = 0.9)
+bayesplot::mcmc_areas(as.matrix(logit_gf_stan_ate_fit_prior),
+                      pars = c("rr"),
+                      prob = 0.9) +
+    geom_vline(xintercept = 1, alpha = 0.1) +
+    scale_x_continuous(limits = c(0, 25))
+```
+We do not directly specify priors on the marginal treatment effects. These are implied by the priors on the coefficients. So there may be a value in checking the implied priors. Interestingly, the implied prior on the risk difference is quite concentrated around zero difference although the range essentially covers all possible values. The implied prior on the risk ratio also concentrate at 1 (zero difference) although the range is very wide. Another peak near 0 is likely an artifact of the asymmetric scale (vs symmetric log RR scale).
+
 ### ATE estimation
 We estimate the posterior for the ATE here.
 ```{r, results = "hide"}
@@ -239,7 +286,8 @@ logit_gf_stan_ate_fit <-
                                 X = AX,
                                 N_new = nrow(AX0_ate),
                                 X0 = AX0_ate,
-                                X1 = AX1_ate))
+                                X1 = AX1_ate,
+                                use_lik = 1))
 ```
 We first check the soundness of the HMC diagnostics.
 ```{r}
@@ -282,7 +330,7 @@ post_ate %>%
 The last row represents the posterior probability for the counterfactual risk ratio being less than 0.9 (greater than 10% risk reductrion by hypothetical intervention on everyone).
 
 ### ATT estimation
-We estimate the posterior for the ATT here.
+We estimate the posterior for the ATT here. We need to refit the model is we want to calculate the predictions for the manipulated design matrix for the treated individuals in Stan.
 ```{r, results = "hide"}
 logit_gf_stan_att_fit <-
     rstan::sampling(logit_gf_stan,
@@ -294,7 +342,8 @@ logit_gf_stan_att_fit <-
                                 X = AX,
                                 N_new = nrow(AX0_att),
                                 X0 = AX0_att,
-                                X1 = AX1_att))
+                                X1 = AX1_att,
+                                use_lik = 1))
 ```
 We first check the soundness of the HMC diagnostics.
 ```{r}
@@ -335,6 +384,12 @@ post_att %>%
     gather(key = Statement, value = `Posterior Prob.`)
 ```
 The last row represents the posterior probability for the counterfactual risk ratio being less than 0.9 (greater than 10% risk reductrion by hypothetical intervention on treated vs "untreating them"). We did not introduce effect (measure) modification to the data generation mechanism or the design matrix, thus, the results should be similar to the ATE.
+
+
+## Propensity score modeling
+Bayesian approaches to propensity score (PS) are an evolving area of methodological research. Originally, joint simultaneous modeling of a PS model and outcome model was proposed. It was later realized this allowed feedback from the outcome model to the PS model, which is considered inconsistent with the notion of the separation of the design stage and analysis stage.
+
+TO BE CONTINUED...
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

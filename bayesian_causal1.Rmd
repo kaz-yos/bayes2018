@@ -110,6 +110,13 @@ y <- data1$Y
 ## Treatment vector
 A <- data1$A
 ```
+The true conditional effect is the coefficient betaA (log OR). The true marginal causal effects are the following.
+```{r}
+## ATE
+as_tibble(data1) %>%
+    summarize(`True RD` = mean(pY1) - mean(pY0),
+              `True RR` = mean(pY1) / mean(pY0))
+```
 
 ## Regular logistic regression
 ```{r}
@@ -275,7 +282,7 @@ post_att %>%
               `P[RR < 0.9]` = mean(rr < 0.9)) %>%
     gather(key = Statement, value = `Posterior Prob.`)
 ```
-The last row represents the posterior probability for the counterfactual risk ratio being less than 0.9 (greater than 10% risk reductrion by hypothetical intervention on treated vs "untreating them").
+The last row represents the posterior probability for the counterfactual risk ratio being less than 0.9 (greater than 10% risk reductrion by hypothetical intervention on treated vs "untreating them"). We did not introduce effect (measure) modification to the data generation mechanism or the design matrix, thus, the results should be similar to the ATE.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

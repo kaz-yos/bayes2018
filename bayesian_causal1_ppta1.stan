@@ -57,10 +57,10 @@ generated quantities {
   for (i in 1:N) {
     // Observation level log likelihood
     log_lik[i] = ;
-    // Predict treatment assignment
+    // PPTA = Bernoulli realization of PS
     A_tilde[i] = bernoulli_logit_rng(ps_lp);
-    // Inclusion determination
-    S[i] = (A[i] == A_tilde[i]);
+    // Stochastic inclusion if PPTA differs from treatment assignment
+    S[i] = (A_tilde[i] != A[i]);
   }
 
   // Posterior predictive of treatment effect

@@ -11,9 +11,7 @@ data {
   // Design matrix
   matrix[N,p] X;
   // Treatment assignment
-  int<lower=0,upper=1> A;
-  // Outcome
-  int<lower=0,upper=1> y;
+  int<lower=0,upper=1> A[N];
 }
 
 transformed data {
@@ -50,18 +48,17 @@ generated quantities {
   // For loo
   vector[N] log_lik;
   // For posterior predictive treatment assignment (PPTA)
-  int<lower=0,upper=1> A_tilde;
+  int<lower=0,upper=1> A_tilde[N];
   // Selection indicator
-  int<lower=0,upper=1> S;
+  int<lower=0,upper=1> S[N];
 
   for (i in 1:N) {
     // Observation level log likelihood
-    log_lik[i] = ;
+    log_lik[i] = bernoulli_logit_lpmf(A[i] | ps_lp[i]);
     // PPTA = Bernoulli realization of PS
-    A_tilde[i] = bernoulli_logit_rng(ps_lp);
+    A_tilde[i] = bernoulli_logit_rng(ps_lp[i]);
     // Stochastic inclusion if PPTA differs from treatment assignment
+    // S = Bernoulli realization of estimated overlap weights
     S[i] = (A_tilde[i] != A[i]);
   }
-
-  // Posterior predictive of treatment effect
 }

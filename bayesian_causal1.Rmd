@@ -389,10 +389,71 @@ post_att %>%
 The last row represents the posterior probability for the counterfactual risk ratio being less than 0.9 (greater than 10% risk reductrion by hypothetical intervention on treated vs "untreating them"). We did not introduce effect (measure) modification to the data generation mechanism or the design matrix, thus, the results should be similar to the ATE.
 
 
-## Propensity score modeling
-Bayesian approaches to propensity score (PS) are an evolving area of methodological research. Originally, joint simultaneous modeling of a PS model and outcome model was proposed. It was later realized this allowed feedback from the outcome model to the PS model, which is considered inconsistent with the notion of the separation of the design stage and analysis stage.
+## Propensity score modeling via PPTA
+Bayesian approaches to propensity score (PS) are an evolving area of methodological research. Originally, joint simultaneous modeling of a PS model and outcome model was proposed. It was later realized this allowed feedback from the outcome model to the PS model, which is considered inconsistent with the notion of the separation of the design stage and analysis stage. We follow the PPTA method.
 
-TO BE CONTINUED...
+### Design stage
+First, we obtain posterior predictive quantities from the treatment (PS) model. We obtain the posterior predictive PS (distribution of estimated PS). For each PS, PPTA is a Bernoulli realization (binary variable governed by PS). The inclusion indicator variable $S_{i}$ defined as the indicator for disagreement of PPTA and the actual treatment assignment.
+
+```{r}
+ppta1_stan <- rstan::stan_model("./bayesian_causal1_ppta1.stan")
+ppta1_stan
+```
+```{r, results = "hide"}
+ppta1_stan_fit <-
+    rstan::sampling(ppta1_stan,
+                    data = list(p = ncol(X),
+                                alpha_mean = c(0,0,0),
+                                alpha_sd = c(10, 5, 5),
+                                N = nrow(X),
+                                X = X,
+                                A = A,
+                                use_lik = 1))
+```
+The MCMC diagnostics look fine.
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(ppta1_stan_fit)
+## Specify relevant parameters
+pars <- c("alpha","lp__")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(ppta1_stan_fit, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(ppta1_stan_fit, pars = pars)
+## Markov chain traceplots
+rstan::traceplot(ppta1_stan_fit, pars = pars, inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("alpha")
+bayesplot::mcmc_rank_hist(ppta1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(ppta1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
+Now we construct data for the analysis stage using the posterior predictive data.
+```{r}
+data2 <- as.data.frame(ppta1_stan_fit, pars = "S") %>%
+    as_tibble() %>%
+    mutate(iter = seq_len(n())) %>%
+    gather(key = id, value = S, -iter) %>%
+    mutate(id = gsub("S|\\[|\\]","",id) %>%
+               as.integer()) %>%
+    ## Only keep selected rows
+    filter(S == 1) %>%
+    left_join(as_tibble(data1) %>%
+              select(id, A, Y),
+              by = "id") %>%
+    arrange(iter, id) %>%
+    select(-S)
+data2
+data2_nest <- data2 %>%
+    select(-id) %>%
+    group_by(iter) %>%
+    nest()
+data2_nest
+```
+
+### Analysis stage
+```{r}
+rstan::stan_model("")
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

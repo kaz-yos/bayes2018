@@ -1,0 +1,96 @@
+---
+title: "Bayesian Propensity Score"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = FALSE, echo = TRUE,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+## References
+- Papers
+  - [Hoshino 2008. A Bayesian Propensity Score Adjustment for Latent Variable Modeling and MCMC Algorithm](https://www.researchgate.net/publication/223577619_A_Bayesian_propensity_score_adjustment_for_latent_variable_modeling_and_MCMC_algorithm)
+  - [McCandless 2009. ]()
+  - [McCandless 2010. ]()
+  - [Zigler 2017. Posterior Predictive Treatment Assignment for Estimating Causal Effects with Limited Overlap](https://arxiv.org/abs/1710.08749)
+- Stan
+  - [Stan (+R) Workshop 2019 at Calvin College](https://rpruim.github.io/StanWorkshop/)
+  - [An easy way to simulate fake data from your Stan model](http://modernstatisticalworkflow.blogspot.com/2017/04/an-easy-way-to-simulate-fake-data-from.html?m=1)
+
+
+## Load packages
+```{r}
+## random.org
+set.seed(842815442)
+library(tidyverse)
+## Simulation suite from
+## https://github.com/kaz-yos/distributed
+## devtools::install_github(repo = "kaz-yos/distributed")
+library(distributed)
+library(rstan)
+library(bayesplot)
+```
+
+| Paper           | Estim. | Model 1 | PS Use    | Model 2    | Estimand    |
+|-----------------|--------|---------|-----------|------------|-------------|
+| Hoshino 2008    |        |         |           |            |             |
+| McCandless 2009 | Joint  | A~L     | Strata    | Y~A,Strata | Conditional |
+| McCandless 2010 | 2-step | A~L     | Adjust    | Y~A,PS     | Conditional |
+| An 2010         | Joint  |         | Adj,Match |            |             |
+| Kaplan 2012     | 2-step |         |           |            |             |
+| Zigler 2013     |        |         |           |            |             |
+| Chen 2014       | 2-step |         |           |            |             |
+| Saarela 2015    |        |         |           |            |             |
+| Saarela 2016    |        |         |           |            |             |
+| Zigler 2016     |        |         |           |            |             |
+| Zigler 2017     |        |         |           |            | Cond?       |
+| Capistrano 2019 |        |         |           |            | ATE         |
+| Liao 2019       |        |         |           |            |             |
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r}
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

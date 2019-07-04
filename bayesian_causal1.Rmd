@@ -480,7 +480,7 @@ data2_nest_fit <-
                                     use_lik = 1))
     }))
 ```
-We still get the conditional effect $\beta_{2}$ but estimated within a subset of the treated and untreated who are balanced in covariates. This may confer some kind of double robustness, but the PPTA does not mention this. The marginalization using the original covariate distribution is not something the PPTA paper did. Whether this is valid needs investigation.
+We still get the conditional effect $\beta_{2}$ but estimated within a subset of the treated and untreated who are balanced in covariates. This may confer some kind of double robustness, but the PPTA does not mention this. The marginalization using the original covariate distribution is not something the PPTA paper did. This extrapolates inference based on the overlap subset to the entire population. Maybe the marginization should be with respect to each selected subset.
 ```{r}
 post_ppta <- data2_nest_fit %>%
     mutate(fit2 = map(fit, as.data.frame, pars = c("beta[2]","rd","rr"))) %>%

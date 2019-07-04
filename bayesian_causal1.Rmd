@@ -393,8 +393,7 @@ The last row represents the posterior probability for the counterfactual risk ra
 Bayesian approaches to propensity score (PS) are an evolving area of methodological research. Originally, joint simultaneous modeling of a PS model and outcome model was proposed. It was later realized this allowed feedback from the outcome model to the PS model, which is considered inconsistent with the notion of the separation of the design stage and analysis stage. We follow the PPTA method.
 
 ### Design stage
-First, we obtain posterior predictive quantities from the treatment (PS) model. We obtain the posterior predictive PS (distribution of estimated PS). For each PS, PPTA is a Bernoulli realization (binary variable governed by PS). The inclusion indicator variable $S_{i}$ defined as the indicator for disagreement of PPTA and the actual treatment assignment.
-
+First, we obtain posterior predictive quantities from the treatment (PS) model. We obtain the posterior predictive PS (distribution of estimated PS). For each PS, PPTA is a Bernoulli realization (binary variable governed by PS). The inclusion indicator variable $S_{i}$ defined as the indicator for disagreement of PPTA and the actual treatment assignment. This seems to be a Bernoulli realization of the overlap weights.
 ```{r}
 ppta1_stan <- rstan::stan_model("./bayesian_causal1_ppta1.stan")
 ppta1_stan
@@ -435,10 +434,11 @@ data2 <- as.data.frame(ppta1_stan_fit, pars = "S") %>%
     gather(key = id, value = S, -iter) %>%
     mutate(id = gsub("S|\\[|\\]","",id) %>%
                as.integer()) %>%
-    ## Only keep selected rows
+    ## Only keep selected rows.
     filter(S == 1) %>%
     left_join(as_tibble(data1) %>%
-              select(id, A, Y),
+              ## We still need covariates.
+              select(id, X1, X2, A, Y),
               by = "id") %>%
     arrange(iter, id) %>%
     select(-S)
@@ -451,8 +451,71 @@ data2_nest
 ```
 
 ### Analysis stage
+In the analysis stage, an outcome model is fit within each posterior predictive study design (i.e., individuals selected based on each realization of PS). Interestingly, we still need to condition on the covariates to maintain a valid factorization of the joint distribution. Here we additionally try marginalizing the conditional effect using the observed distribution of covariates.
+```{r, results = "hide"}
+data2_nest_fit <-
+    data2_nest %>%
+    ## Random sample some iterations
+    filter(iter %in% sample(iter, size = 10)) %>%
+    mutate(fit = map(data, function(d) {
+        ## Selected versions
+        AX_S <- model.matrix( ~ A + X1 + X2, data = d)
+        ## Each row is c(1, X1, X2)
+        X_S <- model.matrix( ~ X1 + X2, data = d)
+        ## Outcome vector
+        y_S <- d$Y
+        ## Fit
+        rstan::sampling(logit_gf_stan,
+                        data = list(p = ncol(AX_S),
+                                    beta_mean = c(0, 0, 0, 0),
+                                    beta_sd = c(10, 5, 5, 5),
+                                    N = nrow(AX_S),
+                                    y = y_S,
+                                    X = AX_S,
+                                    ## Try marginalizing over the original X
+                                    ## This is not in PPTA paper.
+                                    N_new = nrow(AX),
+                                    X0 = AX0_ate,
+                                    X1 = AX1_ate,
+                                    use_lik = 1))
+    }))
+```
+We still get the conditional effect $\beta_{2}$ but estimated within a subset of the treated and untreated who are balanced in covariates. This may confer some kind of double robustness, but the PPTA does not mention this. The marginalization using the original covariate distribution is not something the PPTA paper did. Whether this is valid needs investigation.
 ```{r}
-rstan::stan_model("")
+post_ppta <- data2_nest_fit %>%
+    mutate(fit2 = map(fit, as.data.frame, pars = c("beta[2]","rd","rr"))) %>%
+    select(-fit, -data) %>%
+    unnest()
+## Conditional effect is what the PPTA paper does.
+ggplot(data = post_ppta, mapping = aes(x = `beta[2]`)) +
+    geom_density() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+## These two are marginized over original X.
+ggplot(data = post_ppta, mapping = aes(x = rd)) +
+    geom_density() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+ggplot(data = post_ppta, mapping = aes(x = rd)) +
+    geom_density() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
+##
+post_ppta %>%
+    summarize(`P[RD < 0]` = mean(rd < 0),
+              `P[RD < -0.05]` = mean(rd < -0.05),
+              `P[RR < 1.0]` = mean(rr < 1.0),
+              `P[RR < 0.9]` = mean(rr < 0.9)) %>%
+    gather(key = Statement, value = `Posterior Prob.`)
 ```
 
 --------------------

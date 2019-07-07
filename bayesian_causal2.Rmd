@@ -62,9 +62,12 @@ library(rstan)
 library(bayesplot)
 ```
 
-| Paper           | Estim. | Model 1 | PS Use    | Model 2    | Estimand    |
+## Existing methods
+Multiple papers have proposed various Bayesian propensity score methods.
+
+| Paper           | Type   | Model 1 | PS Use    | Model 2    | Estimand    |
 |-----------------|--------|---------|-----------|------------|-------------|
-| Hoshino 2008    |        |         |           |            |             |
+| Hoshino 2008    | Joint  | A~L     | Weight    |            |             |
 | McCandless 2009 | Joint  | A~L     | Strata    | Y~A,Strata | Conditional |
 | McCandless 2010 | 2-step | A~L     | Adjust    | Y~A,PS     | Conditional |
 | An 2010         | Joint  |         | Adj,Match |            |             |
@@ -74,7 +77,7 @@ library(bayesplot)
 | Saarela 2015    |        |         |           |            |             |
 | Saarela 2016    |        |         |           |            |             |
 | Zigler 2016     |        |         |           |            |             |
-| Zigler 2017     |        |         |           |            | Cond?       |
+| Zigler 2017     |        |         |           |            | Cond? ATO   |
 | Capistrano 2019 |        |         |           |            | ATE         |
 | Liao 2019       |        |         |           |            |             |
 

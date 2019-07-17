@@ -47,6 +47,7 @@ doParallel::registerDoParallel(cores = n_cores)
 ## Load packages
 ```{r}
 library(tidyverse)
+library(rstan)
 ```
 
 ## Load data
@@ -54,7 +55,6 @@ Based on the "Repeated Measures Modeling With PROC MIXED", we will use the pig w
 ```{r}
 data(pig.weights, package = "SemiPar")
 pig.weights <- as_tibble(pig.weights)
-
 pig.weights %>%
     group_by(id.num) %>%
     summarize(cluster_size = n()) %>%
@@ -69,6 +69,13 @@ ggplot(data = pig.weights, mapping = aes(x = num.weeks, y = weight, group = id.n
           legend.key = element_blank(),
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
+```
+We will use a matrix version as it is a balanced design data.
+```{r}
+pig.weights_wide <- pig.weights %>%
+    spread(key = id.num, value = weight)
+pig.weights_mat <- as.matrix(pig.weights_wide[,-1])
+dim(pig.weights_mat)
 ```
 
 Let $Y_{ij}$ be the weight measurement on the i-th pig (i = 1, ..., I = 48) at j-th week (j = 1, ..., J = 9). For each individual i, we have a vector-valued outcome $\mathbf{Y}_{i}$ ($J\times1$). Across individuals these vector-valued outcomes are independent and identically distributed with a mean vector $\boldsymbol{\mu}$ and a covariance matrix $\boldsymbol{\Sigma}$. In the following, we will assume multivariate normality.
@@ -88,6 +95,21 @@ $$\begin{align*}
   \end{align*}
 $$
 In this model, we do not have any constraint on the mean vector because of the categorically specified Week variable. Thus, $\boldsymbol{\mu}$ has 9 free parameters. Also the covariance matrix is unstructured with the only constraint being symmetry and positive definiteness. Thus, $\boldsymbol{\Sigma}$ has 9 diagonal (variance) and 36 off-diagonal (covariance) free parameters.
+
+```{r}
+unstr_stan <- rstan::stan_model(file = "./proc_mixed_repeated_unstr.stan")
+unstr_stan
+```
+```{r, results="hide"}
+unstr_stan_fit <-
+    rstan::sampling(object = unstr_stan,
+                    data = list(I = 48,
+                                J = 9,
+                                Mu_means = rep(0,9),
+                                Mu_sds = rep(10,9),
+                                weight = pig.weights_mat,
+                                use_lik = 1))
+```
 
 ### Autoregressive (Order 1) covariance structure
 ```

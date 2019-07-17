@@ -50,15 +50,59 @@ library(tidyverse)
 ```
 
 ## Load data
-We used the pig weight data. It is a balanced design measurements of weights over 9 weeks on 48 pigs.
+Based on the "Repeated Measures Modeling With PROC MIXED", we will use the pig weight data. It is a balanced design measurements of weights over 8 weeks (9 measurements) on 48 pigs.
 ```{r}
 data(pig.weights, package = "SemiPar")
 pig.weights <- as_tibble(pig.weights)
+
 pig.weights %>%
-  group_by(id.num) %>%
-  summarize(n = n())
+    group_by(id.num) %>%
+    summarize(cluster_size = n()) %>%
+    group_by(cluster_size) %>%
+    summarise(n_clusters = n())
+```
+```{r}
+ggplot(data = pig.weights, mapping = aes(x = num.weeks, y = weight, group = id.num)) +
+    geom_line() +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5),
+          legend.key = element_blank(),
+          plot.title = element_text(hjust = 0.5),
+          strip.background = element_blank())
 ```
 
+Let $Y_{ij}$ be the weight measurement on the i-th pig (i = 1, ..., I = 48) at j-th week (j = 1, ..., J = 9). For each individual i, we have a vector-valued outcome $\mathbf{Y}_{i}$ ($J\times1$). Across individuals these vector-valued outcomes are independent and identically distributed with a mean vector $\boldsymbol{\mu}$ and a covariance matrix $\boldsymbol{\Sigma}$. In the following, we will assume multivariate normality.
+
+## Correlated Errors
+### Unstructured covariance structure
+```
+Proc Mixed Data=Pigs Update;
+    Class Week;
+    Model Weight = Week / DDFM=KenwardRoger;
+    Repeated Week / Subject=Pig Type=UN HLM R RCorr RI;
+    LSMeans Week;
+Run;
+```
+$$\begin{align*}
+  \mathbf{Y}_{i} \overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma})
+  \end{align*}
+$$
+In this model, we do not have any constraint on the mean vector because of the categorically specified Week variable. Thus, $\boldsymbol{\mu}$ has 9 free parameters. Also the covariance matrix is unstructured with the only constraint being symmetry and positive definiteness. Thus, $\boldsymbol{\Sigma}$ has 9 diagonal (variance) and 36 off-diagonal (covariance) free parameters.
+
+### Autoregressive (Order 1) covariance structure
+```
+Proc Mixed Data=Pigs Update;
+    Class Week;
+    Model Weight = Week / DDFM=KenwardRoger;
+    Repeated Week / Subject=Pig Type=ARH(1) R RCorr RI;
+    LSMeans Week;
+Run;
+```
+$$\begin{align*}
+  \mathbf{Y}_{i} &\overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma}_{AR})
+  \end{align*}
+$$
+The mean specification is the same. Now the variance covariance matrix $\boldsymbol{\Sigma}_{AR}$ is more structured. There are still 9 diagonal (variance) free parameters. The correlation matrix, which determines the off-diagonals along with the variance parameters, has the AR(1) structure. That is, neighboring outcomes (distance 1) within an individual have a correlation of $\rho$. Outcomes with a distance of 2 have a correlation of $\rho^2$. It keeps decaying until $Corr(Y_{i1},Y_{i9}) = \rho^8$. Therefore, the covariance matrix has 10 free parameters.
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

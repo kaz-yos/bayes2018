@@ -181,12 +181,12 @@ $$
 The mean specification is the same. Now the variance covariance matrix $\boldsymbol{\Sigma}_{AR}$ is more structured. There are still 9 diagonal (variance) parameters. The correlation matrix, which determines the off-diagonals along with the variance parameters, has the AR(1) structure. That is, neighboring outcomes (distance 1) within an individual have a correlation of $\rho$. Outcomes with a distance of 2 have a correlation of $\rho^2$. It keeps decaying until $Corr(Y_{i1},Y_{i9}) = \rho^8$. Therefore, the covariance matrix has 10 parameters.
 
 ```{r}
-ar1_stan <- rstan::stan_model(file = "./proc_mixed_repeated_ar.stan")
-ar1_stan
+arh1_stan <- rstan::stan_model(file = "./proc_mixed_repeated_arh1.stan")
+arh1_stan
 ```
 ```{r, results="hide"}
-ar1_stan_fit <-
-    rstan::sampling(object = ar1_stan,
+arh1_stan_fit <-
+    rstan::sampling(object = arh1_stan,
                     data = list(I = 48,
                                 J = 9,
                                 Mu_means = rep(0,9),
@@ -199,21 +199,21 @@ ar1_stan_fit <-
 ```
 ```{r}
 ## Check HMC diagnostics after sampling
-rstan::check_hmc_diagnostics(ar1_stan_fit)
+rstan::check_hmc_diagnostics(arh1_stan_fit)
 ## Specify relevant parameters
 pars <- c("lp__","Mu","Sigma")
 ## Print a summary for a fitted model represented by a 'stanfit' object
-print(ar1_stan_fit, pars = pars)
+print(arh1_stan_fit, pars = pars)
 ## Create a matrix of output plots from a 'stanfit' object
-pairs(ar1_stan_fit, pars = c("Mu"))
-pairs(ar1_stan_fit, pars = c("sigma"))
+pairs(arh1_stan_fit, pars = c("Mu"))
+pairs(arh1_stan_fit, pars = c("sigma"))
 ## Markov chain traceplots
-rstan::traceplot(ar1_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
-rstan::traceplot(ar1_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
+rstan::traceplot(arh1_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
+rstan::traceplot(arh1_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
 ## Trace plots of MCMC draws
 regex_pars <- c("Mu")
-bayesplot::mcmc_rank_hist(ar1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
-bayesplot::mcmc_rank_overlay(ar1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_hist(arh1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(arh1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 ```
 
 --------------------

@@ -8,11 +8,13 @@ data {
   // Number of balanced observations within each cluster
   int<lower=1> J;
   // https://mc-stan.org/docs/2_18/stan-users-guide/multivariate-hierarchical-priors-section.html
-  // Hyperparameteres for Mu
+  // Hyperparameters for Mu
   real Mu_means[J];
   real<lower=0> Mu_sds[J];
-  // Hyperparameteres for Sigma
-  // Not done yet
+  // Hyperparameters for sigma
+  real sigma_cauchy_scale[J];
+  // Hyperparameter for L
+  real L_eta;
   // Weight
   matrix[J,I] weight;
   // Whether to evaluate likelihood
@@ -25,22 +27,31 @@ transformed data {
 
 parameters {
   vector[J] Mu;
-  cov_matrix[J] Sigma;
+  // For SD
+  real<lower=0> sigma[J];
+  // For Corr
+  cholesky_factor_corr[J] L;
 }
 
 transformed parameters {
-
+  cov_matrix[J] Sigma;
+  // Cov = daig(SDs) * Corr * daig(SDs)
+  // https://mc-stan.org/docs/2_19/functions-reference/diagonal-matrix-functions.html
+  // https://mc-stan.org/docs/2_19/reference-manual/covariance-matrices-1.html
+  Sigma = diag_matrix(to_vector(sigma)) * (L * L') * diag_matrix(to_vector(sigma));
 }
 
 model {
   // Priors
-  // Mean part
   for (j in 1:J) {
+    // Mean part
     target += normal_lpdf(Mu[j] | Mu_means[j], Mu_sds[j]);
+    // Variance (SD) part
+    // https://mc-stan.org/docs/2_19/functions-reference/cauchy-distribution.html
+    target += cauchy_lpdf(sigma[j] | 0, sigma_cauchy_scale[j]);
   }
-  // Covariance part
-  // Inv-Wishart is typical, but not recommended?
-  // Blank for now.
+  // Corr part
+  target += lkj_corr_cholesky_lpdf(L | L_eta);
 
   // Likelihood
   if (use_lik == 1) {

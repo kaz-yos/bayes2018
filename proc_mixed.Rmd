@@ -43,6 +43,7 @@ doParallel::registerDoParallel(cores = n_cores)
 - https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm
 - https://support.sas.com/resources/papers/proceedings/proceedings/sugi29/188-29.pdf
 - [Pig weights data](http://matt-wand.utsacademics.info/webspr/pig.weights.html)
+  - [(BIDA) Chap 10.3 of Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
 
 ## Load packages
 ```{r}
@@ -52,6 +53,21 @@ library(rstan)
 
 ## Load data
 Based on the "Repeated Measures Modeling With PROC MIXED", we will use the pig weight data. It is a balanced design measurements of weights over 8 weeks (9 measurements) on 48 pigs.
+```
+Pig weight data
+Description:
+     The pig.weights data frame has 9 repeated weight measures on 48
+     pigs.
+Format:
+     This data frame contains the following columns:
+     id.num:    identification number of pig.
+     num.weeks: number of weeks since measurements commenced.
+     weight:    bodyweight of pig "id.num" after "num.weeks" weeks.
+Source:
+     Diggle, P.J., Heagerty, P., Liang, K.-Y. and Zeger, S.L. (2002).
+     _Analysis of Longitudinal Data, Second Edition_, Oxord: Oxford
+     University Press.
+```
 ```{r}
 data(pig.weights, package = "SemiPar")
 pig.weights <- as_tibble(pig.weights)
@@ -61,6 +77,7 @@ pig.weights %>%
     group_by(cluster_size) %>%
     summarise(n_clusters = n())
 ```
+The trajectories are nearly linear within each individual. As often seen in a longitudinal dataset, the variability across individual is greater at a later time point.
 ```{r}
 ggplot(data = pig.weights, mapping = aes(x = num.weeks, y = weight, group = id.num)) +
     geom_line() +
@@ -70,7 +87,15 @@ ggplot(data = pig.weights, mapping = aes(x = num.weeks, y = weight, group = id.n
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
-We will use a matrix version as it is a balanced design data.
+This is numerically seen as follows.
+```{r}
+pig.weights %>%
+    group_by(num.weeks) %>%
+    summarize(mean = mean(weight),
+              var = var(weight),
+              sd = sd(weight))
+```
+We will use a matrix version for model fitting as it is a balanced design data.
 ```{r}
 pig.weights_wide <- pig.weights %>%
     spread(key = id.num, value = weight)
@@ -91,10 +116,10 @@ Proc Mixed Data=Pigs Update;
 Run;
 ```
 $$\begin{align*}
-  \mathbf{Y}_{i} \overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma})
+  \mathbf{Y}_{i}|(\boldsymbol{\mu},\boldsymbol{\Sigma}) \overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma})
   \end{align*}
 $$
-In this model, we do not have any constraint on the mean vector because of the categorically specified Week variable. Thus, $\boldsymbol{\mu}$ has 9 free parameters. Also the covariance matrix is unstructured with the only constraint being symmetry and positive definiteness. Thus, $\boldsymbol{\Sigma}$ has 9 diagonal (variance) and 36 off-diagonal (covariance) free parameters.
+In this model, we do not have any constraint on the mean vector because of the categorically specified Week variable. Thus, $\boldsymbol{\mu}$ has 9 parameters. Also the covariance matrix is unstructured with the only constraint being symmetry and positive definiteness. Thus, $\boldsymbol{\Sigma}$ has 9 diagonal (variance) and 36 off-diagonal (covariance) parameters.
 
 ```{r}
 unstr_stan <- rstan::stan_model(file = "./proc_mixed_repeated_unstr.stan")
@@ -106,9 +131,38 @@ unstr_stan_fit <-
                     data = list(I = 48,
                                 J = 9,
                                 Mu_means = rep(0,9),
-                                Mu_sds = rep(10,9),
+                                Mu_sds = rep(100,9),
+                                sigma_cauchy_scale = rep(100,9),
+                                L_eta = 0.1,
                                 weight = pig.weights_mat,
                                 use_lik = 1))
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(unstr_stan_fit)
+## Specify relevant parameters
+pars <- c("lp__","Mu","Sigma")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(unstr_stan_fit, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(unstr_stan_fit, pars = c("Mu"))
+pairs(unstr_stan_fit, pars = c("sigma"))
+## Markov chain traceplots
+rstan::traceplot(unstr_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
+rstan::traceplot(unstr_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("Mu")
+bayesplot::mcmc_rank_hist(unstr_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(unstr_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
+```{r}
+as.data.frame(unstr_stan_fit, pars = c("Sigma")) %>%
+    as_tibble() %>%
+    gather(key = key, value = value) %>%
+    mutate(key = gsub("Sigma\\[|\\]","",key)) %>%
+    separate(key, c("row","col"), sep = ",") %>%
+    group_by(row,col) %>%
+    summarize(mean = mean(value))
 ```
 
 ### Autoregressive (Order 1) covariance structure
@@ -124,7 +178,43 @@ $$\begin{align*}
   \mathbf{Y}_{i} &\overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma}_{AR})
   \end{align*}
 $$
-The mean specification is the same. Now the variance covariance matrix $\boldsymbol{\Sigma}_{AR}$ is more structured. There are still 9 diagonal (variance) free parameters. The correlation matrix, which determines the off-diagonals along with the variance parameters, has the AR(1) structure. That is, neighboring outcomes (distance 1) within an individual have a correlation of $\rho$. Outcomes with a distance of 2 have a correlation of $\rho^2$. It keeps decaying until $Corr(Y_{i1},Y_{i9}) = \rho^8$. Therefore, the covariance matrix has 10 free parameters.
+The mean specification is the same. Now the variance covariance matrix $\boldsymbol{\Sigma}_{AR}$ is more structured. There are still 9 diagonal (variance) parameters. The correlation matrix, which determines the off-diagonals along with the variance parameters, has the AR(1) structure. That is, neighboring outcomes (distance 1) within an individual have a correlation of $\rho$. Outcomes with a distance of 2 have a correlation of $\rho^2$. It keeps decaying until $Corr(Y_{i1},Y_{i9}) = \rho^8$. Therefore, the covariance matrix has 10 parameters.
+
+```{r}
+ar1_stan <- rstan::stan_model(file = "./proc_mixed_repeated_ar.stan")
+ar1_stan
+```
+```{r, results="hide"}
+ar1_stan_fit <-
+    rstan::sampling(object = ar1_stan,
+                    data = list(I = 48,
+                                J = 9,
+                                Mu_means = rep(0,9),
+                                Mu_sds = rep(100,9),
+                                sigma_cauchy_scale = rep(100,9),
+                                rho_a = 1,
+                                rho_b = 1,
+                                weight = pig.weights_mat,
+                                use_lik = 1))
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(ar1_stan_fit)
+## Specify relevant parameters
+pars <- c("lp__","Mu","Sigma")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(ar1_stan_fit, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(ar1_stan_fit, pars = c("Mu"))
+pairs(ar1_stan_fit, pars = c("sigma"))
+## Markov chain traceplots
+rstan::traceplot(ar1_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
+rstan::traceplot(ar1_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("Mu")
+bayesplot::mcmc_rank_hist(ar1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(ar1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
 
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/

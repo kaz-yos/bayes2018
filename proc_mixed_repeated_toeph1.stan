@@ -31,13 +31,17 @@ parameters {
   // For SD
   real<lower=0> sigma[J];
   // For Corr
-  real<lower=0,upper=1> rho[J-1];
+  real<lower=0,upper=1> rho_raw[J-1];
 }
 
 transformed parameters {
+  real<lower=-1,upper=1> rho[J-1];
   corr_matrix[J] Corr;
   cov_matrix[J] Sigma;
   // Populate the correlation matrix with the Toeplitz structure.
+  for (j in 1:(J-1)) {
+    rho[j] = 2 * rho_raw[j] - 1;
+  }
   for (i in 1:J) {
     for (j in 1:J) {
       if (i == j) {
@@ -67,7 +71,7 @@ model {
   }
   // Corr part
   for (j in 1:(J-1)) {
-    target += beta_lpdf(rho[j] | rho_a[j], rho_b[j]);
+    target += beta_lpdf(rho_raw[j] | rho_a[j], rho_b[j]);
   }
 
   // Likelihood

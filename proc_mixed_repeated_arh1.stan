@@ -30,14 +30,16 @@ parameters {
   vector[J] Mu;
   // For SD
   real<lower=0> sigma[J];
-  // For Corr
-  real<lower=0,upper=1> rho;
+  // For Corr [0,1].
+  real<lower=0,upper=1> rho_raw;
 }
 
 transformed parameters {
+  real<lower=-1,upper=1> rho;
   corr_matrix[J] Corr;
   cov_matrix[J] Sigma;
   // Populate the correlation matrix with the AR(1) structure.
+  rho = 2 * rho_raw - 1;
   for (i in 1:J) {
     for (j in 1:J) {
       Corr[i,j] = rho^abs(i-j);
@@ -60,7 +62,7 @@ model {
     target += cauchy_lpdf(sigma[j] | 0, sigma_cauchy_scale[j]);
   }
   // Corr part
-  target += beta_lpdf(rho | rho_a, rho_b);
+  target += beta_lpdf(rho_raw | rho_a, rho_b);
 
   // Likelihood
   if (use_lik == 1) {

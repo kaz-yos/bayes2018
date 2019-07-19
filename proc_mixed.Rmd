@@ -42,14 +42,20 @@ doParallel::registerDoParallel(cores = n_cores)
 SAS PROC MIXED is a powerful procedure for Gaussian data which conducts linear mixed models through the RANDOM statement. Using the RANDOM statement in isolation, the residuals conditional on the random effects are assumed to be independent within each individual, $\sigma^2\mathbf{I}$. Additionally, this procedure can model the covariance of residuals through the REPEATED statement. This can be used in isolation, which gives multivariate normal models, not mixed effects models. It can also be combined with the RANDOM statement to model the remaining dependent structure in the conditional residuals. Here we will examine what these mean by implementing comparable Bayesian models in Stan.
 
 ## References
-- [Repeated Measures Modeling With PROC MIXED](https://support.sas.com/resources/papers/proceedings/proceedings/sugi29/188-29.pdf)
-- [RANDOM and REPEATED statements - How to Use Them to Model the Covariance Structure in Proc Mixed](https://www.mwsug.org/proceedings/2007/stats/MWSUG-2007-S02.pdf)
-- [Overview: MIXED Procedure](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect001.htm)
-- [SAS PROC MIXED RANDOM statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect018.htm)
-- [SAS PROC MIXED REPEATED statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
-- [SAS Table 56.15 Covariance Structure Examples](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
-- [Pig weights data](http://matt-wand.utsacademics.info/webspr/pig.weights.html)
-- [(BIDA) Chap 10.3 of Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+- SAS papers
+  - [Repeated Measures Modeling With PROC MIXED](https://support.sas.com/resources/papers/proceedings/proceedings/sugi29/188-29.pdf)
+  - [RANDOM and REPEATED statements - How to Use Them to Model the Covariance Structure in Proc Mixed](https://www.mwsug.org/proceedings/2007/stats/MWSUG-2007-S02.pdf)
+- SAS documentation
+  - [Overview: MIXED Procedure](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect001.htm)
+  - [SAS PROC MIXED RANDOM statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect018.htm)
+  - [SAS PROC MIXED REPEATED statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
+  - [SAS Table 56.15 Covariance Structure Examples](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
+- Covariance modeling papers
+  - [Wolfinger 1996. Heterogeneous Variance: Covariance Structures for Repeated Measures](https://www.jstor.org/stable/pdf/1400366.pdf?seq=1#page_scan_tab_contents)
+  - [Littell et al. 2000. TUTORIAL IN BIOSTATISTICS Modelling covariance structure in the analysis of repeated measures data](https://faculty.washington.edu/heagerty/Courses/VA-longitudinal/private/Littell-StatMed2000.pdf)
+- Others
+  - [Pig weights data](http://matt-wand.utsacademics.info/webspr/pig.weights.html)
+  - [(BIDA) Chap 10.3 of Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
 
 ## Load packages
 ```{r}
@@ -58,7 +64,7 @@ library(rstan)
 ```
 
 ## Load data
-Based on the "Repeated Measures Modeling With PROC MIXED", we will use the pig weight data. It is a balanced design measurements of weights over 8 weeks (9 measurements) on 48 pigs.
+Based on the reference "Repeated Measures Modeling With PROC MIXED", we will use the pig weight data. It is a balanced design measurements of weights over 8 weeks (9 measurements) on 48 pigs.
 ```
 Pig weight data
 Description:
@@ -141,6 +147,20 @@ unstr_stan_fit <-
                                 Mu_sds = rep(100,9),
                                 sigma_cauchy_scale = rep(100,9),
                                 L_eta = 0.1,
+                                weight = pig.weights_mat,
+                                use_lik = 1),
+                    chains = n_cores,
+                    cores = n_cores)
+```
+```{r, results="hide"}
+unstr_stan_fit2 <-
+    rstan::sampling(object = unstr_stan,
+                    data = list(I = 48,
+                                J = 9,
+                                Mu_means = rep(0,9),
+                                Mu_sds = rep(100,9),
+                                sigma_cauchy_scale = rep(100,9),
+                                L_eta = 0.01,
                                 weight = pig.weights_mat,
                                 use_lik = 1),
                     chains = n_cores,

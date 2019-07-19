@@ -1,5 +1,5 @@
 ---
-title: "PROC MIXED in Stan"
+title: "SAS PROC MIXED in Stan"
 author: "Kazuki Yoshida"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
@@ -38,12 +38,18 @@ options(cores = n_cores)
 doParallel::registerDoParallel(cores = n_cores)
 ```
 
+## Introduction
+SAS PROC MIXED is a powerful procedure for Gaussian data which conducts linear mixed models through the RANDOM statement. Using the RANDOM statement in isolation, the residuals conditional on the random effects are assumed to be independent within each individual, $\sigma^2\mathbf{I}$. Additionally, this procedure can model the covariance of residuals through the REPEATED statement. This can be used in isolation, which gives multivariate normal models, not mixed effects models. It can also be combined with the RANDOM statement to model the remaining dependent structure in the conditional residuals. Here we will examine what these mean by implementing comparable Bayesian models in Stan.
+
 ## References
-- https://twitter.com/DrSamanthaSeals/status/1151143564094689281
-- https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm
-- https://support.sas.com/resources/papers/proceedings/proceedings/sugi29/188-29.pdf
+- [Repeated Measures Modeling With PROC MIXED](https://support.sas.com/resources/papers/proceedings/proceedings/sugi29/188-29.pdf)
+- [RANDOM and REPEATED statements - How to Use Them to Model the Covariance Structure in Proc Mixed](https://www.mwsug.org/proceedings/2007/stats/MWSUG-2007-S02.pdf)
+- [Overview: MIXED Procedure](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect001.htm)
+- [SAS PROC MIXED RANDOM statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect018.htm)
+- [SAS PROC MIXED REPEATED statement](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
+- [SAS Table 56.15 Covariance Structure Examples](https://support.sas.com/documentation/cdl/en/statug/63033/HTML/default/viewer.htm#statug_mixed_sect019.htm)
 - [Pig weights data](http://matt-wand.utsacademics.info/webspr/pig.weights.html)
-  - [(BIDA) Chap 10.3 of Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
+- [(BIDA) Chap 10.3 of Bayesian Ideas and Data Analysis An Introduction for Scientists and Statisticians](http://blogs.oregonstate.edu/bida/)
 
 ## Load packages
 ```{r}
@@ -87,6 +93,7 @@ ggplot(data = pig.weights, mapping = aes(x = num.weeks, y = weight, group = id.n
           plot.title = element_text(hjust = 0.5),
           strip.background = element_blank())
 ```
+
 This is numerically seen as follows.
 ```{r}
 pig.weights %>%
@@ -135,9 +142,11 @@ unstr_stan_fit <-
                                 sigma_cauchy_scale = rep(100,9),
                                 L_eta = 0.1,
                                 weight = pig.weights_mat,
-                                use_lik = 1))
+                                use_lik = 1),
+                    chains = n_cores,
+                    cores = n_cores)
 ```
-```{r}
+```{r, eval = FALSE}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(unstr_stan_fit)
 ## Specify relevant parameters
@@ -162,10 +171,12 @@ as.data.frame(unstr_stan_fit, pars = c("Sigma")) %>%
     mutate(key = gsub("Sigma\\[|\\]","",key)) %>%
     separate(key, c("row","col"), sep = ",") %>%
     group_by(row,col) %>%
-    summarize(mean = mean(value))
+    summarize(mean = mean(value)) %>%
+    spread(key = col, value = mean)
 ```
 
-### Autoregressive (Order 1) covariance structure
+
+### Heterogeneous variance autoregressive (Order 1) covariance structure
 ```
 Proc Mixed Data=Pigs Update;
     Class Week;
@@ -195,9 +206,11 @@ arh1_stan_fit <-
                                 rho_a = 1,
                                 rho_b = 1,
                                 weight = pig.weights_mat,
-                                use_lik = 1))
+                                use_lik = 1),
+                    chains = n_cores,
+                    cores = n_cores)
 ```
-```{r}
+```{r, eval = FALSE}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(arh1_stan_fit)
 ## Specify relevant parameters
@@ -215,7 +228,92 @@ regex_pars <- c("Mu")
 bayesplot::mcmc_rank_hist(arh1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 bayesplot::mcmc_rank_overlay(arh1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 ```
+The posterior mean of each element of the covariance matrix is the following.
+```{r}
+as.data.frame(arh1_stan_fit, pars = c("Sigma")) %>%
+    as_tibble() %>%
+    gather(key = key, value = value) %>%
+    mutate(key = gsub("Sigma\\[|\\]","",key)) %>%
+    separate(key, c("row","col"), sep = ",") %>%
+    group_by(row,col) %>%
+    summarize(mean = mean(value)) %>%
+    spread(key = col, value = mean)
+```
 
+### Heterogeneous variance Toeplitz covariance structure
+```
+Proc Mixed Data=Pigs Update;
+    Class Week;
+    Model Weight = Week / DDFM=KenwardRoger;
+    Repeated Week / Subject=Pig Type=TOEPH R RCorr RI;
+    LSMeans Week;
+Run;
+```
+$$\begin{align*}
+  \mathbf{Y}_{i} &\overset{\text{iid}}{\sim} MVN(\boldsymbol{\mu},\boldsymbol{\Sigma}_{AR})
+  \end{align*}
+$$
+The mean specification is the same. Now the variance covariance matrix $\boldsymbol{\Sigma}_{AR}$ is more structured. There are still 9 diagonal (variance) parameters. The correlation matrix, which determines the off-diagonals along with the variance parameters, has the AR(1) structure. That is, neighboring outcomes (distance 1) within an individual have a correlation of $\rho$. Outcomes with a distance of 2 have a correlation of $\rho^2$. It keeps decaying until $Corr(Y_{i1},Y_{i9}) = \rho^8$. Therefore, the covariance matrix has 10 parameters.
+
+```{r}
+toeph1_stan <- rstan::stan_model(file = "./proc_mixed_repeated_toeph1.stan")
+toeph1_stan
+```
+```{r, results="hide"}
+toeph1_stan_fit <-
+    rstan::sampling(object = toeph1_stan,
+                    data = list(I = 48,
+                                J = 9,
+                                Mu_means = rep(0,9),
+                                Mu_sds = rep(100,9),
+                                sigma_cauchy_scale = rep(100,9),
+                                rho_a = rep(1,8),
+                                rho_b = rep(1,8),
+                                weight = pig.weights_mat,
+                                use_lik = 1))
+```
+```{r, eval = FALSE}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(toeph1_stan_fit)
+## Specify relevant parameters
+pars <- c("lp__","Mu","Sigma")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(toeph1_stan_fit, pars = pars)
+## Create a matrix of output plots from a 'stanfit' object
+pairs(toeph1_stan_fit, pars = c("Mu"))
+pairs(toeph1_stan_fit, pars = c("sigma"))
+## Markov chain traceplots
+rstan::traceplot(toeph1_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
+rstan::traceplot(toeph1_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("Mu")
+bayesplot::mcmc_rank_hist(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
+
+### Heterogeneous variance antedependence covariance structure
+```
+Proc Mixed Data=Pigs Update;
+    Class Week;
+    Model Weight = Week / DDFM=KenwardRoger;
+    Repeated Week / Subject=Pig Type=ANTE(1) R RCorr RI;
+    LSMeans Week;
+Run;
+```
+
+## Random coefficients
+###
+```
+Proc Sort Data=Pigs;
+    By Pig Week;
+Run;
+   Proc Mixed Data=Pigs Update;
+    Model Weight = Week / Solution OutPM=PAFit OutP=SSFit;
+    Random Intercept Week / Solution Subject=Pig Type=UN G GCorr V VCorr;
+    Estimate "Week 1 Ave Weight" Intercept 1 Week 1;
+    Estimate "Week 9 Ave Weight" Intercept 1 Week 9;
+Run;
+```
 --------------------
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos

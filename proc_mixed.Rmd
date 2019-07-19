@@ -166,13 +166,15 @@ unstr_stan_fit2 <-
                     chains = n_cores,
                     cores = n_cores)
 ```
-```{r, eval = FALSE}
+```{r}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(unstr_stan_fit)
 ## Specify relevant parameters
 pars <- c("lp__","Mu","Sigma")
 ## Print a summary for a fitted model represented by a 'stanfit' object
 print(unstr_stan_fit, pars = pars)
+```
+```{r, eval = FALSE}
 ## Create a matrix of output plots from a 'stanfit' object
 pairs(unstr_stan_fit, pars = c("Mu"))
 pairs(unstr_stan_fit, pars = c("sigma"))
@@ -230,13 +232,15 @@ arh1_stan_fit <-
                     chains = n_cores,
                     cores = n_cores)
 ```
-```{r, eval = FALSE}
+```{r}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(arh1_stan_fit)
 ## Specify relevant parameters
-pars <- c("lp__","Mu","Sigma")
+pars <- c("lp__","Mu","sigma","rho")
 ## Print a summary for a fitted model represented by a 'stanfit' object
 print(arh1_stan_fit, pars = pars)
+```
+```{r, eval = FALSE}
 ## Create a matrix of output plots from a 'stanfit' object
 pairs(arh1_stan_fit, pars = c("Mu"))
 pairs(arh1_stan_fit, pars = c("sigma"))
@@ -292,13 +296,15 @@ toeph1_stan_fit <-
                                 weight = pig.weights_mat,
                                 use_lik = 1))
 ```
-```{r, eval = FALSE}
+```{r}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(toeph1_stan_fit)
 ## Specify relevant parameters
 pars <- c("lp__","Mu","Sigma")
 ## Print a summary for a fitted model represented by a 'stanfit' object
 print(toeph1_stan_fit, pars = pars)
+```
+```{r, eval = FALSE}
 ## Create a matrix of output plots from a 'stanfit' object
 pairs(toeph1_stan_fit, pars = c("Mu"))
 pairs(toeph1_stan_fit, pars = c("sigma"))

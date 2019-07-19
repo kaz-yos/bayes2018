@@ -47,7 +47,6 @@ transformed parameters {
   // https://mc-stan.org/docs/2_19/functions-reference/diagonal-matrix-functions.html
   // https://mc-stan.org/docs/2_19/reference-manual/covariance-matrices-1.html
   Sigma = diag_matrix(to_vector(sigma)) * Corr * diag_matrix(to_vector(sigma));
-  Sigma = diag_matrix(to_vector(sigma)) * Corr * diag_matrix(to_vector(sigma));
 }
 
 model {

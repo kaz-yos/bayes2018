@@ -41,7 +41,7 @@ transformed parameters {
   for (i in 1:J) {
     for (j in 1:J) {
       if (i == j) {
-        // Self
+        // Correlation with self
         Corr[i,j] = 1;
       } else {
         // Otherwise, choose the right rho.
@@ -52,7 +52,6 @@ transformed parameters {
   // Cov = daig(SDs) * Corr * daig(SDs)
   // https://mc-stan.org/docs/2_19/functions-reference/diagonal-matrix-functions.html
   // https://mc-stan.org/docs/2_19/reference-manual/covariance-matrices-1.html
-  Sigma = diag_matrix(to_vector(sigma)) * Corr * diag_matrix(to_vector(sigma));
   Sigma = diag_matrix(to_vector(sigma)) * Corr * diag_matrix(to_vector(sigma));
 }
 

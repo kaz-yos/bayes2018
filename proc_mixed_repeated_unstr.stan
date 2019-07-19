@@ -26,10 +26,11 @@ transformed data {
 }
 
 parameters {
+  // For mean. J parameters.
   vector[J] Mu;
-  // For SD
+  // For SD. J parameters.
   real<lower=0> sigma[J];
-  // For Corr
+  // For Corr. J(J+1)/2 parameters.
   cholesky_factor_corr[J] L;
 }
 

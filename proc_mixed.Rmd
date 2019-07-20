@@ -294,13 +294,17 @@ toeph1_stan_fit <-
                                 rho_a = rep(1,8),
                                 rho_b = rep(1,8),
                                 weight = pig.weights_mat,
-                                use_lik = 1))
+                                use_lik = 1,
+                                debug = 1),
+                    chains = 1,
+                    core = 1,
+                    verbose = TRUE)
 ```
 ```{r}
 ## Check HMC diagnostics after sampling
 rstan::check_hmc_diagnostics(toeph1_stan_fit)
 ## Specify relevant parameters
-pars <- c("lp__","Mu","Sigma")
+pars <- c("lp__","Mu","sigma","rho")
 ## Print a summary for a fitted model represented by a 'stanfit' object
 print(toeph1_stan_fit, pars = pars)
 ```
@@ -315,6 +319,27 @@ rstan::traceplot(toeph1_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
 regex_pars <- c("Mu")
 bayesplot::mcmc_rank_hist(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 bayesplot::mcmc_rank_overlay(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
+```{r}
+toep_matrix <- function(rho) {
+    J <- length(rho) + 1
+    Corr <- diag(rep(1,J))
+    for (i in 1:J) {
+        for (j in 1:J) {
+            if (i != j) {
+                Corr[i,j] = rho[abs(i-j)];
+            }
+        }
+    }
+    eigenCorr <- eigen(Corr)
+    cat("eigenvalues\n", round(eigenCorr$values, 2), "\n")
+    print(round(Corr, 2))
+    invisible(Corr)
+}
+
+toep_matrix(rho = c(0.703512,0.680773,0.648019,0.200236,0.436398,0.386102,0.570181,-0.29229))
+toep_matrix(rho = c(0.363345,-0.432198,0.626475,0.314013,-0.12856,0.754716,0.485452,-0.419303))
+
 ```
 
 ### Heterogeneous variance antedependence covariance structure

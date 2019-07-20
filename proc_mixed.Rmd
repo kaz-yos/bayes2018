@@ -320,6 +320,7 @@ regex_pars <- c("Mu")
 bayesplot::mcmc_rank_hist(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 bayesplot::mcmc_rank_overlay(toeph1_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
 ```
+Note that the above code often fail initialization due to non-positive definite $\Sigma$ matrix. According to BIDA, "it is by no means easy to determine what parameters in a Toeplitz matrix will make it positive definite." The AR(1) correlation structure is a special case of Toeplitz that is better behaved.
 ```{r}
 toep_matrix <- function(rho) {
     J <- length(rho) + 1
@@ -337,9 +338,20 @@ toep_matrix <- function(rho) {
     invisible(Corr)
 }
 
-toep_matrix(rho = c(0.703512,0.680773,0.648019,0.200236,0.436398,0.386102,0.570181,-0.29229))
-toep_matrix(rho = c(0.363345,-0.432198,0.626475,0.314013,-0.12856,0.754716,0.485452,-0.419303))
+junk <-
+    list(c(-0.27238,-0.63162,0.343635,-0.550491,-0.0771603,0.662642,-0.121708,0.591606),
+         c(0.750719,-0.289352,-0.505561,-0.297032,-0.183759,0.630516,0.0928481,-0.708226),
+         c(0.027532,0.512562,0.0760369,-0.595577,0.183281,-0.147529,-0.743481,0.700696),
+         c(0.363345,-0.432198,0.626475,0.314013,-0.12856,0.754716,0.485452,-0.419303),
+         c(0.703512,0.680773,0.648019,0.200236,0.436398,0.386102,0.570181,-0.29229),
+         c(-0.167725,-0.0604907,0.555307,0.0135587,0.0453497,0.016362,-0.0574842,0.125375),
+         c(1,-1,-1,-1,1,1,1,-1)) %>%
+    lapply(toep_matrix)
 
+junk <-
+    list(c(-0.167725,-0.0604907,0.555307,0.0135587,0.0453497,0.016362,-0.0574842,0.125375),
+         c(1,-1,-1,-1,1,1,1,-1)) %>%
+    lapply(toep_matrix)
 ```
 
 ### Heterogeneous variance antedependence covariance structure

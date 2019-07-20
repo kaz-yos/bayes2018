@@ -20,6 +20,8 @@ data {
   matrix[J,I] weight;
   // Whether to evaluate likelihood
   int<lower=0,upper=1> use_lik;
+  // Print debug flag
+  int<lower=0,upper=1> debug;
 }
 
 transformed data {
@@ -36,11 +38,14 @@ parameters {
 
 transformed parameters {
   real<lower=-1,upper=1> rho[J-1];
-  corr_matrix[J] Corr;
-  cov_matrix[J] Sigma;
+  matrix[J,J] Corr;
+  matrix[J,J] Sigma;
   // Populate the correlation matrix with the Toeplitz structure.
   for (j in 1:(J-1)) {
     rho[j] = 2 * rho_raw[j] - 1;
+  }
+  if (debug) {
+    print(rho);
   }
   for (i in 1:J) {
     for (j in 1:J) {
@@ -53,6 +58,7 @@ transformed parameters {
       }
     }
   }
+
   // Cov = daig(SDs) * Corr * daig(SDs)
   // https://mc-stan.org/docs/2_19/functions-reference/diagonal-matrix-functions.html
   // https://mc-stan.org/docs/2_19/reference-manual/covariance-matrices-1.html

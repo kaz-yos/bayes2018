@@ -354,6 +354,57 @@ junk <-
     lapply(toep_matrix)
 ```
 
+### Heterogeneous variance Toeplitz covariance structure (monotone)
+```{r}
+toeph1_monotone_stan <- rstan::stan_model(file = "./proc_mixed_repeated_toeph1_monotone.stan")
+toeph1_monotone_stan
+```
+```{r, results="hide"}
+toeph1_monotone_stan_fit <-
+    rstan::sampling(object = toeph1_monotone_stan,
+                    data = list(I = 48,
+                                J = 9,
+                                Mu_means = rep(0,9),
+                                Mu_sds = rep(100,9),
+                                sigma_cauchy_scale = rep(100,9),
+                                logit_rho_raw_means = rep(0,8),
+                                logit_rho_raw_sds = rep(10,8),
+                                weight = pig.weights_mat,
+                                use_lik = 1,
+                                debug = 0),
+                    chains = n_cores,
+                    core = n_cores,
+                    verbose = FALSE)
+```
+```{r}
+## Check HMC diagnostics after sampling
+rstan::check_hmc_diagnostics(toeph1_monotone_stan_fit)
+## Specify relevant parameters
+pars <- c("lp__","Mu","sigma","rho")
+## Print a summary for a fitted model represented by a 'stanfit' object
+print(toeph1_monotone_stan_fit, pars = pars)
+```
+```{r, eval = FALSE}
+## Create a matrix of output plots from a 'stanfit' object
+pairs(toeph1_monotone_stan_fit, pars = c("Mu"))
+pairs(toeph1_monotone_stan_fit, pars = c("sigma"))
+## Markov chain traceplots
+rstan::traceplot(toeph1_monotone_stan_fit, pars = c("Mu"), inc_warmup = FALSE)
+rstan::traceplot(toeph1_monotone_stan_fit, pars = c("sigma"), inc_warmup = FALSE)
+## Trace plots of MCMC draws
+regex_pars <- c("Mu")
+bayesplot::mcmc_rank_hist(toeph1_monotone_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+bayesplot::mcmc_rank_overlay(toeph1_monotone_stan_fit, regex_pars = regex_pars, ref_line = TRUE)
+```
+```{r}
+junk <-
+    list(c(0.999976,0.999855,0.989584,0.985595,0.983076,0.963894,0.957062,0.727795),
+         c(0.999966,0.999915,0.999876,0.988718,0.977231,0.837068,0.66539,-0.573923),
+         c(0.99973,0.999616,0.999421,0.999257,0.999037,0.998869,0.998635,0.998396)) %>%
+    lapply(toep_matrix)
+```
+
+
 ### Heterogeneous variance antedependence covariance structure
 ```
 Proc Mixed Data=Pigs Update;

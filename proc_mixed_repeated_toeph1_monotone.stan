@@ -14,8 +14,8 @@ data {
   // Hyperparameters for sigma
   real sigma_cauchy_scale[J];
   // Hyperparameter for rho's
-  real<lower=0> rho_a[J-1];
-  real<lower=0> rho_b[J-1];
+  real<lower=0> logit_rho_raw_means[J-1];
+  real<lower=0> logit_rho_raw_sds[J-1];
   // Weight
   matrix[J,I] weight;
   // Whether to evaluate likelihood
@@ -23,6 +23,8 @@ data {
   // Print debug flag
   int<lower=0,upper=1> debug;
 }
+
+
 
 transformed data {
 
@@ -33,7 +35,7 @@ parameters {
   // For SD
   real<lower=0> sigma[J];
   // For Corr. Increasing. Need to reverse.
-  ordered logit_rho_raw[J-1];
+  ordered[J-1] logit_rho_raw;
 }
 
 transformed parameters {
@@ -77,7 +79,7 @@ model {
   }
   // Corr part
   for (j in 1:(J-1)) {
-    target += beta_lpdf(rho_raw[j] | rho_a[j], rho_b[j]);
+    target += normal_lpdf(logit_rho_raw[j] | logit_rho_raw_means[j], logit_rho_raw_sds[j]);
   }
 
   // Likelihood

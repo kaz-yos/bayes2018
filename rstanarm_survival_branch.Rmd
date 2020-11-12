@@ -249,6 +249,8 @@ plot(stan_surv_bspline) + coord_cartesian(ylim = c(0, 0.1))
 
 This baseline hazard estimate with B-spline appears wired. There is a region with a negative hazard, so there is some posterior resurrection happening...
 
+The resurrection issue previously observed seems to have been solved as of 2020-11-12.
+
 
 ### Baseline hazard function comparison
 

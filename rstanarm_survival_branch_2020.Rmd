@@ -1,0 +1,281 @@
+---
+title: "rstanarm feature/survival branch"
+author: "Kazuki Yoshida"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output: html_document
+---
+
+```{r rstanarm_survival_branch-1, message = FALSE, tidy = FALSE, echo = F}
+## knitr configuration: http://yihui.name/knitr/options#chunk_options
+library(knitr)
+showMessage <- FALSE
+showWarning <- TRUE
+set_alias(w = "fig.width", h = "fig.height", res = "results")
+opts_chunk$set(comment = "##", error= TRUE, warning = showWarning, message = showMessage,
+               tidy = FALSE, cache = F, echo = T,
+               fig.width = 7, fig.height = 7, dev.args = list(family = "sans"))
+## for rgl
+## knit_hooks$set(rgl = hook_rgl, webgl = hook_webgl)
+## for animation
+opts_knit$set(animation.fun = hook_ffmpeg_html)
+## R configuration
+options(width = 116, scipen = 5)
+## Record start time
+start_time <- Sys.time()
+## Configure parallelization
+## Parallel backend for foreach (also loads foreach and parallel; includes doMC)
+library(doParallel)
+## Reproducible parallelization
+library(doRNG)
+## Detect core count (Do not use on clusters)
+n_cores <- parallel::detectCores()
+## Used by parallel::mclapply() as default
+options(mc.cores = n_cores)
+## Used by doParallel as default
+options(cores = n_cores)
+## Register doParallel as the parallel backend for foreach
+## http://stackoverflow.com/questions/28989855/the-difference-between-domc-and-doparallel-in-r
+doParallel::registerDoParallel(cores = n_cores)
+```
+
+
+## References
+- rstanarm source files
+  - [rstanarm survival branch](https://github.com/stan-dev/rstanarm/tree/feature/survival)
+  - [rstanarm/R/stan_surv.R](https://github.com/stan-dev/rstanarm/blob/feature/survival/R/stan_surv.R)
+  - [rstanarm/R/posterior_survfit.R](https://github.com/stan-dev/rstanarm/blob/feature/survival/R/posterior_survfit.R)
+
+
+## Load packages
+
+```{r rstanarm_survival_branch-2 }
+library(tidyverse)
+## Install
+## devtools::install_github("stan-dev/rstanarm", ref = "feature/survival", build_vignettes = FALSE)
+library(rstanarm)
+library(tidybayes)
+library(bayesplot)
+library(survival)
+
+set.seed(167268372)
+```
+
+
+## Load dataset
+
+```
+aml                  package:survival                  R Documentation
+Acute Myelogenous Leukemia survival data
+Description:
+     Survival in patients with Acute Myelogenous Leukemia.  The
+     question at the time was whether the standard course of
+     chemotherapy should be extended ('maintainance') for additional
+     cycles.
+Usage:
+     aml
+     leukemia
+Format:
+       time:    survival or censoring time
+       status:  censoring status
+       x:       maintenance chemotherapy given? (factor)
+Source:
+     Rupert G. Miller (1997), _Survival Analysis_.  John Wiley & Sons.
+     ISBN: 0-471-25218-2.
+```
+
+```{r rstanarm_survival_branch-3 }
+data(leukemia, package = "survival")
+leukemia <- as_data_frame(leukemia) %>%
+    mutate(id = seq_len(n())) %>%
+    select(id, everything())
+leukemia
+```
+
+
+## stan_surv
+### Explanation
+The CRAN version of rstanarm currently lacks capabilities for survival models. However, there is currently a feature branch on survival analyses, which we will demonstrate here.
+
+What is most special about survival time modeling is the existence of the baseline hazard function. Frequentist proportional hazards regression (Cox regression) omits estimation of the baseline hazard function using a partial likelihood, from which the baseline hazard function drops out.
+
+In the Bayesian paradigm, we need a full likelihood, resulting in a need to model it one way or another. This survival feature branch of rstanarm supports the following options for the baseline hazard function modeling.
+
+- cubic M-spline
+- cubic B-spline
+- exponential
+- weibull
+- gomperz
+
+```
+#' @param basehaz A character string indicating which baseline hazard to use
+#'   for the event submodel. Current options are:
+#'   \itemize{
+#'     \item \code{"ms"}: a flexible parametric model using cubic M-splines to
+#'     model the baseline hazard. The default locations for the internal knots,
+#'     as well as the basis terms for the splines, are calculated with respect
+#'     to time. If the model does \emph{not} include any time-dependendent
+#'     effects then a closed form solution is available for both the hazard
+#'     and cumulative hazard and so this approach should be relatively fast.
+#'     On the other hand, if the model does include time-dependent effects then
+#'     quadrature is used to evaluate the cumulative hazard at each MCMC
+#'     iteration and, therefore, estimation of the model will be slower.
+#'     \item \code{"bs"}: a flexible parametric model using cubic B-splines to
+#'     model the \emph{log} baseline hazard. The default locations for the
+#'     internal knots, as well as the basis terms for the splines, are calculated
+#'     with respect to time. A closed form solution for the cumulative hazard
+#'     is \strong{not} available regardless of whether or not the model includes
+#'     time-dependent effects; instead, quadrature is used to evaluate
+#'     the cumulative hazard at each MCMC iteration. Therefore, if your model
+#'     does not include any time-dependent effects, then estimation using the
+#'     \code{"ms"} baseline hazard will be faster.
+#'     \item \code{"exp"}: an exponential distribution for the event times.
+#'     (i.e. a constant baseline hazard)
+#'     \item \code{"weibull"}: a Weibull distribution for the event times.
+#'     \item \code{"gompertz"}: a Gompertz distribution for the event times.
+#'   }
+```
+
+### Exponential model
+
+```{r rstanarm_survival_branch-4 }
+stan_surv_exponential <- stan_surv(formula = Surv(time, status) ~ x,
+                                   data = leukemia,
+                                   basehaz = "exp")
+prior_summary(stan_surv_exponential)
+summary(stan_surv_exponential)
+```
+
+It looks like the log baseline hazard appears as the "(Intercept)" since the results are comparable to my previous attempt using the Poisson trick: [Piecewise constant hazard Cox](http://rpubs.com/kaz_yos/surv_stan_piecewise1).
+
+The plot method is designed to give the baseline hazard function
+
+```{r}
+plot(stan_surv_exponential) + coord_cartesian(ylim = c(0, 0.1))
+```
+
+It is a constant in an exponential model.
+
+### Weibull model
+
+```{r rstanarm_survival_branch-5 }
+stan_surv_weibull <- stan_surv(formula = Surv(time, status) ~ x,
+                               data = leukemia,
+                               basehaz = "weibull")
+prior_summary(stan_surv_weibull)
+summary(stan_surv_weibull)
+```
+
+It looks like the Weibull rate parameter appears as the "(Intercept)" and the Weibull shape parameter is handled as an auxiliary parameter with its own prior.
+
+```{r}
+plot(stan_surv_weibull) + coord_cartesian(ylim = c(0, 0.1))
+```
+
+This seems to be an increasing hazard setting with the Weibull fit.
+
+```{r}
+tidybayes::tidy_draws(stan_surv_weibull)
+```
+
+
+### Gompertz model
+
+```{r rstanarm_survival_branch-6 }
+stan_surv_gompertz <- stan_surv(formula = Surv(time, status) ~ x,
+                                data = leukemia,
+                                basehaz = "gompertz")
+prior_summary(stan_surv_gompertz)
+summary(stan_surv_gompertz)
+```
+
+Gompertz with its default configuration did not converge. More investigation is needed.
+
+
+### Cubic M-spline
+
+```{r rstanarm_survival_branch-7 }
+stan_surv_mspline <- stan_surv(formula = Surv(time, status) ~ x,
+                               data = leukemia,
+                               basehaz = "ms")
+prior_summary(stan_surv_mspline)
+summary(stan_surv_mspline)
+```
+
+The default configuration of the spline is explained in the basehaz_ops argument.
+
+```
+#' @param basehaz_ops A named list specifying options related to the baseline
+#'   hazard. Currently this can include: \cr
+#'   \itemize{
+#'     \item \code{df}: a positive integer specifying the degrees of freedom
+#'     for the M-splines or B-splines. An intercept is included in the spline
+#'     basis and included in the count of the degrees of freedom, such that
+#'     two boundary knots and \code{df - 4} internal knots are used to generate
+#'     the cubic spline basis. The default is \code{df = 6}; that is, two
+#'     boundary knots and two internal knots.
+#'     \item \code{knots}: An optional numeric vector specifying internal
+#'     knot locations for the M-splines or B-splines. Note that \code{knots}
+#'     cannot be specified if \code{df} is specified. If \code{knots} are
+#'     \strong{not} specified, then \code{df - 4} internal knots are placed
+#'     at equally spaced percentiles of the distribution of uncensored event
+#'     times.
+#'   }
+#'   Note that for the M-splines and B-splines - in addition to any internal
+#'   \code{knots} - a lower boundary knot is placed at the earliest entry time
+#'   and an upper boundary knot is placed at the latest event or censoring time.
+#'   These boundary knot locations are the default and cannot be changed by the
+#'   user.
+```
+
+```{r}
+plot(stan_surv_mspline) + coord_cartesian(ylim = c(0, 0.1))
+```
+
+With more flexible modeling, the baseline hazard is increasing then decreasing.
+
+
+### Cubic B-spline
+
+```{r rstanarm_survival_branch-8 }
+stan_surv_bspline <- stan_surv(formula = Surv(time, status) ~ x,
+                               data = leukemia,
+                               basehaz = "bs")
+prior_summary(stan_surv_bspline)
+summary(stan_surv_bspline)
+```
+
+```{r}
+plot(stan_surv_bspline) + coord_cartesian(ylim = c(0, 0.1))
+```
+
+This baseline hazard estimate with B-spline appears wired. There is a region with a negative hazard, so there is some posterior resurrection happening...
+
+The resurrection issue previously observed seems to have been solved as of 2020-11-12.
+
+
+### Baseline hazard function comparison
+
+```{r}
+bayesplot::bayesplot_grid(plot(stan_surv_exponential),
+                          plot(stan_surv_weibull),
+                          plot(stan_surv_mspline),
+                          plot(stan_surv_bspline),
+                          ylim = c(-0.01, 0.15))
+```
+
+--------------------
+- Top Page: http://rpubs.com/kaz_yos/
+- Github: https://github.com/kaz-yos
+
+```{r rstanarm_survival_branch-9 }
+print(sessionInfo())
+## Record execution time and multicore use
+end_time <- Sys.time()
+diff_time <- difftime(end_time, start_time, units = "auto")
+cat("Started  ", as.character(start_time), "\n",
+    "Finished ", as.character(end_time), "\n",
+    "Time difference of ", diff_time, " ", attr(diff_time, "units"), "\n",
+    "Used ", foreach::getDoParWorkers(), " cores\n",
+    "Used ", foreach::getDoParName(), " as backend\n",
+    sep = "")
+```

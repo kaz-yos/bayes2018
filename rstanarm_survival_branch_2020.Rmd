@@ -100,11 +100,11 @@ What is most special about survival time modeling is the existence of the baseli
 
 In the Bayesian paradigm, we need a full likelihood, resulting in a need to model it one way or another. This survival feature branch of rstanarm supports the following options for the baseline hazard function modeling.
 
-- cubic M-spline
-- cubic B-spline
+- M-spline (cubic by default)
+- B-spline (cubic by default)
 - exponential
-- weibull
-- gomperz
+- Weibull
+- Gomperz
 
 ```
 #' @param basehaz A character string indicating which baseline hazard to use
@@ -234,6 +234,25 @@ plot(stan_surv_mspline) + coord_cartesian(ylim = c(0, 0.1))
 With more flexible modeling, the baseline hazard is increasing then decreasing.
 
 
+### Degree = 0 M-spline
+
+With degree = 0, we obtain a piecewise constant hazard function.
+
+```{r}
+stan_surv_mspline_degree0 <-
+    stan_surv(formula = Surv(time, status) ~ x,
+              data = leukemia,
+              basehaz = "ms",
+              basehaz_ops = list(degree = 0))
+prior_summary(stan_surv_mspline_degree0)
+summary(stan_surv_mspline_degree0)
+```
+
+```{r}
+plot(stan_surv_mspline_degree0) + coord_cartesian(ylim = c(0, 0.1))
+```
+
+
 ### Cubic B-spline
 
 ```{r rstanarm_survival_branch-8 }
@@ -261,6 +280,33 @@ bayesplot::bayesplot_grid(plot(stan_surv_exponential),
                           plot(stan_surv_mspline),
                           plot(stan_surv_bspline),
                           ylim = c(-0.01, 0.15))
+```
+
+### Predicted survival function comparison
+
+```{r}
+stan_surv_mspline_surv <-
+    posterior_survfit(stan_surv_mspline,
+                      newdata = data.frame(x = c("Maintained",
+                                                 "Nonmaintained")))
+plot(stan_surv_mspline_surv)
+
+stan_surv_bspline_surv <-
+    posterior_survfit(stan_surv_bspline,
+                      newdata = data.frame(x = c("Maintained",
+                                                 "Nonmaintained")))
+plot(stan_surv_bspline_surv)
+
+```
+
+
+
+### Stan implementation
+
+The Stan code under the hood is the following.
+
+```{r}
+rstanarm:::stanmodels$surv
 ```
 
 --------------------

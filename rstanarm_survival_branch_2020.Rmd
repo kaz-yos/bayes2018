@@ -56,6 +56,7 @@ library(rstanarm)
 library(tidybayes)
 library(bayesplot)
 library(survival)
+library(patchwork)
 
 set.seed(167268372)
 ```
@@ -285,17 +286,27 @@ bayesplot::bayesplot_grid(plot(stan_surv_exponential),
 ### Predicted survival function comparison
 
 ```{r}
+stan_surv_exponential_surv <-
+    posterior_survfit(stan_surv_exponential,
+                      newdata = data.frame(x = c("Maintained",
+                                                 "Nonmaintained")))
+stan_surv_weibull_surv <-
+    posterior_survfit(stan_surv_weibull,
+                      newdata = data.frame(x = c("Maintained",
+                                                 "Nonmaintained")))
 stan_surv_mspline_surv <-
     posterior_survfit(stan_surv_mspline,
                       newdata = data.frame(x = c("Maintained",
                                                  "Nonmaintained")))
-plot(stan_surv_mspline_surv)
-
 stan_surv_bspline_surv <-
     posterior_survfit(stan_surv_bspline,
                       newdata = data.frame(x = c("Maintained",
                                                  "Nonmaintained")))
-plot(stan_surv_bspline_surv)
+
+(plot(stan_surv_exponential_surv) + labs(title = "Exponential")) /
+    (plot(stan_surv_weibull_surv) + labs(title = "Weibull")) /
+    (plot(stan_surv_mspline_surv) + labs(title = "M Spline")) /
+    (plot(stan_surv_bspline_surv) + labs(title = "B Spline"))
 
 ```
 

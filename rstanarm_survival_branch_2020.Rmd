@@ -5,7 +5,7 @@ date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output: html_document
 ---
 
-```{r rstanarm_survival_branch-1, message = FALSE, tidy = FALSE, echo = F}
+```{r, message = FALSE, tidy = FALSE, echo = F}
 ## knitr configuration: http://yihui.name/knitr/options#chunk_options
 library(knitr)
 showMessage <- FALSE
@@ -48,7 +48,7 @@ doParallel::registerDoParallel(cores = n_cores)
 
 ## Load packages
 
-```{r rstanarm_survival_branch-2 }
+```{r }
 library(tidyverse)
 ## Install
 ## devtools::install_github("stan-dev/rstanarm", ref = "feature/survival", build_vignettes = FALSE)
@@ -83,7 +83,7 @@ Source:
      ISBN: 0-471-25218-2.
 ```
 
-```{r rstanarm_survival_branch-3 }
+```{r }
 data(leukemia, package = "survival")
 leukemia <- as_data_frame(leukemia) %>%
     mutate(id = seq_len(n())) %>%
@@ -137,7 +137,7 @@ In the Bayesian paradigm, we need a full likelihood, resulting in a need to mode
 
 ### Exponential model
 
-```{r rstanarm_survival_branch-4 }
+```{r }
 stan_surv_exponential <- stan_surv(formula = Surv(time, status) ~ x,
                                    data = leukemia,
                                    basehaz = "exp")
@@ -157,7 +157,7 @@ It is a constant in an exponential model.
 
 ### Weibull model
 
-```{r rstanarm_survival_branch-5 }
+```{r }
 stan_surv_weibull <- stan_surv(formula = Surv(time, status) ~ x,
                                data = leukemia,
                                basehaz = "weibull")
@@ -180,7 +180,7 @@ tidybayes::tidy_draws(stan_surv_weibull)
 
 ### Gompertz model
 
-```{r rstanarm_survival_branch-6 }
+```{r }
 stan_surv_gompertz <- stan_surv(formula = Surv(time, status) ~ x,
                                 data = leukemia,
                                 basehaz = "gompertz")
@@ -193,7 +193,7 @@ Gompertz with its default configuration did not converge. More investigation is 
 
 ### Cubic M-spline
 
-```{r rstanarm_survival_branch-7 }
+```{r }
 stan_surv_mspline <- stan_surv(formula = Surv(time, status) ~ x,
                                data = leukemia,
                                basehaz = "ms")
@@ -255,7 +255,7 @@ plot(stan_surv_mspline_degree0) + coord_cartesian(ylim = c(0, 0.1))
 
 ### Cubic B-spline
 
-```{r rstanarm_survival_branch-8 }
+```{r }
 stan_surv_bspline <- stan_surv(formula = Surv(time, status) ~ x,
                                data = leukemia,
                                basehaz = "bs")
@@ -313,7 +313,7 @@ rstanarm:::stanmodels$surv
 - Top Page: http://rpubs.com/kaz_yos/
 - Github: https://github.com/kaz-yos
 
-```{r rstanarm_survival_branch-9 }
+```{r }
 print(sessionInfo())
 ## Record execution time and multicore use
 end_time <- Sys.time()

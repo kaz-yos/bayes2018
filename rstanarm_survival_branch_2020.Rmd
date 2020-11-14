@@ -285,7 +285,7 @@ bayesplot::bayesplot_grid(plot(stan_surv_exponential),
 
 ### Predicted survival function comparison
 
-```{r}
+```{r, h = 10}
 stan_surv_exponential_surv <-
     posterior_survfit(stan_surv_exponential,
                       newdata = data.frame(x = c("Maintained",
